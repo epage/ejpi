@@ -14,12 +14,12 @@
 			"showAllSlices": True,
 		},
 		(0, 1): {
-			"CENTER": {"action": "0b", "type": "text", "text": "0b", },
+			"CENTER": {"action": "0o", "type": "text", "text": "0o", },
 			"NORTH": {"action": "[oct]", "type": "text", "text": "oct", },
 			"showAllSlices": True,
 		},
 		(0, 2): {
-			"CENTER": {"action": "0o", "type": "text", "text": "0o", },
+			"CENTER": {"action": "0b", "type": "text", "text": "0b", },
 			"showAllSlices": True,
 		},
 		(1, 0): {
