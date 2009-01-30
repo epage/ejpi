@@ -1,0 +1,64 @@
+{
+	"name": "Builtins",
+	"dimensions": (4, 3),
+	"keys": {
+		(0, 0): {
+			"CENTER": {"action": "7", "type": "text", "text": "7", },
+			"showAllSlices": True,
+		},
+		(0, 1): {
+			"CENTER": {"action": "8", "type": "text", "text": "8", },
+			"SOUTH": {"action": "[**]", "type": "text", "text": "**", },
+			"showAllSlices": True,
+		},
+		(0, 2): {
+			"CENTER": {"action": "9", "type": "text", "text": "9", },
+			"showAllSlices": True,
+		},
+		(1, 0): {
+			"CENTER": {"action": "4", "type": "text", "text": "4", },
+			"showAllSlices": True,
+		},
+		(1, 1): {
+			"CENTER": {"action": "5", "type": "text", "text": "5", },
+			"EAST": {"action": "[+]", "type": "text", "text": "+", },
+			"WEST": {"action": "[-]", "type": "text", "text": "-", },
+			"NORTH": {"action": "[*]", "type": "text", "text": "*", },
+			"SOUTH": {"action": "[/]", "type": "text", "text": "/", },
+			"showAllSlices": True,
+		},
+		(1, 2): {
+			"CENTER": {"action": "6", "type": "text", "text": "6", },
+			"showAllSlices": True,
+		},
+		(2, 0): {
+			"CENTER": {"action": "1", "type": "text", "text": "1", },
+			"showAllSlices": True,
+		},
+		(2, 1): {
+			"CENTER": {"action": "2", "type": "text", "text": "2", },
+			"NORTH": {"action": "[abs]", "type": "text", "text": "abs", },
+			"showAllSlices": True,
+		},
+		(2, 2): {
+			"CENTER": {"action": "3", "type": "text", "text": "3", },
+			"showAllSlices": True,
+		},
+		(3, 0): {
+			"CENTER": {"action": "[push]", "type": "image", "path": "newline.png", },
+			"NORTH": {"action": "[unpush]", "type": "text", "text": "Undo", },
+			"NORTH_WEST": {"action": "[clear]", "type": "image", "path": "clear.png", },
+			"WEST": {"action": "[backspace]", "type": "image", "path": "backspace.png", },
+			"showAllSlices": False,
+		},
+		(3, 1): {
+			"CENTER": {"action": "0", "type": "text", "text": "0", },
+			"showAllSlices": True,
+		},
+		(3, 2): {
+			"CENTER": {"action": ".", "type": "text", "text": ".", },
+			"NORTH": {"action": "j", "type": "text", "text": "j", },
+			"showAllSlices": True,
+		},
+	},
+}

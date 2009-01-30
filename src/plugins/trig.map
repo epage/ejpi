@@ -1,0 +1,51 @@
+{
+	"name": "Trigonometry",
+	"dimensions": (3, 3),
+	"keys": {
+		(0, 0): {
+			"CENTER": {"action": "[sin]", "type": "text", "text": "sin", },
+			"NORTH": {"action": "[asin]", "type": "text", "text": "asin", },
+			"showAllSlices": False,
+		},
+		(0, 1): {
+			"CENTER": {"action": "[cos]", "type": "text", "text": "cos", },
+			"NORTH": {"action": "[acos]", "type": "text", "text": "acos", },
+			"showAllSlices": False,
+		},
+		(0, 2): {
+			"CENTER": {"action": "[tan]", "type": "text", "text": "tan", },
+			"NORTH": {"action": "[atan]", "type": "text", "text": "atan", },
+			"showAllSlices": False,
+		},
+		(1, 0): {
+			"CENTER": {"action": "[exp]", "type": "text", "text": "exp", },
+			"SOUTH": {"action": "[log]", "type": "text", "text": "log", },
+			"showAllSlices": True,
+		},
+		(1, 1): {
+			"CENTER": {"action": "pi", "type": "text", "text": "pi", },
+			"SOUTH": {"action": "e", "type": "text", "text": "e", },
+			"showAllSlices": True,
+		},
+		(1, 2): {
+			"CENTER": {"action": "[rad]", "type": "text", "text": "rad", },
+			"SOUTH": {"action": "[deg]", "type": "text", "text": "deg", },
+			"showAllSlices": True,
+		},
+		(2, 0): {
+			"CENTER": {"action": "[sinh]", "type": "text", "text": "sinh", },
+			"NORTH": {"action": "[asinh]", "type": "text", "text": "asinh", },
+			"showAllSlices": False,
+		},
+		(2, 1): {
+			"CENTER": {"action": "[cosh]", "type": "text", "text": "cosh", },
+			"NORTH": {"action": "[acosh]", "type": "text", "text": "acosh", },
+			"showAllSlices": False,
+		},
+		(2, 2): {
+			"CENTER": {"action": "[tanh]", "type": "text", "text": "tanh", },
+			"NORTH": {"action": "[atanh]", "type": "text", "text": "atanh", },
+			"showAllSlices": False,
+		},
+	},
+}

@@ -1,0 +1,240 @@
+#!/usr/bin/env python
+
+
+import weakref
+import warnings
+
+from libraries.recipes import algorithms
+import operation
+
+
+__BASE_MAPPINGS = {
+	"0x": 16,
+	"0o": 8,
+	"0b": 2,
+}
+
+
+def parse_number(userInput):
+	try:
+		base = __BASE_MAPPINGS.get(userInput[0:2], 10)
+		if base != 10:
+			userInput = userInput[2:] # Remove prefix
+		value = int(userInput, base)
+		return value, base
+	except ValueError:
+		pass
+
+	try:
+		value = float(userInput)
+		return value, 10
+	except ValueError:
+		pass
+
+	try:
+		value = complex(userInput)
+		return value, 10
+	except ValueError:
+		pass
+
+	raise ValueError('Cannot parse "%s" as a number' % userInput)
+
+
+class ErrorReporting(object):
+
+	def push_message(self, message):
+		raise NotImplementedError
+
+	def push_exception(self, exception):
+		self.push_message(exception.message)
+		warnings.warn(exception, stacklevel=3)
+
+	def pop_message(self):
+		raise NotImplementedError
+
+
+class ErrorIgnore(ErrorReporting):
+
+	def push_message(self, message):
+		pass
+
+	def pop_message(self):
+		pass
+
+
+class ErrorWarning(ErrorReporting):
+
+	def push_message(self, message):
+		warnings.warn(message, stacklevel=2)
+
+	def pop_message(self):
+		pass
+
+
+class AbstractHistory(object):
+	"""
+	Is it just me or is this class name begging for some jokes?
+	"""
+
+	def push(self, node):
+		raise NotImplementedError
+
+	def pop(self):
+		raise NotImplementedError
+
+	def unpush(self):
+		node = self.pop()
+		for child in node.get_children():
+			self.push(child)
+
+	def peek(self):
+		raise NotImplementedError
+
+	def clear(self):
+		raise NotImplementedError
+
+	def __len__(self):
+		raise NotImplementedError
+
+	def __iter__(self):
+		raise NotImplementedError
+
+
+class CalcHistory(AbstractHistory):
+
+	def __init__(self):
+		super(CalcHistory, self).__init__()
+		self.__nodeStack = []
+
+	def push(self, node):
+		assert node is not None
+		self.__nodeStack.append(node)
+		return node
+
+	def pop(self):
+		popped = self.__nodeStack[-1]
+		del self.__nodeStack[-1]
+		return popped
+
+	def peek(self):
+		return self.__nodeStack[-1]
+
+	def clear(self):
+		self.__nodeStack = []
+
+	def __len__(self):
+		return len(self.__nodeStack)
+
+	def __iter__(self):
+		return self.__nodeStack[::-1]
+
+
+class RpnCalcHistory(object):
+
+	def __init__(self, history, entry, errorReporting, constants, operations):
+		self.history = history
+		self.__entry = weakref.ref(entry)
+
+		self.__errorReporter = errorReporting
+		self.__constants = constants
+		self.__operations = operations
+
+		self.__serialRenderer = operation.render_number()
+
+	@property
+	def errorReporter(self):
+		return self.__errorReporter
+
+	@property
+	def OPERATIONS(self):
+		return self.__operations
+
+	@property
+	def CONSTANTS(self):
+		return self.__constants
+
+	def clear(self):
+		self.history.clear()
+		self.__entry().clear()
+
+	def push_entry(self):
+		"""
+		@todo Add operation duplication.  If value is empty, peek at the top
+			item.  If it has children, grab the last one, push it and reapply the
+			operation.  If there are no children then just duplicate the item
+		"""
+
+		value = self.__entry().get_value()
+
+		valueNode = None
+		if 0 < len(value):
+			valueNode = self._parse_value(value)
+			self.history.push(valueNode)
+
+		self.__entry().clear()
+		return valueNode
+
+	def apply_operation(self, Node):
+		try:
+			self.push_entry()
+
+			node = self._apply_operation(Node)
+			return node
+		except StandardError, e:
+			self.errorReporter.push_exception(e)
+			return None
+
+	def serialize_stack(self):
+		serialized = (
+			stackNode.serialize(self.__serialRenderer)
+			for stackNode in self.history
+		)
+		serialized = list(serialized)
+		serialized.reverse()
+		return serialized
+
+	def deserialize_stack(self, data):
+		for possibleNode in data:
+			for nodeValue in possibleNode:
+				if nodeValue in self.OPERATIONS:
+					Node = self.OPERATIONS[nodeValue]
+					self._apply_operation(Node)
+				else:
+					node = self._parse_value(nodeValue)
+					self.history.push(node)
+
+	def _parse_value(self, userInput):
+		try:
+			value, base = parse_number(userInput)
+			return operation.Value(value, base)
+		except ValueError:
+			pass
+
+		try:
+			return self.CONSTANTS[userInput]
+		except KeyError:
+			pass
+
+		return operation.Variable(userInput)
+
+	def _apply_operation(self, Node):
+		numArgs = Node.argumentCount
+
+		if len(self.history) < numArgs:
+			raise ValueError(
+				"Not enough arguments.  The stack has %d but %s needs %d" % (
+					len(self.history), Node.symbol, numArgs
+				)
+			)
+
+		args = [arg for arg in algorithms.func_repeat(numArgs, self.history.pop)]
+		args.reverse()
+
+		try:
+			node = Node(*args)
+		except StandardError:
+			for arg in args:
+				self.history.push(arg)
+			raise
+		self.history.push(node)
+		return node
