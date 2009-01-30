@@ -3,6 +3,7 @@ SOURCE_PATH=src
 SOURCE=$(shell find $(SOURCE_PATH) -iname *.py)
 OBJ=$(SOURCE:.py=.pyc)
 TAG_FILE=~/.ctags/$(PROJECT_NAME).tags
+TODO_FILE=./TODO
 
 DEBUGGER=winpdb
 UNIT_TEST=nosetests -w $(TEST_PATH)
@@ -12,8 +13,9 @@ LINT=pylint --rcfile=$(LINT_RC)
 COVERAGE_TEST=figleaf
 PROFILER=pyprofiler
 CTAGS=ctags-exuberant
+TODO_FINDER=support/todo.py
 
-.PHONY: all run debug test lint tags package clean
+.PHONY: all run debug test lint tags todo package clean
 
 all: test package
 
@@ -34,12 +36,17 @@ lint:
 
 tags: $(TAG_FILE) 
 
+todo: $(TODO_FILE)
+
 clean:
 	rm -Rf $(OBJ)
 
 $(TAG_FILE): $(SOURCE)
 	mkdir -p $(dir $(TAG_FILE))
 	$(CTAGS) -o $(TAG_FILE) $(SOURCE)
+
+$(TODO_FILE): $(SOURCE)
+	@- $(TODO_FINDER) $(SOURCE) > $(TODO_FILE)
 
 #Makefile Debugging
 #Target to print any variable, can be added to the dependencies of any other target
