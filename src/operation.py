@@ -267,6 +267,7 @@ class Function(Operation):
 
 	def __init__(self, *args, **kwd):
 		super(Function, self).__init__()
+		self.base = None
 		self._args = args
 		self._kwd = kwd
 		self.__simple = self.__simplify()
