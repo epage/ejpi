@@ -246,7 +246,7 @@ class Calculator(object):
 		callbackMapping = {
 			"on_calculator_quit": self._on_close,
 			"on_paste": self._on_paste,
-			"on_clear_entry": self._on_clear_all,
+			"on_clear_history": self._on_clear_all,
 			"on_about": self._on_about_activate,
 		}
 		self._widgetTree.signal_autoconnect(callbackMapping)
