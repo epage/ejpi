@@ -3,6 +3,8 @@ SOURCE_PATH=src
 SOURCE=$(shell find $(SOURCE_PATH) -iname *.py)
 OBJ=$(SOURCE:.py=.pyc)
 TAG_FILE=~/.ctags/$(PROJECT_NAME).tags
+BUILD_PATH=./build/
+BUILD_SOURCE=$(foreach file, $(SOURCE), $(BUILD_PATH)/$(subst /,-,$(file)))
 TODO_FILE=./TODO
 
 DEBUGGER=winpdb
@@ -15,7 +17,7 @@ PROFILER=pyprofiler
 CTAGS=ctags-exuberant
 TODO_FINDER=support/todo.py
 
-.PHONY: all run debug test lint tags todo package clean
+.PHONY: all run debug test lint tags todo package clean distclean
 
 all: test package
 
@@ -29,7 +31,13 @@ test: $(SOURCE)
 	$(SOURCE_PATH)/ejpi_glade.py -t
 
 package:
-	./builddeb.py
+	rm -Rf $(BUILD_PATH)
+	mkdir $(BUILD_PATH)
+	cp $(SOURCE_PATH)/$(PROJECT_NAME).py  $(BUILD_PATH)
+	cp $(SOURCE_PATH)/$(PROJECT_NAME).glade  $(BUILD_PATH)
+	$(foreach file, $(SOURCE), cp $(file) $(BUILD_PATH)/$(subst /,-,$(file)) ; )
+	cp support/$(PROJECT_NAME).desktop $(BUILD_PATH)
+	cp support/builddeb.py $(BUILD_PATH)
 
 lint:
 	$(foreach file, $(SOURCE), $(LINT) $(file) ; )
@@ -40,6 +48,12 @@ todo: $(TODO_FILE)
 
 clean:
 	rm -Rf $(OBJ)
+	rm -Rf $(BUILD_PATH)
+
+distclean:
+	rm -Rf $(OBJ)
+	rm -Rf $(BUILD_PATH)
+	rm -Rf $(TAG_FILE)
 
 $(TAG_FILE): $(SOURCE)
 	mkdir -p $(dir $(TAG_FILE))

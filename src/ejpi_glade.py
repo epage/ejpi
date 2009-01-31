@@ -141,9 +141,9 @@ class Calculator(object):
 	__app_magic__ = 0xdeadbeef
 
 	_glade_files = [
-		'/usr/lib/ejpi/calc.glade',
-		os.path.join(os.path.dirname(__file__), "calc.glade"),
-		os.path.join(os.path.dirname(__file__), "../lib/calc.glade"),
+		'/usr/lib/ejpi/ejpi.glade',
+		os.path.join(os.path.dirname(__file__), "ejpi.glade"),
+		os.path.join(os.path.dirname(__file__), "../lib/ejpi.glade"),
 	]
 
 	_plugin_search_paths = [
@@ -178,7 +178,7 @@ class Calculator(object):
 				self._widgetTree = gtk.glade.XML(path)
 				break
 		else:
-			self.display_error_message("Cannot find calc.glade")
+			self.display_error_message("Cannot find ejpi.glade")
 			gtk.main_quit()
 		try:
 			os.makedirs(self._user_data)
@@ -403,6 +403,7 @@ def run_doctest():
 def run_calculator():
 	gtk.gdk.threads_init()
 
+	gtkpie.IMAGES.add_path(os.path.join(os.path.dirname(__file__), "libraries/images"), )
 	if hildon is not None:
 		gtk.set_application_name(Calculator.__pretty_app_name__)
 	handle = Calculator()
@@ -433,5 +434,4 @@ if __name__ == "__main__":
 	if commandOptions.test:
 		run_doctest()
 	else:
-		gtkpie.IMAGES.add_path(os.path.join(os.path.dirname(__file__), "libraries/images"), )
 		run_calculator()
