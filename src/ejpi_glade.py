@@ -147,7 +147,8 @@ class Calculator(object):
 	]
 
 	_plugin_search_paths = [
-		os.path.join(os.path.dirname(__file__), "plugins/")
+		"/usr/lib/ejpi/plugins/",
+		os.path.join(os.path.dirname(__file__), "plugins/"),
 	]
 
 	_user_data = os.path.expanduser("~/.%s/" % __app_name__)
@@ -157,17 +158,21 @@ class Calculator(object):
 	def __init__(self):
 		self.__constantPlugins = plugin_utils.ConstantPluginManager()
 		self.__constantPlugins.add_path(*self._plugin_search_paths)
-		self.__constantPlugins.enable_plugin(self.__constantPlugins.lookup_plugin("Builtin"))
-		self.__constantPlugins.enable_plugin(self.__constantPlugins.lookup_plugin("Trigonometry"))
-		self.__constantPlugins.enable_plugin(self.__constantPlugins.lookup_plugin("Computer"))
-		self.__constantPlugins.enable_plugin(self.__constantPlugins.lookup_plugin("Alphabet"))
+		for pluginName in ["Builtin", "Trigonometry", "Computer", "Alphabet"]:
+			try:
+				pluginId = self.__constantPlugins.lookup_plugin(pluginName)
+				self.__constantPlugins.enable_plugin(pluginId)
+			except:
+				warnings.warn("Failed to load plugin %s" % pluginName)
 
 		self.__operatorPlugins = plugin_utils.OperatorPluginManager()
 		self.__operatorPlugins.add_path(*self._plugin_search_paths)
-		self.__operatorPlugins.enable_plugin(self.__operatorPlugins.lookup_plugin("Builtin"))
-		self.__operatorPlugins.enable_plugin(self.__operatorPlugins.lookup_plugin("Trigonometry"))
-		self.__operatorPlugins.enable_plugin(self.__operatorPlugins.lookup_plugin("Computer"))
-		self.__operatorPlugins.enable_plugin(self.__operatorPlugins.lookup_plugin("Alphabet"))
+		for pluginName in ["Builtin", "Trigonometry", "Computer", "Alphabet"]:
+			try:
+				pluginId = self.__operatorPlugins.lookup_plugin(pluginName)
+				self.__operatorPlugins.enable_plugin(pluginId)
+			except:
+				warnings.warn("Failed to load plugin %s" % pluginName)
 
 		self.__keyboardPlugins = plugin_utils.KeyboardPluginManager()
 		self.__keyboardPlugins.add_path(*self._plugin_search_paths)

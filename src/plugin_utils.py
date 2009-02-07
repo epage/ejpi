@@ -104,7 +104,7 @@ class PluginManager(object):
 			yield id, pluginData["name"], pluginData["version"], pluginData["description"]
 
 	def enable_plugin(self, id):
-		assert id in self._plugins
+		assert id in self._plugins, "Can't find plugin %s in the search path %r" % (id, self.__searchPaths)
 		self._load_module(id)
 		self._enabled.add(id)
 
