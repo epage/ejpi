@@ -1,7 +1,8 @@
 PROJECT_NAME=ejpi
 SOURCE_PATH=src
 SOURCE=$(shell find $(SOURCE_PATH) -iname *.py)
-DATA=$(shell find $(SOURCE_PATH) -iname *.ini) $(shell find $(SOURCE_PATH) -iname *.map)
+DATA_TYPES=*.ini *.map *.glade *.png
+DATA=$(foreach type, $(DATA_TYPES), $(shell find $(SOURCE_PATH) -iname $(type)))
 OBJ=$(SOURCE:.py=.pyc)
 TAG_FILE=~/.ctags/$(PROJECT_NAME).tags
 BUILD_PATH=./build/
@@ -35,7 +36,6 @@ package:
 	rm -Rf $(BUILD_PATH)
 	mkdir $(BUILD_PATH)
 	cp $(SOURCE_PATH)/$(PROJECT_NAME).py  $(BUILD_PATH)
-	cp $(SOURCE_PATH)/$(PROJECT_NAME).glade  $(BUILD_PATH)
 	$(foreach file, $(DATA), cp $(file) $(BUILD_PATH)/$(subst /,-,$(file)) ; )
 	$(foreach file, $(SOURCE), cp $(file) $(BUILD_PATH)/$(subst /,-,$(file)) ; )
 	cp support/$(PROJECT_NAME).desktop $(BUILD_PATH)

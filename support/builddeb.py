@@ -8,7 +8,7 @@ __description__ = "RPN Calculator"
 __author__ = "Ed Page"
 __email__ = "eopage@byu.net"
 __version__ = "0.9.0"
-__build__ = 2
+__build__ = 4
 __changelog__ = '''\
 0.9.0 - "Feed is for horses, so what about feedback?"
 * Initial public release
@@ -76,7 +76,6 @@ if __name__ == "__main__":
 			for (oldName, newName) in files
 		)
 	p["/usr/share/applications/hildon"] = ["ejpi.desktop"]
-	p["/usr/lib/ejpi"] = ["gc_dialer.glade"]
 	# p["/usr/share/icons/hicolor/26x26/hildon"] = ["26x26-dialcentral.png|dialcentral.png"]
 	# p["/usr/share/icons/hicolor/64x64/hildon"] = ["64x64-dialcentral.png|dialcentral.png"]
 	# p["/usr/share/icons/hicolor/scalable/hildon"] = ["scale-dialcentral.png|dialcentral.png"]
