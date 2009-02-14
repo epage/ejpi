@@ -615,17 +615,13 @@ class PiePopup(gtk.DrawingArea):
 		self.__popupWindow.set_title("")
 		self.__popupWindow.add(self.__pie)
 
-		for direction in PieSlice.SLICE_DIRECTIONS:
-			self.add_slice(NullPieSlice(), direction)
-
 	def add_slice(self, slice, direction):
 		assert direction in PieSlice.SLICE_DIRECTIONS
 
-		self.__slices[direction] = slice
 		self.__pie.add_slice(copy.copy(slice), direction)
 
 		if self.showAllSlices or direction == PieSlice.SLICE_CENTER:
-			self.__localSlices[direction] = copy.copy(slice)
+			self.__localSlices[direction] = slice
 			self.__localSlices[direction].menu_init(self, direction)
 		if direction == PieSlice.SLICE_CENTER:
 			self.__activeSlice = self.__localSlices[PieSlice.SLICE_CENTER]
@@ -707,7 +703,7 @@ class PiePopup(gtk.DrawingArea):
 		self.__pie._on_motion_notify(self.__pie, event)
 
 	def _on_button_press(self, widget, event):
-		if len(self.__slices) == 0:
+		if len(self.__localSlices) == 0:
 			return
 
 		self.__clickPosition = event.get_root_coords()
@@ -721,7 +717,7 @@ class PiePopup(gtk.DrawingArea):
 		return False
 
 	def _on_button_release(self, widget, event):
-		if len(self.__slices) == 0:
+		if len(self.__localSlices) == 0:
 			return
 
 		if self.__popupTimeDelay is None:

@@ -11,7 +11,7 @@ TAG_FILE=~/.ctags/$(PROJECT_NAME).tags
 TODO_FILE=./TODO
 
 DEBUGGER=winpdb
-UNIT_TEST=nosetests --with-doctest -w $(TEST_PATH)
+UNIT_TEST=nosetests --with-doctest -w .
 STYLE_TEST=../../Python/tools/pep8.py --ignore=W191,E501
 LINT_RC=./support/pylint.rc
 LINT=pylint --rcfile=$(LINT_RC)
