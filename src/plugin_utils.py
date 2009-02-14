@@ -9,7 +9,6 @@ import os
 import inspect
 import ConfigParser
 
-from libraries import gtkpie
 from libraries import gtkpieboard
 from libraries.recipes import io
 import operation

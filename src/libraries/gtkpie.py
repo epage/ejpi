@@ -140,7 +140,7 @@ def generate_pie_style(widget):
 		(gtkStyleState, {
 			"text": convert_color(gtkStyle.text[gtkStyleState]),
 			"fill": convert_color(gtkStyle.bg[gtkStyleState]),
-			"stroke": convert_color(gtkStyle.bg[gtkStyleState]),
+			"stroke": None,
 		})
 		for gtkStyleState in (
 			gtk.STATE_NORMAL, gtk.STATE_ACTIVE, gtk.STATE_PRELIGHT, gtk.STATE_SELECTED, gtk.STATE_INSENSITIVE
@@ -221,33 +221,20 @@ class PieSlice(object):
 		outerRadius = self._pie().outerRadius
 
 		fillColor = self._style[styleState]["fill"]
-		strokeColor = self._style[styleState]["stroke"]
+		if not fillColor:
+			return
+
 		if self._direction == self.SLICE_CENTER:
-			if fillColor:
-				context.arc(
-					centerPosition[0],
-					centerPosition[1],
-					radius,
-					0,
-					2 * math.pi
-				)
+			context.arc(
+				centerPosition[0],
+				centerPosition[1],
+				radius,
+				0,
+				2 * math.pi
+			)
 
-				context.set_source_rgb(*fillColor)
-				if strokeColor:
-					context.fill_preserve()
-				else:
-					context.fill()
-
-			if strokeColor:
-				context.arc(
-					centerPosition[0],
-					centerPosition[1],
-					radius,
-					0,
-					2 * math.pi
-				)
-				context.set_source_rgb(*strokeColor)
-				context.stroke()
+			context.set_source_rgb(*fillColor)
+			context.fill()
 		else:
 			sliceCenterAngle = self.quadrant_to_theta(self._direction)
 			sliceArcWidth = 2*math.pi / self.MAX_ANGULAR_SLICES
@@ -270,16 +257,8 @@ class PieSlice(object):
 			)
 			context.close_path()
 
-			if fillColor:
-				context.set_source_rgb(*fillColor)
-				if strokeColor:
-					context.fill_preserve()
-				else:
-					context.fill()
-
-			if strokeColor:
-				context.set_source_rgb(*strokeColor)
-				context.stroke()
+			context.set_source_rgb(*fillColor)
+			context.fill()
 
 	def activate(self):
 		self._handler(self._pie(), self, self._direction)
@@ -505,6 +484,7 @@ class PieMenu(gtk.DrawingArea):
 	def __generate_draw_event(self):
 		if self.window is None:
 			return
+
 		rect = self.get_allocation()
 		self.window.invalidate_rect(rect, True)
 
