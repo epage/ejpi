@@ -501,47 +501,25 @@ class PieMenu(gtk.DrawingArea):
 		self.radius = max(rect.width, rect.width) / 3 / 2
 		self.outerRadius = max(rect.width, rect.height)
 
-		for slice in self.__slices.itervalues():
-			isSelected = (slice is self.__activeSlice)
-			if not isSelected:
-				cairoContext.rectangle(
-					event.area.x,
-					event.area.y,
-					event.area.width,
-					event.area.height,
-				)
-				cairoContext.clip()
-				slice.draw_bg(self.__styleState, isSelected, cairoContext, textLayout)
-
+		# Draw Background
 		cairoContext.rectangle(
 			event.area.x,
 			event.area.y,
 			event.area.width,
 			event.area.height,
 		)
-		cairoContext.clip()
+		cairoContext.set_source_rgb(*self.sliceStyle[self.__styleState]["fill"])
+		cairoContext.fill()
+
 		isSelected = self.__clickPosition != (0, 0)
 		self.__activeSlice.draw_bg(self.__styleState, isSelected, cairoContext, textLayout)
 
+		# Draw Foreground
 		for slice in self.__slices.itervalues():
 			isSelected = (slice is self.__activeSlice)
 			if not isSelected:
-				cairoContext.rectangle(
-					event.area.x,
-					event.area.y,
-					event.area.width,
-					event.area.height,
-				)
-				cairoContext.clip()
 				slice.draw_fg(self.__styleState, isSelected, cairoContext, textLayout)
 
-		cairoContext.rectangle(
-			event.area.x,
-			event.area.y,
-			event.area.width,
-			event.area.height,
-		)
-		cairoContext.clip()
 		isSelected = self.__clickPosition != (0, 0)
 		self.__activeSlice.draw_fg(self.__styleState, isSelected, cairoContext, textLayout)
 
@@ -687,47 +665,25 @@ class PiePopup(gtk.DrawingArea):
 		self.radius = max(rect.width, rect.width) / 3 / 2
 		self.outerRadius = max(rect.width, rect.height)
 
-		for slice in self.__localSlices.itervalues():
-			isSelected = (slice is self.__activeSlice)
-			if not isSelected:
-				cairoContext.rectangle(
-					event.area.x,
-					event.area.y,
-					event.area.width,
-					event.area.height,
-				)
-				cairoContext.clip()
-				slice.draw_bg(self.__styleState, isSelected, cairoContext, textLayout)
-
+		# Draw Background
 		cairoContext.rectangle(
 			event.area.x,
 			event.area.y,
 			event.area.width,
 			event.area.height,
 		)
-		cairoContext.clip()
+		cairoContext.set_source_rgb(*self.sliceStyle[self.__styleState]["fill"])
+		cairoContext.fill()
+
 		isSelected = self.__clickPosition != (0, 0)
 		self.__activeSlice.draw_bg(self.__styleState, isSelected, cairoContext, textLayout)
 
+		# Draw Foreground
 		for slice in self.__localSlices.itervalues():
 			isSelected = (slice is self.__activeSlice)
 			if not isSelected:
-				cairoContext.rectangle(
-					event.area.x,
-					event.area.y,
-					event.area.width,
-					event.area.height,
-				)
-				cairoContext.clip()
 				slice.draw_fg(self.__styleState, isSelected, cairoContext, textLayout)
 
-		cairoContext.rectangle(
-			event.area.x,
-			event.area.y,
-			event.area.width,
-			event.area.height,
-		)
-		cairoContext.clip()
 		isSelected = self.__clickPosition != (0, 0)
 		self.__activeSlice.draw_fg(self.__styleState, isSelected, cairoContext, textLayout)
 
