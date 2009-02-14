@@ -639,29 +639,35 @@ class PiePopup(gtk.DrawingArea):
 			gtk.gdk.LEAVE_NOTIFY_MASK
 		)
 
+		self.__popped = False
+		self.__styleState = gtk.STATE_NORMAL
 		self.__activeSlice = None
 		self.__slices = {}
 		self.__localSlices = {}
-		for direction in PieSlice.SLICE_DIRECTIONS:
-			self.add_slice(NullPieSlice(), direction)
-		#self.__activeSlice = NullPieSlice()
-		#self.__activeSlice.menu_init(self, PieSlice.SLICE_CENTER)
 
 		self.__clickPosition = 0, 0
+		self.__popupTimeDelay = None
+
 		self.__popupWindow = gtk.Window(type = gtk.WINDOW_POPUP)
 		self.__popupWindow.set_title("")
+
 		self.__pie = None
-		self.__popupTimeDelay = None
-		self.__styleState = gtk.STATE_NORMAL
+		self.__pie = PieMenu(self.sliceStyle)
+		self.__popupWindow.add(self.__pie)
+		self.__pie.connect("button_release_event", self._on_button_release)
+
+		for direction in PieSlice.SLICE_DIRECTIONS:
+			self.add_slice(NullPieSlice(), direction)
 
 	def add_slice(self, slice, direction):
 		assert direction in PieSlice.SLICE_DIRECTIONS
 
 		self.__slices[direction] = slice
+		self.__pie.add_slice(copy.copy(slice), direction)
+
 		if self.showAllSlices or direction == PieSlice.SLICE_CENTER:
 			self.__localSlices[direction] = copy.copy(slice)
 			self.__localSlices[direction].menu_init(self, direction)
-
 		if direction == PieSlice.SLICE_CENTER:
 			self.__activeSlice = self.__localSlices[PieSlice.SLICE_CENTER]
 
@@ -799,51 +805,26 @@ class PiePopup(gtk.DrawingArea):
 		self.__generate_draw_event()
 
 	def __popup(self, position):
-		# @bug Figure out what to do with this assert
-		assert self.__pie is None
+		assert not self.__popped
+		self.__popped = True
+
 		width, height = 256, 256
 		popupX, popupY = position[0] - width/2, position[1] - height/2
+
 		self.__popupWindow.move(int(popupX), int(popupY))
 		self.__popupWindow.resize(width, height)
-
-		self.__pie = PieMenu(self.sliceStyle)
-		self.__popupWindow.add(self.__pie)
-		for direction, slice in self.__slices.iteritems():
-			self.__pie.add_slice(copy.copy(slice), direction)
 		pieClick = FakeEvent(width/2, height/2, False)
 		self.__pie._on_button_press(self.__pie, pieClick)
-		self.__pie.connect("button_release_event", self._on_button_release)
-
-		#self.__pie.grab_add()
 		self.__pie.grab_focus()
-
-		#gtk.gdk.pointer_grab(
-		#	self.__pie.window,
-		#	True,
-		#	gtk.gdk.BUTTON_PRESS_MASK |
-		#	gtk.gdk.BUTTON_RELEASE_MASK |
-		#	gtk.gdk.ENTER_NOTIFY_MASK |
-		#	gtk.gdk.LEAVE_NOTIFY_MASK |
-		#	gtk.gdk.POINTER_MOTION_MASK
-		#)
-
-		#gtk.gdk.keyboard_grab(
-		#	self.__pie.window,
-		#	owner_events=True
-		#)
 
 		self.__popupWindow.show_all()
 
 	def __unpop(self):
+		assert self.__popped
+		self.__popped = False
 		piePosition = self.__popupWindow.get_position()
-
-		#self.__pie.grab_remove()
 		self.grab_focus()
-		#gtk.gdk.pointer_ungrab()
-
-		self.__popupWindow.remove(self.__pie)
 		self.__popupWindow.hide()
-		self.__pie = None
 
 
 gobject.type_register(PiePopup)
