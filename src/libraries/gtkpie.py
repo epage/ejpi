@@ -648,7 +648,8 @@ class PiePopup(gtk.DrawingArea):
 		#self.__activeSlice.menu_init(self, PieSlice.SLICE_CENTER)
 
 		self.__clickPosition = 0, 0
-		self.__popupWindow = None
+		self.__popupWindow = gtk.Window(type = gtk.WINDOW_POPUP)
+		self.__popupWindow.set_title("")
 		self.__pie = None
 		self.__popupTimeDelay = None
 		self.__styleState = gtk.STATE_NORMAL
@@ -753,7 +754,7 @@ class PiePopup(gtk.DrawingArea):
 
 	def _on_motion_notify(self, widget, event):
 		self.__update_state(event.get_coords())
-		if self.__popupWindow is None or self.__pie is None:
+		if self.__pie is None:
 			return
 
 		mousePosition = event.get_root_coords()
@@ -799,10 +800,7 @@ class PiePopup(gtk.DrawingArea):
 
 	def __popup(self, position):
 		# @bug Figure out what to do with this assert
-		assert self.__popupWindow is None and self.__pie is None
-		self.__popupWindow = gtk.Window(type = gtk.WINDOW_POPUP)
-		self.__popupWindow.set_title("")
-
+		assert self.__pie is None
 		width, height = 256, 256
 		popupX, popupY = position[0] - width/2, position[1] - height/2
 		self.__popupWindow.move(int(popupX), int(popupY))
@@ -843,8 +841,8 @@ class PiePopup(gtk.DrawingArea):
 		self.grab_focus()
 		#gtk.gdk.pointer_ungrab()
 
-		self.__popupWindow.destroy()
-		self.__popupWindow = None
+		self.__popupWindow.remove(self.__pie)
+		self.__popupWindow.hide()
 		self.__pie = None
 
 
