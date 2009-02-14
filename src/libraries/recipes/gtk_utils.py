@@ -3,9 +3,9 @@
 
 from __future__ import with_statement
 
+import threading
 import contextlib
 import functools
-import math
 
 import gobject
 import gtk
@@ -27,7 +27,8 @@ def make_idler(func):
 		if not a:
 			a.append(func(*args, **kwds))
 		try:
-			a[0].next()
+			shouldBeNone = a[0].next()
+			assert shouldBeNone is None, "The idle only task yield a value, %r" % shouldBeNone
 			return True
 		except StopIteration:
 			del a[:]
@@ -40,8 +41,10 @@ def make_idler(func):
 def gtk_critical_section():
 	#The API changed and I hope these are the right calls
 	gtk.gdk.threads_enter()
-	yield
-	gtk.gdk.threads_leave()
+	try:
+		yield
+	finally:
+		gtk.gdk.threads_leave()
 
 
 if __name__ == "__main__":

@@ -648,13 +648,14 @@ class PiePopup(gtk.DrawingArea):
 		self.__clickPosition = 0, 0
 		self.__popupTimeDelay = None
 
-		self.__popupWindow = gtk.Window(type = gtk.WINDOW_POPUP)
-		self.__popupWindow.set_title("")
-
 		self.__pie = None
 		self.__pie = PieMenu(self.sliceStyle)
-		self.__popupWindow.add(self.__pie)
 		self.__pie.connect("button_release_event", self._on_button_release)
+		self.__pie.show()
+
+		self.__popupWindow = gtk.Window(type = gtk.WINDOW_POPUP)
+		self.__popupWindow.set_title("")
+		self.__popupWindow.add(self.__pie)
 
 		for direction in PieSlice.SLICE_DIRECTIONS:
 			self.add_slice(NullPieSlice(), direction)
@@ -760,7 +761,7 @@ class PiePopup(gtk.DrawingArea):
 
 	def _on_motion_notify(self, widget, event):
 		self.__update_state(event.get_coords())
-		if self.__pie is None:
+		if not self.__popped:
 			return
 
 		mousePosition = event.get_root_coords()
@@ -817,13 +818,15 @@ class PiePopup(gtk.DrawingArea):
 		self.__pie._on_button_press(self.__pie, pieClick)
 		self.__pie.grab_focus()
 
-		self.__popupWindow.show_all()
+		self.__popupWindow.show()
 
 	def __unpop(self):
 		assert self.__popped
 		self.__popped = False
+
 		piePosition = self.__popupWindow.get_position()
 		self.grab_focus()
+
 		self.__popupWindow.hide()
 
 

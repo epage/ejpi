@@ -7,9 +7,12 @@ __appname__ = "ejpi"
 __description__ = "RPN Calculator"
 __author__ = "Ed Page"
 __email__ = "eopage@byu.net"
-__version__ = "0.9.0"
-__build__ = 4
+__version__ = "0.9.1"
+__build__ = 0
 __changelog__ = '''\
+0.9.1 - "Laziness doesn't always pay off"
+* Modified the pie menus a bit to try and optimize popup time
+
 0.9.0 - "Feed is for horses, so what about feedback?"
 * Initial public release
 * Pie menus for keys
