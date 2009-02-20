@@ -7,9 +7,12 @@ __appname__ = "ejpi"
 __description__ = "RPN Calculator"
 __author__ = "Ed Page"
 __email__ = "eopage@byu.net"
-__version__ = "0.9.1"
-__build__ = 1
+__version__ = "0.9.2"
+__build__ = 0
 __changelog__ = '''\
+0.9.2 - ""
+
+
 0.9.1 - "Laziness doesn't always pay off"
  * Profiled the code with an especial focus on the pie menus
  * Tried to reduce potential bugs with double clicks
