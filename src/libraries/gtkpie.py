@@ -135,6 +135,7 @@ def generate_pie_style(widget):
 	# * gtk.STATE_SELECTED - The state of a widget that is selected e.g. selected text in a gtk.Entry widget
 	# * gtk.STATE_INSENSITIVE - The state of a widget that is insensitive and will not respond to any events e.g. cannot be activated, selected or prelit.
 
+	widget.ensure_style()
 	gtkStyle = widget.get_style()
 	sliceStyle = dict(
 		(gtkStyleState, {
@@ -484,29 +485,27 @@ class PieMenu(gtk.DrawingArea):
 	def __generate_draw_event(self):
 		if self.window is None:
 			return
-
-		rect = self.get_allocation()
-		self.window.invalidate_rect(rect, True)
+		self.queue_draw()
 
 	def _on_expose(self, widget, event):
-		# @bug Not getting all of the invalidation events needed on Hildon
-		# @bug Not highlighting proper slice besides center on Hildon
 		cairoContext = self.window.cairo_create()
 		pangoContext = self.create_pango_context()
 		textLayout = pango.Layout(pangoContext)
 
 		rect = self.get_allocation()
+		position = 0, 0
+		dimensions = rect.width, rect.height
 
-		self.centerPosition = event.area.x + event.area.width / 2, event.area.y + event.area.height / 2
-		self.radius = max(rect.width, rect.width) / 3 / 2
-		self.outerRadius = max(rect.width, rect.height)
+		self.centerPosition = position[0] + dimensions[0] / 2, position[1] + dimensions[1] / 2
+		self.outerRadius = max(*dimensions) # be larger than the view
+		self.radius = self.outerRadius / (3*2) # fit inside the middle cell
 
 		# Draw Background
 		cairoContext.rectangle(
-			event.area.x,
-			event.area.y,
-			event.area.width,
-			event.area.height,
+			position[0],
+			position[1],
+			dimensions[0],
+			dimensions[1],
 		)
 		cairoContext.set_source_rgb(*self.sliceStyle[self.__styleState]["fill"])
 		cairoContext.fill()
@@ -615,6 +614,8 @@ class PiePopup(gtk.DrawingArea):
 		self.__popupWindow.set_title("")
 		self.__popupWindow.add(self.__pie)
 
+		self.add_slice(NullPieSlice(), PieSlice.SLICE_CENTER)
+
 	def add_slice(self, slice, direction):
 		assert direction in PieSlice.SLICE_DIRECTIONS
 
@@ -645,36 +646,32 @@ class PiePopup(gtk.DrawingArea):
 			self.__generate_draw_event()
 
 	def __generate_draw_event(self):
-		rect = self.get_allocation()
-		rect.x = 0
-		rect.y = 0
-		self.window.invalidate_rect(rect, True)
+		self.queue_draw()
 
 	def _on_expose(self, widget, event):
-		cairoContext = self.window.cairo_create()
-		pangoContext = self.create_pango_context()
-		textLayout = pango.Layout(pangoContext)
-
 		rect = self.get_allocation()
+		position = 0, 0
+		dimensions = rect.width, rect.height
 
-		self.centerPosition = event.area.x + event.area.width / 2, event.area.y + event.area.height / 2
-		self.radius = max(rect.width, rect.width) / 3 / 2
-		self.outerRadius = max(rect.width, rect.height)
+		# update sizing information
+		self.centerPosition = position[0] + dimensions[0] / 2, position[1] + dimensions[1] / 2
+		self.outerRadius = max(*dimensions) # be larger than the view
+		self.radius = self.outerRadius / (3*2) # fit inside the middle cell
 
 		# Draw Background
+		cairoContext = self.window.cairo_create()
 		cairoContext.rectangle(
-			event.area.x,
-			event.area.y,
-			event.area.width,
-			event.area.height,
+			position[0],
+			position[1],
+			dimensions[0],
+			dimensions[1],
 		)
 		cairoContext.set_source_rgb(*self.sliceStyle[self.__styleState]["fill"])
 		cairoContext.fill()
 
-		isSelected = self.__clickPosition != (0, 0)
-		self.__activeSlice.draw_bg(self.__styleState, isSelected, cairoContext, textLayout)
-
 		# Draw Foreground
+		pangoContext = self.create_pango_context()
+		textLayout = pango.Layout(pangoContext)
 		for slice in self.__localSlices.itervalues():
 			isSelected = (slice is self.__activeSlice)
 			if not isSelected:
@@ -706,9 +703,14 @@ class PiePopup(gtk.DrawingArea):
 		if len(self.__localSlices) == 0:
 			return
 
+		if self.__popupTimeDelay is not None:
+			# This press is for a double click for which we do not get a release
+			# self._on_button_release(widget, event)
+			return
+
 		self.__clickPosition = event.get_root_coords()
 		self.__generate_draw_event()
-		self.__popupTimeDelay = gobject.timeout_add(100, self._on_delayed_popup)
+		self.__popupTimeDelay = gobject.timeout_add(200, self._on_delayed_popup)
 
 	def _on_delayed_popup(self):
 		self.__popup(self.__clickPosition)

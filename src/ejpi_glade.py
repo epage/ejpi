@@ -135,7 +135,7 @@ class ErrorDisplay(history.ErrorReporting):
 
 class Calculator(object):
 
-	__pretty_app_name__ = "e^(j pi) + 1 = 0"
+	__pretty_app_name__ = "e**(j pi) + 1 = 0"
 	__app_name__ = "ejpi"
 	__version__ = "0.9.0"
 	__app_magic__ = 0xdeadbeef
@@ -231,7 +231,7 @@ class Calculator(object):
 		)
 		self.__load_history()
 
-		self.__sliceStyle = gtkpie.generate_pie_style(self.__window)
+		self.__sliceStyle = gtkpie.generate_pie_style(gtk.Button())
 		self.__handler = gtkpieboard.KeyboardHandler(self._on_entry_direct)
 		self.__handler.register_command_handler("push", self._on_push)
 		self.__handler.register_command_handler("unpush", self._on_unpush)
