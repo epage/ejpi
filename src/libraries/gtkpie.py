@@ -710,7 +710,7 @@ class PiePopup(gtk.DrawingArea):
 
 		self.__clickPosition = event.get_root_coords()
 		self.__generate_draw_event()
-		self.__popupTimeDelay = gobject.timeout_add(200, self._on_delayed_popup)
+		self.__popupTimeDelay = gobject.timeout_add(150, self._on_delayed_popup)
 
 	def _on_delayed_popup(self):
 		self.__popup(self.__clickPosition)

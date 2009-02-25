@@ -157,10 +157,15 @@ class render_number(object):
 class Operation(object):
 
 	def __init__(self):
-		self.base = 10
+		self._base = 10
 
 	def __str__(self):
 		raise NotImplementedError
+
+	@property
+	def base(self):
+		base = self._base
+		return base
 
 	def get_children(self):
 		return []
@@ -192,7 +197,7 @@ class Value(Operation):
 	def __init__(self, value, base):
 		super(Value, self).__init__()
 		self.value = value
-		self.base = base
+		self._base = base
 
 	def serialize(self, renderer):
 		for item in super(Value, self).serialize(renderer):
@@ -267,11 +272,11 @@ class Function(Operation):
 
 	def __init__(self, *args, **kwd):
 		super(Function, self).__init__()
-		self.base = None
+		self._base = None
 		self._args = args
 		self._kwd = kwd
-		self.__simple = self.__simplify()
-		self.__str = self.pretty_print(args, kwd)
+		self._simple = self._simplify()
+		self._str = self.pretty_print(args, kwd)
 
 	def serialize(self, renderer):
 		for item in super(Function, self).serialize(renderer):
@@ -284,17 +289,26 @@ class Function(Operation):
 			for arg in self._args
 		)
 
+	@property
+	def base(self):
+		base = self._base
+		if base is None:
+			bases = [arg.base for arg in self._args]
+			base = bases[0]
+		assert base is not None
+		return base
+
 	def __str__(self):
-		return self.__str
+		return self._str
 
 	def simplify(self):
-		return self.__simple
+		return self._simple
 
 	def evaluate(self):
 		selfArgs = [arg.evaluate() for arg in self._args]
 		return Value(self._op(*selfArgs))
 
-	def __simplify(self):
+	def _simplify(self):
 		selfArgs = [arg.simplify() for arg in self._args]
 		selfKwd = dict(
 			(name, arg.simplify())
@@ -304,14 +318,11 @@ class Function(Operation):
 		try:
 			args = [arg.evaluate() for arg in selfArgs]
 			base = self.base
-			if base is None:
-				bases = [arg.base for arg in selfArgs]
-				base = bases[0]
 			result = self._op(*args)
 
 			node = Value(result, base)
 		except KeyError:
-			node = type(self)(*selfArgs, **selfKwd)
+			node = self
 
 		return node
 
@@ -371,7 +382,9 @@ def change_base(base, rep):
 
 		def __init__(self, *args, **kwd):
 			super(GenFunc, self).__init__(*args, **kwd)
-			self.base = base
+			self._base = base
+			self._simple = self._simplify()
+			self._str = self.pretty_print(args, kwd)
 
 		_op = lambda self, n: n
 		_rep = Function.REP_FUNCTION
