@@ -12,6 +12,7 @@ __build__ = 0
 __changelog__ = '''\
 0.9.2 - ""
  * Experimenting with faster startup by including pyc files in package
+ * Minor tweaks and bug fixes
 
 0.9.1 - "Laziness doesn't always pay off"
  * Profiled the code with an especial focus on the pie menus
