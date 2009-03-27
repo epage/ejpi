@@ -7,9 +7,12 @@ __appname__ = "ejpi"
 __description__ = "RPN Calculator"
 __author__ = "Ed Page"
 __email__ = "eopage@byu.net"
-__version__ = "0.9.2"
+__version__ = "0.9.3"
 __build__ = 0
-__changelog__ = '''\
+__changelog__ = '''
+0.9.3 - ""
+
+
 0.9.2 - ""
  * Experimenting with faster startup by including pyc files in package
  * Minor tweaks and bug fixes
