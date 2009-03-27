@@ -197,10 +197,7 @@ class Calculator(object):
 		global hildon
 		self._app = None
 		self._isFullScreen = False
-		if hildon is not None and self.__window is gtk.Window:
-			warnings.warn("Hildon installed but glade file not updated to work with hildon", UserWarning, 2)
-			hildon = None
-		elif hildon is not None:
+		if hildon is not None:
 			self._app = hildon.Program()
 			self.__window = hildon.Window()
 			self._widgetTree.get_widget("mainLayout").reparent(self.__window)
@@ -217,7 +214,7 @@ class Calculator(object):
 			self.__window.connect("key-press-event", self._on_key_press)
 			self.__window.connect("window-state-event", self._on_window_state_change)
 		else:
-			warnings.warn("No Hildon", UserWarning, 2)
+			pass # warnings.warn("No Hildon", UserWarning, 2)
 
 		self.__errorDisplay = ErrorDisplay(self._widgetTree)
 		self.__userEntry = ValueEntry(self._widgetTree.get_widget("entryView"))
@@ -273,7 +270,7 @@ class Calculator(object):
 			device = osso.DeviceState(self._osso)
 			device.set_device_state_callback(self._on_device_state_change, 0)
 		else:
-			warnings.warn("No OSSO", UserWarning, 2)
+			pass # warnings.warn("No OSSO", UserWarning, 2)
 
 	def display_error_message(self, msg):
 		error_dialog = gtk.MessageDialog(None, 0, gtk.MESSAGE_ERROR, gtk.BUTTONS_CLOSE, msg)
