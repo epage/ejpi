@@ -11,7 +11,7 @@ __version__ = "0.9.2"
 __build__ = 0
 __changelog__ = '''\
 0.9.2 - ""
-
+ * Experimenting with faster startup by including pyc files in package
 
 0.9.1 - "Laziness doesn't always pay off"
  * Profiled the code with an especial focus on the pie menus
@@ -65,7 +65,6 @@ if __name__ == "__main__":
 	p.mail = __email__
 	p.license = "lgpl"
 	p.depends = "python2.5, python2.5-gtk2"
-	# p.section = "user/utilities"
 	p.section = "user/accessories"
 	p.arch = "all"
 	p.urgency = "low"
@@ -84,9 +83,9 @@ if __name__ == "__main__":
 			for (oldName, newName) in files
 		)
 	p["/usr/share/applications/hildon"] = ["ejpi.desktop"]
-	# p["/usr/share/icons/hicolor/26x26/hildon"] = ["26x26-dialcentral.png|dialcentral.png"]
-	# p["/usr/share/icons/hicolor/64x64/hildon"] = ["64x64-dialcentral.png|dialcentral.png"]
-	# p["/usr/share/icons/hicolor/scalable/hildon"] = ["scale-dialcentral.png|dialcentral.png"]
+	# p["/usr/share/icons/hicolor/26x26/hildon"] = ["26x26-ejpi.png|ejpi.png"]
+	# p["/usr/share/icons/hicolor/64x64/hildon"] = ["64x64-ejpi.png|ejpi.png"]
+	# p["/usr/share/icons/hicolor/scalable/hildon"] = ["scale-ejpi.png|ejpi.png"]
 
 	print p
 	print p.generate(
