@@ -40,37 +40,6 @@ def parse_number(userInput):
 	raise ValueError('Cannot parse "%s" as a number' % userInput)
 
 
-class ErrorReporting(object):
-
-	def push_message(self, message):
-		raise NotImplementedError
-
-	def push_exception(self, exception):
-		self.push_message(exception.message)
-		warnings.warn(exception, stacklevel=3)
-
-	def pop_message(self):
-		raise NotImplementedError
-
-
-class ErrorIgnore(ErrorReporting):
-
-	def push_message(self, message):
-		pass
-
-	def pop_message(self):
-		pass
-
-
-class ErrorWarning(ErrorReporting):
-
-	def push_message(self, message):
-		warnings.warn(message, stacklevel=2)
-
-	def pop_message(self):
-		pass
-
-
 class AbstractHistory(object):
 	"""
 	Is it just me or is this class name begging for some jokes?

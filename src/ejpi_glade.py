@@ -41,6 +41,7 @@ from libraries import gtkpieboard
 import plugin_utils
 import history
 import gtkhistory
+import gtk_toolbox
 
 
 PLUGIN_SEARCH_PATHS = [
@@ -91,46 +92,6 @@ class ValueEntry(object):
 		self.set_value("")
 
 	value = property(get_value, set_value, clear)
-
-
-class ErrorDisplay(history.ErrorReporting):
-
-	def __init__(self, widgetTree):
-		super(ErrorDisplay, self).__init__()
-		self.__errorBox = widgetTree.get_widget("errorEventBox")
-		self.__errorDescription = widgetTree.get_widget("errorDescription")
-		self.__errorClose = widgetTree.get_widget("errorClose")
-		self.__parentBox = self.__errorBox.get_parent()
-
-		self.__errorBox.connect("button_release_event", self._on_close)
-
-		self.__messages = []
-		self.__parentBox.remove(self.__errorBox)
-
-	def push_message(self, message):
-		if 0 < len(self.__messages):
-			self.__messages.append(message)
-		else:
-			self.__show_message(message)
-
-	def pop_message(self):
-		if 0 < len(self.__messages):
-			self.__show_message(self.__messages[0])
-			del self.__messages[0]
-		else:
-			self.__hide_message()
-
-	def _on_close(self, *args):
-		self.pop_message()
-
-	def __show_message(self, message):
-		self.__errorDescription.set_text(message)
-		self.__parentBox.pack_start(self.__errorBox, False, False)
-		self.__parentBox.reorder_child(self.__errorBox, 1)
-
-	def __hide_message(self):
-		self.__errorDescription.set_text("")
-		self.__parentBox.remove(self.__errorBox)
 
 
 class Calculator(object):
@@ -216,7 +177,7 @@ class Calculator(object):
 		else:
 			pass # warnings.warn("No Hildon", UserWarning, 2)
 
-		self.__errorDisplay = ErrorDisplay(self._widgetTree)
+		self.__errorDisplay = gtk_toolbox.ErrorDisplay(self._widgetTree)
 		self.__userEntry = ValueEntry(self._widgetTree.get_widget("entryView"))
 		self.__stackView = self._widgetTree.get_widget("historyView")
 
@@ -340,6 +301,9 @@ class Calculator(object):
 			self._isFullScreen = False
 
 	def _on_close(self, *args, **kwds):
+		if self._osso is not None:
+			self._osso.close()
+
 		try:
 			self.__save_history()
 		finally:
