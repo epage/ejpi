@@ -9,7 +9,9 @@
 		(0, 1): {
 			"CENTER": {"action": "8", "type": "text", "text": "8", },
 			"SOUTH": {"action": "[**]", "type": "text", "text": "**", },
-			"showAllSlices": True,
+			"EAST": {"action": "[sq]", "type": "text", "text": "sq", },
+			"WEST": {"action": "[sqrt]", "type": "text", "text": "sqrt", },
+			"showAllSlices": False,
 		},
 		(0, 2): {
 			"CENTER": {"action": "9", "type": "text", "text": "9", },
@@ -38,6 +40,7 @@
 		},
 		(2, 2): {
 			"CENTER": {"action": "3", "type": "text", "text": "3", },
+			"WEST": {"action": "[!]", "type": "text", "text": "!", },
 			"showAllSlices": True,
 		},
 		(3, 0): {
@@ -58,6 +61,7 @@
 		(3, 2): {
 			"CENTER": {"action": ".", "type": "text", "text": ".", },
 			"NORTH": {"action": "j", "type": "text", "text": "j", },
+			"WEST": {"action": "[+-]", "type": "text", "text": "+/-", },
 			"showAllSlices": True,
 		},
 	},
