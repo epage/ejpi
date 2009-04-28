@@ -3,12 +3,11 @@
 """
 http://www.grigoriev.ru/svgmath/ (MathML->SVG in Python)
 http://helm.cs.unibo.it/mml-widget/ (MathML widget in C++)
-
-@bug Columns auto-expand with large items but when they are gone, the columns don't auto-shrink
 """
 
 
 import gobject
+import pango
 import gtk
 
 
@@ -58,10 +57,12 @@ class GtkCalcHistory(history.AbstractHistory):
 		self.__closeColumn.set_attributes(self.__closeCell, stock_id=0)
 
 		self.__expressionCell = gtk.CellRendererText()
+		self.__expressionCell.set_property("ellipsize", pango.ELLIPSIZE_MIDDLE)
 		self.__historyColumn.pack_start(self.__expressionCell, True)
 		self.__historyColumn.set_attributes(self.__expressionCell, text=1)
 
 		self.__valueCell = gtk.CellRendererText()
+		self.__valueCell.set_property("ellipsize", pango.ELLIPSIZE_NONE)
 		self.__resultColumn.pack_end(self.__valueCell, False)
 		self.__resultColumn.set_attributes(self.__valueCell, text=2)
 
