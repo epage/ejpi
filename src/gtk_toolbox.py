@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+import sys
+import traceback
 import warnings
 
 import gobject
@@ -33,9 +35,15 @@ class ErrorDisplay(object):
 		else:
 			self.__show_message(message)
 
-	def push_exception(self, exception):
-		self.push_message(exception.message)
-		warnings.warn(exception, stacklevel=3)
+	def push_exception(self, exception = None):
+		if exception is None:
+			userMessage = str(sys.exc_value)
+			warningMessage = str(traceback.format_exc())
+		else:
+			userMessage = str(exception)
+			warningMessage = str(exception)
+		self.push_message(userMessage)
+		warnings.warn(warningMessage, stacklevel=3)
 
 	def pop_message(self):
 		if 0 < len(self.__messages):

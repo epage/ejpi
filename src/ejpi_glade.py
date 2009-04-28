@@ -12,6 +12,7 @@
 @todo Expanded copy/paste (Unusure how far to go)
 	@li Copy formula, value, serialized, mathml, latex?
 	@li Paste serialized, value?
+@bug Has the same Maemo tab color bug as DialCentral
 
 Some useful things on Maemo
 @li http://maemo.org/api_refs/4.1/libosso-2.16-1/group__Statesave.html
@@ -213,6 +214,8 @@ class Calculator(object):
 			"on_about": self._on_about_activate,
 		}
 		self._widgetTree.signal_autoconnect(callbackMapping)
+		self._widgetTree.get_widget("copyMenuItem").connect("activate", self._on_copy)
+		self._widgetTree.get_widget("copyEquationMenuItem").connect("activate", self._on_copy_equation)
 
 		if self.__window:
 			if hildon is None:
@@ -309,6 +312,22 @@ class Calculator(object):
 		finally:
 			gtk.main_quit()
 
+	def _on_copy(self, *args):
+		try:
+			equationNode = self.__history.history.peek()
+			result = str(equationNode.evaluate())
+			self._clipboard.set_text(result)
+		except StandardError, e:
+			self.__errorDisplay.push_exception()
+
+	def _on_copy_equation(self, *args):
+		try:
+			equationNode = self.__history.history.peek()
+			equation = str(equationNode)
+			self._clipboard.set_text(equation)
+		except StandardError, e:
+			self.__errorDisplay.push_exception()
+
 	def _on_paste(self, *args):
 		contents = self._clipboard.wait_for_text()
 		self.__userEntry.append(contents)
@@ -348,9 +367,17 @@ class Calculator(object):
 		dlg.set_name(self.__pretty_app_name__)
 		dlg.set_version(self.__version__)
 		dlg.set_copyright("Copyright 2008 - LGPL")
-		dlg.set_comments("")
-		dlg.set_website("")
-		dlg.set_authors([""])
+		dlg.set_comments("""
+ejpi A Touch Screen Optimized RPN Calculator for Maemo and Linux.
+
+How do I use this?
+The buttons are all pie-menus.  Clicking on them will give you the default (center) behavior.  If you click and hold, the menu gets displayed showing what other actions you can then perform.  While still holding, just drag in the direction of one of these actions.
+
+This is RPN, where are the swap, roll, etc operations?
+This also uses a touch screen, go ahead and feel adventerous by dragging the stack items around.
+""")
+		dlg.set_website("http://ejpi.garage.maemo.org")
+		dlg.set_authors(["Ed Page"])
 		dlg.run()
 		dlg.destroy()
 

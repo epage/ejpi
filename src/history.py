@@ -150,7 +150,7 @@ class RpnCalcHistory(object):
 			node = self._apply_operation(Node)
 			return node
 		except StandardError, e:
-			self.errorReporter.push_exception(e)
+			self.errorReporter.push_exception()
 			return None
 
 	def serialize_stack(self):

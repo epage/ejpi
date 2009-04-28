@@ -4,14 +4,15 @@ from py2deb import *
 
 
 __appname__ = "ejpi"
-__description__ = "RPN Calculator"
+__description__ = "A Touch Screen Optimized RPN Calculator using Pie Menus"
 __author__ = "Ed Page"
 __email__ = "eopage@byu.net"
 __version__ = "0.9.3"
 __build__ = 0
 __changelog__ = '''
 0.9.3 - ""
-
+ * Added +/-, !, sq, and sqrt functions
+ * Bug fixes
 
 0.9.2 - ""
  * Experimenting with faster startup by including pyc files in package

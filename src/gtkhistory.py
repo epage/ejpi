@@ -3,6 +3,8 @@
 """
 http://www.grigoriev.ru/svgmath/ (MathML->SVG in Python)
 http://helm.cs.unibo.it/mml-widget/ (MathML widget in C++)
+
+@bug Columns auto-expand with large items but when they are gone, the columns don't auto-shrink
 """
 
 
