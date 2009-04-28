@@ -12,6 +12,8 @@ __build__ = 0
 __changelog__ = '''
 0.9.3 - ""
  * Added +/-, !, sq, and sqrt functions
+ * Improved Documentation
+ * Copy of calculation result and the corresponding equation
  * Bug fixes
 
 0.9.2 - ""
