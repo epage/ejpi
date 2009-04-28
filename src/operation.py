@@ -255,7 +255,7 @@ class Variable(Operation):
 		return self
 
 	def evaluate(self):
-		raise KeyError
+		raise KeyError('Variable "%s" unable to evaluate to specific value' % self.name)
 
 
 class Function(Operation):
@@ -306,7 +306,7 @@ class Function(Operation):
 
 	def evaluate(self):
 		selfArgs = [arg.evaluate() for arg in self._args]
-		return Value(self._op(*selfArgs))
+		return Value(self._op(*selfArgs), self.base)
 
 	def _simplify(self):
 		selfArgs = [arg.simplify() for arg in self._args]
