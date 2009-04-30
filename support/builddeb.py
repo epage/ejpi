@@ -8,7 +8,7 @@ __description__ = "A Touch Screen Optimized RPN Calculator using Pie Menus"
 __author__ = "Ed Page"
 __email__ = "eopage@byu.net"
 __version__ = "0.9.3"
-__build__ = 0
+__build__ = 1
 __changelog__ = '''
 0.9.3 - ""
  * Added +/-, !, sq, and sqrt functions
