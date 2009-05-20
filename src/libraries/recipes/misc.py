@@ -48,11 +48,20 @@ def privatize(clsName, attributeName):
 	>>> class Test(object):
 	... 	pass
 	...
-	>>> dir(Test)
-	['__class__', '__delattr__', '__dict__', '__doc__', '__getattribute__', '__hash__', '__init__', '__module__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__str__', '__weakref__']
+	>>> try:
+	... 	dir(Test).index("_Test__me")
+	... 	print dir(Test)
+	... except:
+	... 	print "Not Found"
+	Not Found
 	>>> setattr(Test, privatize(Test.__name__, "me"), "Hello World")
-	>>> dir(Test)
-	['_Test__me', '__class__', '__delattr__', '__dict__', '__doc__', '__getattribute__', '__hash__', '__init__', '__module__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__str__', '__weakref__']
+	>>> try:
+	... 	dir(Test).index("_Test__me")
+	... 	print "Found"
+	... except:
+	... 	print dir(Test)
+	0
+	Found
 	>>> print getattr(Test, obfuscate(Test.__name__, "__me"))
 	Hello World
 	>>>
@@ -72,8 +81,13 @@ def obfuscate(clsName, attributeName):
 	>>> class Test(object):
 	... 	__me = "Hello World"
 	...
-	>>> dir(Test)
-	['_Test__me', '__class__', '__delattr__', '__dict__', '__doc__', '__getattribute__', '__hash__', '__init__', '__module__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__str__', '__weakref__']
+	>>> try:
+	... 	dir(Test).index("_Test__me")
+	... 	print "Found"
+	... except:
+	... 	print dir(Test)
+	0
+	Found
 	>>> print getattr(Test, obfuscate(Test.__name__, "__me"))
 	Hello World
 	>>> is_private(obfuscate(Test.__name__, "__me"))
@@ -565,16 +579,18 @@ def lexical_scope(*args):
 	>>> with lexical_scope(1) as (a):
 	... 	print a
 	...
+	1
 	>>> with lexical_scope(1,2,3) as (a,b,c):
 	... 	print a,b,c
 	...
+	1 2 3
 	>>> with lexical_scope():
 	... 	d = 10
 	... 	def foo():
 	... 		pass
 	...
-	>>> print dir() # check those temporary variables are deleted.
 	>>> print b
+	2
 	"""
 
 	frame = inspect.currentframe().f_back.f_back

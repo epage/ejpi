@@ -95,6 +95,7 @@ def qlock(queue, gblock = True, gtimeout = None, pblock = True, ptimeout = None)
 	"""
 	Locking with a queue, good for when you want to lock an item passed around
 
+	>>> import Queue
 	>>> item = 5
 	>>> lock = Queue.Queue()
 	>>> lock.put(item)

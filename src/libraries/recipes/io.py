@@ -55,6 +55,7 @@ def redirect(object_, attr, value):
 	... 	print "hello"
 	...
 	>>> print "we're back"
+	we're back
 	"""
 	orig = getattr(object_, attr)
 	setattr(object_, attr, value)
