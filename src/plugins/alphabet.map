@@ -5,7 +5,7 @@
 		(0, 0): {
 			"CENTER": {"action": "e", "type": "text", "text": "E", },
 			"SOUTH": {"action": "q", "type": "text", "text": "Q", },
-			"EAST": {"action": "W", "type": "text", "text": "W", },
+			"EAST": {"action": "w", "type": "text", "text": "W", },
 			"showAllSlices": True,
 		},
 		(0, 1): {
