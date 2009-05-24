@@ -45,6 +45,8 @@ build: $(OBJ)
 	$(foreach file, $(SOURCE), cp $(file) $(BUILD_PATH)/$(subst /,-,$(file)) ; )
 	$(foreach file, $(OBJ), cp $(file) $(BUILD_PATH)/$(subst /,-,$(file)) ; )
 	cp support/$(PROJECT_NAME).desktop $(BUILD_PATH)
+	cp support/icons/26.png $(BUILD_PATH)/26x26-$(PROJECT_NAME).png
+	cp support/icons/64.png $(BUILD_PATH)/64x64-$(PROJECT_NAME).png
 	cp support/builddeb.py $(BUILD_PATH)
 
 lint: $(OBJ)

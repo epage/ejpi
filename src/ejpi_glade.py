@@ -99,7 +99,7 @@ class Calculator(object):
 
 	__pretty_app_name__ = "e**(j pi) + 1 = 0"
 	__app_name__ = "ejpi"
-	__version__ = "0.9.3"
+	__version__ = "0.9.4"
 	__app_magic__ = 0xdeadbeef
 
 	_glade_files = [
@@ -161,8 +161,9 @@ class Calculator(object):
 		self._isFullScreen = False
 		if hildon is not None:
 			self._app = hildon.Program()
+			oldWindow = self._window
 			self.__window = hildon.Window()
-			self._widgetTree.get_widget("mainLayout").reparent(self.__window)
+			oldWindow.get_child().reparent(self.__window)
 			self._app.add_window(self.__window)
 			hildon.hildon_helper_set_thumb_scrollbar(self._widgetTree.get_widget('scrollingHistory'), True)
 

@@ -7,9 +7,13 @@ __appname__ = "ejpi"
 __description__ = "A Touch Screen Optimized RPN Calculator using Pie Menus"
 __author__ = "Ed Page"
 __email__ = "eopage@byu.net"
-__version__ = "0.9.3"
-__build__ = 1
+__version__ = "0.9.4"
+__build__ = 0
 __changelog__ = '''
+0.9.4
+ * Added icons
+ * Minor improvements
+
 0.9.3 - ""
  * Added +/-, !, sq, and sqrt functions
  * Improved Documentation
@@ -90,9 +94,8 @@ if __name__ == "__main__":
 			for (oldName, newName) in files
 		)
 	p["/usr/share/applications/hildon"] = ["ejpi.desktop"]
-	# p["/usr/share/icons/hicolor/26x26/hildon"] = ["26x26-ejpi.png|ejpi.png"]
-	# p["/usr/share/icons/hicolor/64x64/hildon"] = ["64x64-ejpi.png|ejpi.png"]
-	# p["/usr/share/icons/hicolor/scalable/hildon"] = ["scale-ejpi.png|ejpi.png"]
+	p["/usr/share/icons/hicolor/26x26/hildon"] = ["26x26-ejpi.png|ejpi.png"]
+	p["/usr/share/icons/hicolor/64x64/hildon"] = ["64x64-ejpi.png|ejpi.png"]
 
 	print p
 	print p.generate(
