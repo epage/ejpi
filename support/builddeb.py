@@ -13,6 +13,7 @@ __changelog__ = '''
 0.9.4
  * Added icons
  * Minor improvements
+ * Swapping the keyboard positions, seem more friendly to my thumb location this way
 
 0.9.3 - ""
  * Added +/-, !, sq, and sqrt functions

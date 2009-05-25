@@ -203,7 +203,6 @@ class Calculator(object):
 		self.__builtinPlugin = self.__keyboardPlugins.keyboards["Builtin"].construct_keyboard()
 		self.__builtinKeyboard = self.__builtinPlugin.setup(self.__history, self.__sliceStyle, self.__handler)
 		self._widgetTree.get_widget("functionLayout").pack_start(self.__builtinKeyboard)
-		self._widgetTree.get_widget("functionLayout").reorder_child(self.__builtinKeyboard, 0)
 		self.enable_plugin(self.__keyboardPlugins.lookup_plugin("Trigonometry"))
 		self.enable_plugin(self.__keyboardPlugins.lookup_plugin("Computer"))
 		self.enable_plugin(self.__keyboardPlugins.lookup_plugin("Alphabet"))
