@@ -1,13 +1,14 @@
 #!/usr/bin/python2.5
 
 from py2deb import *
+import constants
 
 
-__appname__ = "ejpi"
+__appname__ = constants.__app_name__
 __description__ = "A Touch Screen Optimized RPN Calculator using Pie Menus"
 __author__ = "Ed Page"
 __email__ = "eopage@byu.net"
-__version__ = "0.9.4"
+__version__ = constants.__version__
 __build__ = 0
 __changelog__ = '''
 0.9.4
@@ -81,7 +82,7 @@ if __name__ == "__main__":
 	p.arch = "all"
 	p.urgency = "low"
 	p.distribution = "chinook diablo"
-	p.repository = "extras-devel"
+	p.repository = "extras"
 	p.changelog = __changelog__
 	p.postinstall = __postinstall__
 	p.icon="26x26-ejpi.png"

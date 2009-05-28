@@ -43,6 +43,7 @@ import plugin_utils
 import history
 import gtkhistory
 import gtk_toolbox
+import constants
 
 
 PLUGIN_SEARCH_PATHS = [
@@ -97,11 +98,6 @@ class ValueEntry(object):
 
 class Calculator(object):
 
-	__pretty_app_name__ = "e**(j pi) + 1 = 0"
-	__app_name__ = "ejpi"
-	__version__ = "0.9.4"
-	__app_magic__ = 0xdeadbeef
-
 	_glade_files = [
 		'/usr/lib/ejpi/ejpi.glade',
 		os.path.join(os.path.dirname(__file__), "ejpi.glade"),
@@ -113,7 +109,7 @@ class Calculator(object):
 		os.path.join(os.path.dirname(__file__), "plugins/"),
 	]
 
-	_user_data = os.path.expanduser("~/.%s/" % __app_name__)
+	_user_data = os.path.expanduser("~/.%s/" % constants.__app_name__)
 	_user_settings = "%s/settings.ini" % _user_data
 	_user_history = "%s/history.stack" % _user_data
 
@@ -147,6 +143,7 @@ class Calculator(object):
 		else:
 			self.display_error_message("Cannot find ejpi.glade")
 			gtk.main_quit()
+			return
 		try:
 			os.makedirs(self._user_data)
 		except OSError, e:
@@ -154,28 +151,27 @@ class Calculator(object):
 				raise
 
 		self._clipboard = gtk.clipboard_get()
-		self.__window = self._widgetTree.get_widget("mainWindow")
+		self._window = self._widgetTree.get_widget("mainWindow")
 
-		global hildon
 		self._app = None
 		self._isFullScreen = False
 		if hildon is not None:
 			self._app = hildon.Program()
 			oldWindow = self._window
-			self.__window = hildon.Window()
-			oldWindow.get_child().reparent(self.__window)
-			self._app.add_window(self.__window)
+			self._window = hildon.Window()
+			oldWindow.get_child().reparent(self._window)
+			self._app.add_window(self._window)
 			hildon.hildon_helper_set_thumb_scrollbar(self._widgetTree.get_widget('scrollingHistory'), True)
 
 			gtkMenu = self._widgetTree.get_widget("mainMenubar")
 			menu = gtk.Menu()
 			for child in gtkMenu.get_children():
 				child.reparent(menu)
-			self.__window.set_menu(menu)
+			self._window.set_menu(menu)
 			gtkMenu.destroy()
 
-			self.__window.connect("key-press-event", self._on_key_press)
-			self.__window.connect("window-state-event", self._on_window_state_change)
+			self._window.connect("key-press-event", self._on_key_press)
+			self._window.connect("window-state-event", self._on_window_state_change)
 		else:
 			pass # warnings.warn("No Hildon", UserWarning, 2)
 
@@ -217,20 +213,18 @@ class Calculator(object):
 		self._widgetTree.get_widget("copyMenuItem").connect("activate", self._on_copy)
 		self._widgetTree.get_widget("copyEquationMenuItem").connect("activate", self._on_copy_equation)
 
-		if self.__window:
-			if hildon is None:
-				self.__window.set_title("%s" % self.__pretty_app_name__)
-			self.__window.connect("destroy", self._on_close)
-			self.__window.show_all()
+		if hildon is None:
+			self._window.set_title("%s" % constants.__pretty_app_name__)
+		self._window.connect("destroy", self._on_close)
+		self._window.show_all()
 
 		try:
 			import osso
 		except ImportError:
 			osso = None
-
 		self._osso = None
 		if osso is not None:
-			self._osso = osso.Context(Calculator.__app_name__, Calculator.__version__, False)
+			self._osso = osso.Context(constants.__app_name__, constants.__version__, False)
 			device = osso.DeviceState(self._osso)
 			device.set_device_state_callback(self._on_device_state_change, 0)
 		else:
@@ -338,9 +332,9 @@ class Calculator(object):
 		"""
 		if event.keyval == gtk.keysyms.F6:
 			if self._isFullScreen:
-				self.__window.unfullscreen()
+				self._window.unfullscreen()
 			else:
-				self.__window.fullscreen()
+				self._window.fullscreen()
 
 	def _on_push(self, *args):
 		self.__history.push_entry()
@@ -364,17 +358,15 @@ class Calculator(object):
 
 	def _on_about_activate(self, *args):
 		dlg = gtk.AboutDialog()
-		dlg.set_name(self.__pretty_app_name__)
-		dlg.set_version(self.__version__)
+		dlg.set_name(constants.__pretty_app_name__)
+		dlg.set_version(constants.__version__)
 		dlg.set_copyright("Copyright 2008 - LGPL")
 		dlg.set_comments("""
 ejpi A Touch Screen Optimized RPN Calculator for Maemo and Linux.
 
-How do I use this?
-The buttons are all pie-menus.  Clicking on them will give you the default (center) behavior.  If you click and hold, the menu gets displayed showing what other actions you can then perform.  While still holding, just drag in the direction of one of these actions.
-
-This is RPN, where are the swap, roll, etc operations?
-This also uses a touch screen, go ahead and feel adventerous by dragging the stack items around.
+RPN: Stack based math, its fun
+Buttons: Try both pressing and hold/drag
+History: Try dragging things around, deleting them, etc
 """)
 		dlg.set_website("http://ejpi.garage.maemo.org")
 		dlg.set_authors(["Ed Page"])
@@ -398,7 +390,7 @@ def run_calculator():
 
 	gtkpie.IMAGES.add_path(os.path.join(os.path.dirname(__file__), "libraries/images"), )
 	if hildon is not None:
-		gtk.set_application_name(Calculator.__pretty_app_name__)
+		gtk.set_application_name(constants.__pretty_app_name__)
 	handle = Calculator()
 	gtk.main()
 

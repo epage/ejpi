@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+from __future__ import with_statement
+
 import sys
 import traceback
 import functools
@@ -17,6 +19,14 @@ def gtk_lock():
 		yield
 	finally:
 		gtk.gdk.threads_leave()
+
+
+def find_parent_window(widget):
+	while True:
+		parent = widget.get_parent()
+		if isinstance(parent, gtk.Window):
+			return parent
+		widget = parent
 
 
 def make_idler(func):
@@ -46,7 +56,9 @@ def asynchronous_gtk_message(original_func):
 
 	def execute(allArgs):
 		args, kwargs = allArgs
-		original_func(*args, **kwargs)
+		with gtk_lock():
+			original_func(*args, **kwargs)
+		return False
 
 	@functools.wraps(original_func)
 	def delayed_func(*args, **kwargs):
@@ -83,17 +95,18 @@ class ErrorDisplay(object):
 		self.__parentBox.remove(self.__errorBox)
 
 	def push_message_with_lock(self, message):
-		gtk.gdk.threads_enter()
-		try:
+		with gtk_lock():
 			self.push_message(message)
-		finally:
-			gtk.gdk.threads_leave()
 
 	def push_message(self, message):
 		if 0 < len(self.__messages):
 			self.__messages.append(message)
 		else:
 			self.__show_message(message)
+
+	def push_exception_with_lock(self, exception = None):
+		with gtk_lock():
+			self.push_exception(exception)
 
 	def push_exception(self, exception = None):
 		if exception is None:
