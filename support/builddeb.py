@@ -15,6 +15,8 @@ __email__ = "eopage@byu.net"
 __version__ = constants.__version__
 __build__ = 0
 __changelog__ = '''
+0.9.5
+
 0.9.4
  * Added icons
  * Minor improvements
