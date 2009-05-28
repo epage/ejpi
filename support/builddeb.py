@@ -102,6 +102,7 @@ if __name__ == "__main__":
 	p["/usr/share/applications/hildon"] = ["ejpi.desktop"]
 	p["/usr/share/icons/hicolor/26x26/hildon"] = ["26x26-ejpi.png|ejpi.png"]
 	p["/usr/share/icons/hicolor/64x64/hildon"] = ["64x64-ejpi.png|ejpi.png"]
+	p["/usr/share/icons/hicolor/scalable/hildon"] = ["scale-ejpi.png|ejpi.png"]
 
 	print p
 	print p.generate(
