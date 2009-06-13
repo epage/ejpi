@@ -3,7 +3,10 @@
 import os
 import sys
 
-import py2deb
+try:
+	import py2deb
+except ImportError:
+	import fake_py2deb as py2deb
 
 import constants
 
@@ -46,9 +49,9 @@ __changelog__ = '''
 '''
 
 
-__postinstall__ = '''#!/bin/sh
+__postinstall__ = '''#!/bin/sh -e
 
-gtk-update-icon-cache /usr/share/icons/hicolor
+gtk-update-icon-cache -f /usr/share/icons/hicolor
 '''
 
 
@@ -72,7 +75,7 @@ def unflatten_files(files):
 	return d
 
 
-if __name__ == "__main__":
+def build_package(distribution):
 	try:
 		os.chdir(os.path.dirname(sys.argv[0]))
 	except:
@@ -83,15 +86,18 @@ if __name__ == "__main__":
 	p.author = __author__
 	p.mail = __email__
 	p.license = "lgpl"
-	p.depends = "python2.5, python2.5-gtk2"
+	p.depends = {
+		"diablo": "python2.5, python2.5-gtk2",
+		"mer": "python2.6, python-gtk2, python-glade2",
+	}[distribution]
 	p.section = "user/accessories"
 	p.arch = "all"
 	p.urgency = "low"
-	p.distribution = "chinook diablo"
+	p.distribution = "chinook diablo fremantle mer"
 	p.repository = "extras"
 	p.changelog = __changelog__
 	p.postinstall = __postinstall__
-	p.icon="26x26-ejpi.png"
+	p.icon = "26x26-ejpi.png"
 	p["/usr/bin"] = [ "ejpi.py" ]
 	for relPath, files in unflatten_files(find_files(".")).iteritems():
 		fullPath = "/usr/lib/ejpi"
@@ -111,3 +117,20 @@ if __name__ == "__main__":
 		__version__, __build__, changelog=__changelog__,
 		tar=True, dsc=True, changes=True, build=False, src=True
 	)
+	print "Building for %s finished" % distribution
+
+
+if __name__ == "__main__":
+	if len(sys.argv) > 1:
+		try:
+			import optparse
+		except ImportError:
+			optparse = None
+
+		if optparse is not None:
+			parser = optparse.OptionParser()
+			(commandOptions, commandArgs) = parser.parse_args()
+	else:
+		commandArgs = None
+		commandArgs = ["diablo"]
+	build_package(commandArgs[0])

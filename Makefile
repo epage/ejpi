@@ -50,6 +50,7 @@ build: $(OBJ)
 	cp support/icons/64.png $(BUILD_PATH)/64x64-$(PROJECT_NAME).png
 	cp support/icons/scalable.png $(BUILD_PATH)/scale-$(PROJECT_NAME).png
 	cp support/builddeb.py $(BUILD_PATH)
+	cp support/fake_py2deb.py $(BUILD_PATH)
 
 lint: $(OBJ)
 	$(foreach file, $(SOURCE), $(LINT) $(file) ; )

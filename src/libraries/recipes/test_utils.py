@@ -113,8 +113,8 @@ def expected(exception):
 	"""
 	if isinstance(exception, Exception):
 		excType, excValue = type(exception), str(exception)
-	elif isinstance(e, type):
-		excType, excValue = e, ""
+	elif isinstance(exception, type):
+		excType, excValue = exception, ""
 
 	try:
 		yield
