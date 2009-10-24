@@ -33,10 +33,7 @@ import warnings
 import gtk
 import gtk.glade
 
-try:
-	import hildon
-except ImportError:
-	hildon = None
+import hildonize
 
 from libraries import gtkpie
 from libraries import gtkpieboard
@@ -158,25 +155,21 @@ class Calculator(object):
 
 		self._app = None
 		self._isFullScreen = False
-		if hildon is not None:
-			self._app = hildon.Program()
-			oldWindow = self._window
-			self._window = hildon.Window()
-			oldWindow.get_child().reparent(self._window)
-			self._app.add_window(self._window)
-			hildon.hildon_helper_set_thumb_scrollbar(self._widgetTree.get_widget('scrollingHistory'), True)
+		self._app = hildonize.get_app_class()()
+		self._window = hildonize.hildonize_window(self._app, self._window)
 
-			gtkMenu = self._widgetTree.get_widget("mainMenubar")
-			menu = gtk.Menu()
-			for child in gtkMenu.get_children():
-				child.reparent(menu)
-			self._window.set_menu(menu)
-			gtkMenu.destroy()
+		menu = hildonize.hildonize_menu(
+			self._window,
+			self._widgetTree.get_widget("mainMenubar"),
+			[]
+		)
 
-			self._window.connect("key-press-event", self._on_key_press)
-			self._window.connect("window-state-event", self._on_window_state_change)
-		else:
-			pass # warnings.warn("No Hildon", UserWarning, 2)
+		for scrollingWidgetName in (
+			"scrollingHistory",
+		):
+			scrollingWidget = self._widgetTree.get_widget(scrollingWidgetName)
+			assert scrollingWidget is not None, scrollingWidgetName
+			hildonize.hildonize_scrollwindow_with_viewport(scrollingWidget)
 
 		self.__errorDisplay = gtk_toolbox.ErrorDisplay(self._widgetTree)
 		self.__userEntry = ValueEntry(self._widgetTree.get_widget("entryView"))
@@ -215,11 +208,16 @@ class Calculator(object):
 		self._widgetTree.signal_autoconnect(callbackMapping)
 		self._widgetTree.get_widget("copyMenuItem").connect("activate", self._on_copy)
 		self._widgetTree.get_widget("copyEquationMenuItem").connect("activate", self._on_copy_equation)
+		self._window.connect("key-press-event", self._on_key_press)
+		self._window.connect("window-state-event", self._on_window_state_change)
+		self._widgetTree.get_widget("entryView").connect("activate", self._on_push)
 
-		if hildon is None:
-			self._window.set_title("%s" % constants.__pretty_app_name__)
+		hildonize.set_application_title(self._window, "%s" % constants.__pretty_app_name__)
 		self._window.connect("destroy", self._on_close)
 		self._window.show_all()
+
+		if not hildonize.IS_HILDON_SUPPORTED:
+			_moduleLogger.warning("No hildonization support")
 
 		try:
 			import osso
@@ -231,7 +229,7 @@ class Calculator(object):
 			device = osso.DeviceState(self._osso)
 			device.set_device_state_callback(self._on_device_state_change, 0)
 		else:
-			pass # warnings.warn("No OSSO", UserWarning, 2)
+			_moduleLogger.warning("No OSSO support")
 
 	def display_error_message(self, msg):
 		error_dialog = gtk.MessageDialog(None, 0, gtk.MESSAGE_ERROR, gtk.BUTTONS_CLOSE, msg)
@@ -333,7 +331,11 @@ class Calculator(object):
 		"""
 		@note Hildon specific
 		"""
-		if event.keyval == gtk.keysyms.F6:
+		RETURN_TYPES = (gtk.keysyms.Return, gtk.keysyms.ISO_Enter, gtk.keysyms.KP_Enter)
+		if (
+			event.keyval == gtk.keysyms.F6 or
+			event.keyval in RETURN_TYPES and event.get_state() & gtk.gdk.CONTROL_MASK
+		):
 			if self._isFullScreen:
 				self._window.unfullscreen()
 			else:
@@ -392,8 +394,6 @@ def run_calculator():
 	gtk.gdk.threads_init()
 
 	gtkpie.IMAGES.add_path(os.path.join(os.path.dirname(__file__), "libraries/images"), )
-	if hildon is not None:
-		gtk.set_application_name(constants.__pretty_app_name__)
 	handle = Calculator()
 	gtk.main()
 

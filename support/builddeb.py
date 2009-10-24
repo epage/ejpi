@@ -21,7 +21,9 @@ __email__ = "eopage@byu.net"
 __version__ = constants.__version__
 __build__ = constants.__build__
 __changelog__ = """
-0.9.5
+0.9.6
+* Fullscreen by Ctrl+Enter
+* "Enter" in number entry causes a push
 
 0.9.4
  * Added icons
