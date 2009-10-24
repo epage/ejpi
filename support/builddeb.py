@@ -12,12 +12,15 @@ import constants
 
 
 __appname__ = constants.__app_name__
-__description__ = "A Touch Screen Optimized RPN Calculator using Pie Menus"
+__description__ = """A Touch Screen Optimized RPN Calculator using Pie Menus
+.
+Homepage: http://ejpi.garage.maemo.org/
+"""
 __author__ = "Ed Page"
 __email__ = "eopage@byu.net"
 __version__ = constants.__version__
-__build__ = 0
-__changelog__ = '''
+__build__ = constants.__build__
+__changelog__ = """
 0.9.5
 
 0.9.4
@@ -46,13 +49,13 @@ __changelog__ = '''
  * Modifiable history
  * Supports different number types and bases
  * Basic trig support
-'''
+"""
 
 
-__postinstall__ = '''#!/bin/sh -e
+__postinstall__ = """#!/bin/sh -e
 
 gtk-update-icon-cache -f /usr/share/icons/hicolor
-'''
+"""
 
 
 def find_files(path):
@@ -81,23 +84,41 @@ def build_package(distribution):
 	except:
 		pass
 
+	py2deb.Py2deb.SECTIONS = py2deb.SECTIONS_BY_POLICY[distribution]
 	p = py2deb.Py2deb(__appname__)
+	p.prettyName = constants.__pretty_app_name__
 	p.description = __description__
+	p.upgradeDescription = __changelog__.split("\n\n", 1)[0]
 	p.author = __author__
 	p.mail = __email__
 	p.license = "lgpl"
-	p.depends = {
-		"diablo": "python2.5, python2.5-gtk2",
-		"mer": "python2.6, python-gtk2, python-glade2",
+	p.depends = ", ".join([
+		"python2.6 | python2.5",
+		"python-gtk2 | python2.5-gtk2",
+		"python-xml | python2.5-xml",
+	])
+	maemoSpecificDepends = ", python-osso | python2.5-osso, python-hildon | python2.5-hildon"
+	p.depends += {
+		"debian": ", python-glade2",
+		"chinook": maemoSpecificDepends,
+		"diablo": maemoSpecificDepends,
+		"fremantle": maemoSpecificDepends + ", python-glade2",
+		"mer": maemoSpecificDepends + ", python-glade2",
 	}[distribution]
 	p.section = "user/accessories"
 	p.arch = "all"
 	p.urgency = "low"
-	p.distribution = "chinook diablo fremantle mer"
+	p.distribution = "chinook diablo fremantle mer debian"
 	p.repository = "extras"
 	p.changelog = __changelog__
 	p.postinstall = __postinstall__
-	p.icon = "26x26-ejpi.png"
+	p.icon = {
+		"debian": "26x26-ejpi.png",
+		"chinook": "26x26-ejpi.png",
+		"diablo": "26x26-ejpi.png",
+		"fremantle": "64x64-ejpi.png", # Fremantle natively uses 48x48
+		"mer": "64x64-ejpi.png",
+	}[distribution]
 	p["/usr/bin"] = [ "ejpi.py" ]
 	for relPath, files in unflatten_files(find_files(".")).iteritems():
 		fullPath = "/usr/lib/ejpi"
@@ -114,8 +135,12 @@ def build_package(distribution):
 
 	print p
 	print p.generate(
-		__version__, __build__, changelog=__changelog__,
-		tar=True, dsc=True, changes=True, build=False, src=True
+		version="%s-%s" % (__version__, __build__),
+		changelog=__changelog__,
+		build=False,
+		tar=True,
+		changes=True,
+		dsc=True,
 	)
 	print "Building for %s finished" % distribution
 

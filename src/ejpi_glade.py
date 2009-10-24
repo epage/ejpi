@@ -27,6 +27,7 @@ import sys
 import gc
 import os
 import string
+import logging
 import warnings
 
 import gtk
@@ -45,6 +46,8 @@ import gtkhistory
 import gtk_toolbox
 import constants
 
+
+_moduleLogger = logging.getLogger("ejpi_glade")
 
 PLUGIN_SEARCH_PATHS = [
 	os.path.join(os.path.dirname(__file__), "plugins/"),
@@ -402,6 +405,7 @@ class DummyOptions(object):
 
 
 if __name__ == "__main__":
+	logging.basicConfig(level=logging.DEBUG)
 	if len(sys.argv) > 1:
 		try:
 			import optparse
