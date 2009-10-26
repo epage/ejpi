@@ -159,7 +159,6 @@ class RpnCalcHistory(object):
 			for stackNode in self.history
 		)
 		serialized = list(serialized)
-		serialized.reverse()
 		return serialized
 
 	def deserialize_stack(self, data):

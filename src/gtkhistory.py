@@ -67,32 +67,37 @@ class GtkCalcHistory(history.AbstractHistory):
 		self.__resultColumn.set_attributes(self.__valueCell, text=2)
 
 		self._historyView.set_reorderable(True)
+		self._historyView.get_selection().set_mode(gtk.SELECTION_SINGLE)
 		self._historyView.connect("row-activated", self._on_close_activated)
 
 	def push(self, node):
 		simpleNode = node.simplify()
-		self.__historyStore.prepend([
+		self.__historyStore.append([
 			gtk.STOCK_CLOSE,
 			operation.render_operation(self.__prettyRenderer, node),
 			operation.render_operation(self.__prettyRenderer, simpleNode),
 			node,
 			simpleNode
 		])
+		selection = self._historyView.get_selection()
+		selectionPath = (len(self.__historyStore)-1, )
+		selection.select_path(selectionPath)
+		self._historyView.scroll_to_cell(selectionPath)
 
 	def pop(self):
 		if len(self.__historyStore) == 0:
 			raise IndexError("Not enough items in the history for the operation")
 
-		row = self.__historyStore[0]
+		row = self.__historyStore[-1]
 		data = row[self.DATA_IDX]
-		del self.__historyStore[0]
+		del self.__historyStore[-1]
 
 		return data
 
 	def peek(self):
 		if len(self.__historyStore) == 0:
 			raise IndexError("Not enough items in the history for the operation")
-		row = self.__historyStore[0]
+		row = self.__historyStore[-1]
 		data = row[self.DATA_IDX]
 		return data
 
@@ -108,6 +113,7 @@ class GtkCalcHistory(history.AbstractHistory):
 			yield data
 
 	def _on_close_activated(self, treeView, path, viewColumn):
+		print path
 		if viewColumn is self.__closeColumn:
 			del self.__historyStore[path[0]]
 		elif viewColumn is self.__resultColumn:
