@@ -6,7 +6,6 @@ import sys
 import cPickle
 
 import functools
-import itertools
 import contextlib
 import inspect
 
@@ -218,13 +217,13 @@ def validate_decorator(decorator):
 		print "'member' not in ", g.__dict__
 
 
-def deprecated(func):
+def deprecated_api(func):
 	"""
 	This is a decorator which can be used to mark functions
 	as deprecated. It will result in a warning being emitted
 	when the function is used.
 
-	>>> validate_decorator(deprecated)
+	>>> validate_decorator(deprecated_api)
 	"""
 
 	@functools.wraps(func)
@@ -232,6 +231,23 @@ def deprecated(func):
 		warnings.warn("Call to deprecated function %s." % func.__name__, category=DeprecationWarning)
 		return func(*args, **kwargs)
 	_append_docstring(newFunc, "\n@deprecated")
+	return newFunc
+
+
+def unstable_api(func):
+	"""
+	This is a decorator which can be used to mark functions
+	as deprecated. It will result in a warning being emitted
+	when the function is used.
+
+	>>> validate_decorator(unstable_api)
+	"""
+
+	@functools.wraps(func)
+	def newFunc(*args, **kwargs):
+		warnings.warn("Call to unstable API function %s." % func.__name__, category=FutureWarning)
+		return func(*args, **kwargs)
+	_append_docstring(newFunc, "\n@unstable")
 	return newFunc
 
 
