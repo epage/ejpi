@@ -27,6 +27,7 @@ __changelog__ = """
 0.9.6
 * Fullscreen by Ctrl+Enter
 * "Enter" in number entry causes a push
+* Reversed stack order to be more proper
 
 0.9.4
  * Added icons

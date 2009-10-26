@@ -2,7 +2,6 @@
 
 """
 Open Issues
-	@bug not all of a message is shown
 	@bug Buttons are too small
 """
 
