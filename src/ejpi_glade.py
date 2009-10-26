@@ -112,6 +112,8 @@ class Calculator(object):
 	_user_settings = "%s/settings.ini" % _user_data
 	_user_history = "%s/history.stack" % _user_data
 
+	MIN_BUTTON_SIZE = min(800, 480) // 6 - 20
+
 	def __init__(self):
 		self.__constantPlugins = plugin_utils.ConstantPluginManager()
 		self.__constantPlugins.add_path(*self._plugin_search_paths)
@@ -195,6 +197,9 @@ class Calculator(object):
 		self.__builtinPlugin = self.__keyboardPlugins.keyboards["Builtin"].construct_keyboard()
 		self.__builtinKeyboard = self.__builtinPlugin.setup(self.__history, self.__sliceStyle, self.__handler)
 		self._widgetTree.get_widget("mainKeyboard").pack_start(self.__builtinKeyboard)
+		for child in self.__builtinKeyboard.get_children():
+			child.set_size_request(self.MIN_BUTTON_SIZE, self.MIN_BUTTON_SIZE)
+
 		self.enable_plugin(self.__keyboardPlugins.lookup_plugin("Trigonometry"))
 		self.enable_plugin(self.__keyboardPlugins.lookup_plugin("Computer"))
 		self.enable_plugin(self.__keyboardPlugins.lookup_plugin("Alphabet"))
@@ -249,6 +254,8 @@ class Calculator(object):
 		pluginName = pluginData[0]
 		plugin = self.__keyboardPlugins.keyboards[pluginName].construct_keyboard()
 		pluginKeyboard = plugin.setup(self.__history, self.__sliceStyle, self.__handler)
+		for child in pluginKeyboard.get_children():
+			child.set_size_request(self.MIN_BUTTON_SIZE, self.MIN_BUTTON_SIZE)
 
 		self.__activeKeyboards.append({
 			"pluginName": pluginName,
@@ -265,6 +272,7 @@ class Calculator(object):
 	def _set_plugin_kb(self, pluginIndex):
 		plugin = self.__activeKeyboards[pluginIndex]
 		self.__pluginButton.set_label(plugin["pluginName"])
+
 		pluginParent = self._widgetTree.get_widget("pluginKeyboard")
 		oldPluginChildren = pluginParent.get_children()
 		if oldPluginChildren:
@@ -273,6 +281,7 @@ class Calculator(object):
 			oldPluginChildren[0].hide()
 		pluginKeyboard = plugin["pluginKeyboard"]
 		pluginParent.pack_start(pluginKeyboard)
+
 		pluginKeyboard.show_all()
 
 	def __load_history(self):
