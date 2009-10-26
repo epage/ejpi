@@ -12,7 +12,6 @@
 @todo Expanded copy/paste (Unusure how far to go)
 	@li Copy formula, value, serialized, mathml, latex?
 	@li Paste serialized, value?
-@bug Has the same Maemo tab color bug as DialCentral
 
 Some useful things on Maemo
 @li http://maemo.org/api_refs/4.1/libosso-2.16-1/group__Statesave.html

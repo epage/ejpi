@@ -13,6 +13,9 @@ import constants
 
 __appname__ = constants.__app_name__
 __description__ = """A Touch Screen Optimized RPN Calculator using Pie Menus
+RPN: Stack based math, come on it is fun
+Pie Menus: Press them or press-drag them
+History: Its such a drag, so drag them around, delete them, etc
 .
 Homepage: http://ejpi.garage.maemo.org/
 """
@@ -107,7 +110,13 @@ def build_package(distribution):
 		"fremantle": maemoSpecificDepends + ", python-glade2",
 		"mer": maemoSpecificDepends + ", python-glade2",
 	}[distribution]
-	p.section = "user/accessories"
+	p.section = {
+		"debian": "accessories",
+		"chinook": "accessories",
+		"diablo": "user/science",
+		"fremantle": "user/science",
+		"mer": "user/science",
+	}[distribution]
 	p.arch = "all"
 	p.urgency = "low"
 	p.distribution = "chinook diablo fremantle mer debian"
