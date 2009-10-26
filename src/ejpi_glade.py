@@ -134,7 +134,7 @@ class Calculator(object):
 
 		self.__keyboardPlugins = plugin_utils.KeyboardPluginManager()
 		self.__keyboardPlugins.add_path(*self._plugin_search_paths)
-		self.__activeKeyboards = {}
+		self.__activeKeyboards = []
 
 		for path in self._glade_files:
 			if os.path.isfile(path):
@@ -174,6 +174,7 @@ class Calculator(object):
 		self.__errorDisplay = gtk_toolbox.ErrorDisplay(self._widgetTree)
 		self.__userEntry = ValueEntry(self._widgetTree.get_widget("entryView"))
 		self.__stackView = self._widgetTree.get_widget("historyView")
+		self.__pluginButton = self._widgetTree.get_widget("keyboardSelectionButton")
 
 		self.__historyStore = gtkhistory.GtkCalcHistory(self.__stackView)
 		self.__history = history.RpnCalcHistory(
@@ -194,7 +195,7 @@ class Calculator(object):
 		self.__keyboardPlugins.enable_plugin(builtinKeyboardId)
 		self.__builtinPlugin = self.__keyboardPlugins.keyboards["Builtin"].construct_keyboard()
 		self.__builtinKeyboard = self.__builtinPlugin.setup(self.__history, self.__sliceStyle, self.__handler)
-		self._widgetTree.get_widget("functionLayout").pack_start(self.__builtinKeyboard)
+		self._widgetTree.get_widget("mainKeyboard").pack_start(self.__builtinKeyboard)
 		self.enable_plugin(self.__keyboardPlugins.lookup_plugin("Trigonometry"))
 		self.enable_plugin(self.__keyboardPlugins.lookup_plugin("Computer"))
 		self.enable_plugin(self.__keyboardPlugins.lookup_plugin("Alphabet"))
@@ -211,6 +212,9 @@ class Calculator(object):
 		self._window.connect("key-press-event", self._on_key_press)
 		self._window.connect("window-state-event", self._on_window_state_change)
 		self._widgetTree.get_widget("entryView").connect("activate", self._on_push)
+		self.__pluginButton.connect("clicked", self._on_kb_plugin_selection_button)
+
+		self._set_plugin_kb(0)
 
 		hildonize.set_application_title(self._window, "%s" % constants.__pretty_app_name__)
 		self._window.connect("destroy", self._on_close)
@@ -247,15 +251,30 @@ class Calculator(object):
 		plugin = self.__keyboardPlugins.keyboards[pluginName].construct_keyboard()
 		pluginKeyboard = plugin.setup(self.__history, self.__sliceStyle, self.__handler)
 
-		keyboardTabs = self._widgetTree.get_widget("pluginKeyboards")
-		keyboardTabs.append_page(pluginKeyboard, gtk.Label(pluginName))
-		keyboardPageNum = keyboardTabs.page_num(pluginKeyboard)
-		assert keyboardPageNum not in self.__activeKeyboards
-		self.__activeKeyboards[keyboardPageNum] = {
+		self.__activeKeyboards.append({
 			"pluginName": pluginName,
 			"plugin": plugin,
 			"pluginKeyboard": pluginKeyboard,
-		}
+		})
+
+	def _on_kb_plugin_selection_button(self, *args):
+		pluginNames = [plugin["pluginName"] for plugin in self.__activeKeyboards]
+		oldIndex = pluginNames.index(self.__pluginButton.get_label())
+		newIndex = hildonize.touch_selector(self._window, "Keyboards", pluginNames, oldIndex)
+		self._set_plugin_kb(newIndex)
+
+	def _set_plugin_kb(self, pluginIndex):
+		plugin = self.__activeKeyboards[pluginIndex]
+		self.__pluginButton.set_label(plugin["pluginName"])
+		pluginParent = self._widgetTree.get_widget("pluginKeyboard")
+		oldPluginChildren = pluginParent.get_children()
+		if oldPluginChildren:
+			assert len(oldPluginChildren) == 1, "%r" % (oldPluginChildren, )
+			pluginParent.remove(oldPluginChildren[0])
+			oldPluginChildren[0].hide()
+		pluginKeyboard = plugin["pluginKeyboard"]
+		pluginParent.pack_start(pluginKeyboard)
+		pluginKeyboard.show_all()
 
 	def __load_history(self):
 		serialized = []
