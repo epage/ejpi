@@ -113,7 +113,6 @@ class GtkCalcHistory(history.AbstractHistory):
 			yield data
 
 	def _on_close_activated(self, treeView, path, viewColumn):
-		print path
 		if viewColumn is self.__closeColumn:
 			del self.__historyStore[path[0]]
 		elif viewColumn is self.__resultColumn:
