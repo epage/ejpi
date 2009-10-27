@@ -211,13 +211,15 @@ class Calculator(object):
 		self._set_plugin_kb(0)
 
 		# Callbacks
-		callbackMapping = {
-			"on_calculator_quit": self._on_close,
-			"on_paste": self._on_paste,
-			"on_clear_history": self._on_clear_all,
-			"on_about": self._on_about_activate,
-		}
-		self._widgetTree.signal_autoconnect(callbackMapping)
+		if not hildonize.IS_FREMANTLE_SUPPORTED:
+			# Menus aren't used in the Fremantle version
+			callbackMapping = {
+				"on_calculator_quit": self._on_close,
+				"on_paste": self._on_paste,
+				"on_clear_history": self._on_clear_all,
+				"on_about": self._on_about_activate,
+			}
+			self._widgetTree.signal_autoconnect(callbackMapping)
 		self._widgetTree.get_widget("copyMenuItem").connect("activate", self._on_copy)
 		self._widgetTree.get_widget("copyEquationMenuItem").connect("activate", self._on_copy_equation)
 		self._window.connect("key-press-event", self._on_key_press)

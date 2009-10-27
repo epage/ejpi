@@ -28,6 +28,8 @@ __changelog__ = """
 * Fullscreen by Ctrl+Enter
 * "Enter" in number entry causes a push
 * Reversed stack order to be more proper
+* Logging support
+* Fremantle Support
 
 0.9.4
  * Added icons
@@ -61,6 +63,7 @@ __changelog__ = """
 __postinstall__ = """#!/bin/sh -e
 
 gtk-update-icon-cache -f /usr/share/icons/hicolor
+rm -f ~/.ejpi/ejpi.log
 """
 
 
