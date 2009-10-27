@@ -110,7 +110,7 @@ class Calculator(object):
 		os.path.join(os.path.dirname(__file__), "plugins/"),
 	]
 
-	_user_data = os.path.expanduser("~/.%s/" % constants.__app_name__)
+	_user_data = constants._data_path_
 	_user_settings = "%s/settings.ini" % _user_data
 	_user_history = "%s/history.stack" % _user_data
 

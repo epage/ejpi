@@ -97,6 +97,7 @@ def build_package(distribution):
 	p = py2deb.Py2deb(__appname__)
 	p.prettyName = constants.__pretty_app_name__
 	p.description = __description__
+	p.bugTracker = "https://bugs.maemo.org/enter_bug.cgi?product=ejpi"
 	p.upgradeDescription = __changelog__.split("\n\n", 1)[0]
 	p.author = __author__
 	p.mail = __email__
