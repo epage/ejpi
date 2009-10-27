@@ -220,8 +220,8 @@ class Calculator(object):
 				"on_about": self._on_about_activate,
 			}
 			self._widgetTree.signal_autoconnect(callbackMapping)
-		self._widgetTree.get_widget("copyMenuItem").connect("activate", self._on_copy)
-		self._widgetTree.get_widget("copyEquationMenuItem").connect("activate", self._on_copy_equation)
+			self._widgetTree.get_widget("copyMenuItem").connect("activate", self._on_copy)
+			self._widgetTree.get_widget("copyEquationMenuItem").connect("activate", self._on_copy_equation)
 		self._window.connect("key-press-event", self._on_key_press)
 		self._window.connect("window-state-event", self._on_window_state_change)
 		self._widgetTree.get_widget("entryView").connect("activate", self._on_push)
