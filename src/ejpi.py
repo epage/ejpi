@@ -3,7 +3,7 @@
 import sys
 
 
-sys.path.insert(0,"/usr/lib/ejpi/")
+sys.path.append("/usr/lib/ejpi/")
 
 
 import ejpi_glade

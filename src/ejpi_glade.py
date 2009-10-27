@@ -49,6 +49,8 @@ PLUGIN_SEARCH_PATHS = [
 	os.path.join(os.path.dirname(__file__), "plugins/"),
 ]
 
+PROFILE_STARTUP = False
+
 
 class ValueEntry(object):
 
@@ -185,6 +187,7 @@ class Calculator(object):
 		)
 		self.__load_history()
 
+		# Basic keyboard stuff
 		self.__sliceStyle = gtkpie.generate_pie_style(gtk.Button())
 		self.__handler = gtkpieboard.KeyboardHandler(self._on_entry_direct)
 		self.__handler.register_command_handler("push", self._on_push)
@@ -192,6 +195,7 @@ class Calculator(object):
 		self.__handler.register_command_handler("backspace", self._on_entry_backspace)
 		self.__handler.register_command_handler("clear", self._on_entry_clear)
 
+		# Main keyboard
 		builtinKeyboardId = self.__keyboardPlugins.lookup_plugin("Builtin")
 		self.__keyboardPlugins.enable_plugin(builtinKeyboardId)
 		self.__builtinPlugin = self.__keyboardPlugins.keyboards["Builtin"].construct_keyboard()
@@ -200,10 +204,13 @@ class Calculator(object):
 		for child in self.__builtinKeyboard.get_children():
 			child.set_size_request(self.MIN_BUTTON_SIZE, self.MIN_BUTTON_SIZE)
 
+		# Plugins
 		self.enable_plugin(self.__keyboardPlugins.lookup_plugin("Trigonometry"))
 		self.enable_plugin(self.__keyboardPlugins.lookup_plugin("Computer"))
 		self.enable_plugin(self.__keyboardPlugins.lookup_plugin("Alphabet"))
+		self._set_plugin_kb(0)
 
+		# Callbacks
 		callbackMapping = {
 			"on_calculator_quit": self._on_close,
 			"on_paste": self._on_paste,
@@ -217,8 +224,6 @@ class Calculator(object):
 		self._window.connect("window-state-event", self._on_window_state_change)
 		self._widgetTree.get_widget("entryView").connect("activate", self._on_push)
 		self.__pluginButton.connect("clicked", self._on_kb_plugin_selection_button)
-
-		self._set_plugin_kb(0)
 
 		hildonize.set_application_title(self._window, "%s" % constants.__pretty_app_name__)
 		self._window.connect("destroy", self._on_close)
@@ -458,7 +463,8 @@ def run_calculator():
 
 	gtkpie.IMAGES.add_path(os.path.join(os.path.dirname(__file__), "libraries/images"), )
 	handle = Calculator()
-	gtk.main()
+	if not PROFILE_STARTUP:
+		gtk.main()
 
 
 class DummyOptions(object):
