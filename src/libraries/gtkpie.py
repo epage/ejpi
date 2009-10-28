@@ -125,9 +125,6 @@ def convert_color(gtkColor):
 
 
 def generate_pie_style(widget):
-	"""
-	@bug This seems to always pick the same colors irregardless of the theme
-	"""
 	# GTK states:
 	# * gtk.STATE_NORMAL - The state of a sensitive widget that is not active and does not have the focus
 	# * gtk.STATE_ACTIVE - The state of a sensitive widget when it is active e.g. a button that is pressed but not yet released

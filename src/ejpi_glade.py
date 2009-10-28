@@ -1,18 +1,6 @@
 #!/usr/bin/python
 
 """
-@todo Add preference file
-	@li enable/disable plugins
-	@li plugin search path
-	@li Number format
-	@li Current tab
-@todo Expand operations to support
-	@li mathml then to cairo?
-	@li cairo directly?
-@todo Expanded copy/paste (Unusure how far to go)
-	@li Copy formula, value, serialized, mathml, latex?
-	@li Paste serialized, value?
-
 Some useful things on Maemo
 @li http://maemo.org/api_refs/4.1/libosso-2.16-1/group__Statesave.html
 @li http://maemo.org/api_refs/4.1/libosso-2.16-1/group__Autosave.html

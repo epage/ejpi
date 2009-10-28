@@ -127,12 +127,6 @@ class RpnCalcHistory(object):
 		self.__entry().clear()
 
 	def push_entry(self):
-		"""
-		@todo Add operation duplication.  If value is empty, peek at the top
-			item.  If it has children, grab the last one, push it and reapply the
-			operation.  If there are no children then just duplicate the item
-		"""
-
 		value = self.__entry().get_value()
 
 		valueNode = None
