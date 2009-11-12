@@ -258,14 +258,12 @@ class Calculator(object):
 			"pluginKeyboard": pluginKeyboard,
 		})
 
+	@gtk_toolbox.log_exception(_moduleLogger)
 	def _on_kb_plugin_selection_button(self, *args):
-		try:
-			pluginNames = [plugin["pluginName"] for plugin in self.__activeKeyboards]
-			oldIndex = pluginNames.index(self.__pluginButton.get_label())
-			newIndex = hildonize.touch_selector(self._window, "Keyboards", pluginNames, oldIndex)
-			self._set_plugin_kb(newIndex)
-		except Exception:
-			self.__errorDisplay.push_exception()
+		pluginNames = [plugin["pluginName"] for plugin in self.__activeKeyboards]
+		oldIndex = pluginNames.index(self.__pluginButton.get_label())
+		newIndex = hildonize.touch_selector(self._window, "Keyboards", pluginNames, oldIndex)
+		self._set_plugin_kb(newIndex)
 
 	def _set_plugin_kb(self, pluginIndex):
 		plugin = self.__activeKeyboards[pluginIndex]
@@ -302,123 +300,97 @@ class Calculator(object):
 				line = " ".join(data for data in lineData)
 				f.write("%s\n" % line)
 
+	@gtk_toolbox.log_exception(_moduleLogger)
 	def _on_device_state_change(self, shutdown, save_unsaved_data, memory_low, system_inactivity, message, userData):
 		"""
 		For system_inactivity, we have no background tasks to pause
 
 		@note Hildon specific
 		"""
-		try:
-			if memory_low:
-				gc.collect()
+		if memory_low:
+			gc.collect()
 
-			if save_unsaved_data or shutdown:
-				self.__save_history()
-		except Exception:
-			self.__errorDisplay.push_exception()
+		if save_unsaved_data or shutdown:
+			self.__save_history()
 
+	@gtk_toolbox.log_exception(_moduleLogger)
 	def _on_window_state_change(self, widget, event, *args):
-		"""
-		@note Hildon specific
-		"""
-		try:
-			if event.new_window_state & gtk.gdk.WINDOW_STATE_FULLSCREEN:
-				self._isFullScreen = True
-			else:
-				self._isFullScreen = False
-		except Exception:
-			self.__errorDisplay.push_exception()
+		if event.new_window_state & gtk.gdk.WINDOW_STATE_FULLSCREEN:
+			self._isFullScreen = True
+		else:
+			self._isFullScreen = False
 
+	@gtk_toolbox.log_exception(_moduleLogger)
 	def _on_close(self, *args, **kwds):
+		if self._osso is not None:
+			self._osso.close()
+
 		try:
-			if self._osso is not None:
-				self._osso.close()
+			self.__save_history()
+		finally:
+			gtk.main_quit()
 
-			try:
-				self.__save_history()
-			finally:
-				gtk.main_quit()
-		except Exception:
-			self.__errorDisplay.push_exception()
-
+	@gtk_toolbox.log_exception(_moduleLogger)
 	def _on_copy(self, *args):
-		try:
-			equationNode = self.__history.history.peek()
-			result = str(equationNode.evaluate())
-			self._clipboard.set_text(result)
-		except Exception:
-			self.__errorDisplay.push_exception()
+		equationNode = self.__history.history.peek()
+		result = str(equationNode.evaluate())
+		self._clipboard.set_text(result)
 
+	@gtk_toolbox.log_exception(_moduleLogger)
 	def _on_copy_equation(self, *args):
-		try:
-			equationNode = self.__history.history.peek()
-			equation = str(equationNode)
-			self._clipboard.set_text(equation)
-		except Exception:
-			self.__errorDisplay.push_exception()
+		equationNode = self.__history.history.peek()
+		equation = str(equationNode)
+		self._clipboard.set_text(equation)
 
+	@gtk_toolbox.log_exception(_moduleLogger)
 	def _on_paste(self, *args):
-		try:
-			contents = self._clipboard.wait_for_text()
-			self.__userEntry.append(contents)
-		except Exception:
-			self.__errorDisplay.push_exception()
+		contents = self._clipboard.wait_for_text()
+		self.__userEntry.append(contents)
 
+	@gtk_toolbox.log_exception(_moduleLogger)
 	def _on_key_press(self, widget, event, *args):
-		"""
-		@note Hildon specific
-		"""
-		try:
-			RETURN_TYPES = (gtk.keysyms.Return, gtk.keysyms.ISO_Enter, gtk.keysyms.KP_Enter)
-			if (
-				event.keyval == gtk.keysyms.F6 or
-				event.keyval in RETURN_TYPES and event.get_state() & gtk.gdk.CONTROL_MASK
-			):
-				if self._isFullScreen:
-					self._window.unfullscreen()
-				else:
-					self._window.fullscreen()
-		except Exception:
-			self.__errorDisplay.push_exception()
+		RETURN_TYPES = (gtk.keysyms.Return, gtk.keysyms.ISO_Enter, gtk.keysyms.KP_Enter)
+		if (
+			event.keyval == gtk.keysyms.F6 or
+			event.keyval in RETURN_TYPES and event.get_state() & gtk.gdk.CONTROL_MASK
+		):
+			if self._isFullScreen:
+				self._window.unfullscreen()
+			else:
+				self._window.fullscreen()
+		elif event.keyval == ord("l") and event.get_state() & gtk.gdk.CONTROL_MASK:
+			with open(constants._user_logpath_, "r") as f:
+				logLines = f.xreadlines()
+				log = "".join(logLines)
+				self._clipboard.set_text(str(log))
 
+	@gtk_toolbox.log_exception(_moduleLogger)
 	def _on_push(self, *args):
-		try:
-			self.__history.push_entry()
-		except Exception:
-			self.__errorDisplay.push_exception()
+		self.__history.push_entry()
 
+	@gtk_toolbox.log_exception(_moduleLogger)
 	def _on_unpush(self, *args):
-		try:
-			self.__historyStore.unpush()
-		except Exception:
-			self.__errorDisplay.push_exception()
+		self.__historyStore.unpush()
 
+	@gtk_toolbox.log_exception(_moduleLogger)
 	def _on_entry_direct(self, keys, modifiers):
-		try:
-			if "shift" in modifiers:
-				keys = keys.upper()
-			self.__userEntry.append(keys)
-		except Exception:
-			self.__errorDisplay.push_exception()
+		if "shift" in modifiers:
+			keys = keys.upper()
+		self.__userEntry.append(keys)
 
+	@gtk_toolbox.log_exception(_moduleLogger)
 	def _on_entry_backspace(self, *args):
-		try:
-			self.__userEntry.pop()
-		except Exception:
-			self.__errorDisplay.push_exception()
+		self.__userEntry.pop()
 
+	@gtk_toolbox.log_exception(_moduleLogger)
 	def _on_entry_clear(self, *args):
-		try:
-			self.__userEntry.clear()
-		except Exception:
-			self.__errorDisplay.push_exception()
+		self.__userEntry.clear()
 
+	@gtk_toolbox.log_exception(_moduleLogger)
 	def _on_clear_all(self, *args):
-		try:
-			self.__history.clear()
-		except Exception:
-			self.__errorDisplay.push_exception()
+		self.__history.clear()
 
+	@gtk_toolbox.log_exception(_moduleLogger)
 	def _on_about_activate(self, *args):
 		dlg = gtk.AboutDialog()
 		dlg.set_name(constants.__pretty_app_name__)
