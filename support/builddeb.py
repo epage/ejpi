@@ -28,7 +28,7 @@ __changelog__ = """
 * Fullscreen by Ctrl+Enter
 * "Enter" in number entry causes a push
 * Reversed stack order to be more proper
-* Logging support
+* Logging support, Ctrl+l to copy the log
 * Fremantle Support
 
 0.9.4
