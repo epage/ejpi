@@ -13,6 +13,7 @@ import gtk
 
 
 import gtk_toolbox
+import hildonize
 import history
 import operation
 
@@ -58,6 +59,7 @@ class GtkCalcHistory(history.AbstractHistory):
 
 		# create a CellRenderers to render the data
 		self.__closeCell = gtk.CellRendererPixbuf()
+		hildonize.set_pix_cell_thumb_selectable(self.__closeCell)
 		self.__closeColumn.pack_start(self.__closeCell, False)
 		self.__closeColumn.set_attributes(self.__closeCell, stock_id=0)
 
