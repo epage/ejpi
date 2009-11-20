@@ -404,7 +404,7 @@ Buttons: Try both pressing and hold/drag
 History: Try dragging things around, deleting them, etc
 """)
 		dlg.set_website("http://ejpi.garage.maemo.org")
-		dlg.set_authors(["Ed Page"])
+		dlg.set_authors(["Ed Page <eopage@byu.net>"])
 		dlg.run()
 		dlg.destroy()
 
@@ -424,6 +424,8 @@ def run_calculator():
 	gtk.gdk.threads_init()
 
 	gtkpie.IMAGES.add_path(os.path.join(os.path.dirname(__file__), "libraries/images"), )
+	if hildonize.IS_HILDON_SUPPORTED:
+		gtk.set_application_name(constants.__pretty_app_name__)
 	handle = Calculator()
 	if not PROFILE_STARTUP:
 		gtk.main()
