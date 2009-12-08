@@ -227,10 +227,11 @@ class Calculator(object):
 		except ImportError:
 			osso = None
 		self._osso = None
+		self._deviceState = None
 		if osso is not None:
 			self._osso = osso.Context(constants.__app_name__, constants.__version__, False)
-			device = osso.DeviceState(self._osso)
-			device.set_device_state_callback(self._on_device_state_change, 0)
+			self._deviceState = osso.DeviceState(self._osso)
+			self._deviceState.set_device_state_callback(self._on_device_state_change, 0)
 		else:
 			_moduleLogger.warning("No OSSO support")
 
@@ -322,11 +323,17 @@ class Calculator(object):
 
 	@gtk_toolbox.log_exception(_moduleLogger)
 	def _on_close(self, *args, **kwds):
-		if self._osso is not None:
-			self._osso.close()
-
 		try:
 			self.__save_history()
+
+			try:
+				self._deviceState.close()
+			except AttributeError:
+				pass # Either None or close was removed (in Fremantle)
+			try:
+				self._osso.close()
+			except AttributeError:
+				pass # Either None or close was removed (in Fremantle)
 		finally:
 			gtk.main_quit()
 
