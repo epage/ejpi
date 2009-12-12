@@ -117,7 +117,7 @@ def build_package(distribution):
 		"mer": maemoSpecificDepends + ", python-glade2",
 	}[distribution]
 	p.section = {
-		"debian": "accessories",
+		"debian": "math",
 		"chinook": "accessories",
 		"diablo": "user/science",
 		"fremantle": "user/science",
