@@ -190,7 +190,7 @@ else:
 
 
 def _hildon_set_pix_cell_thumb_selectable(renderer):
-	renderer.set_property("stock-size", 48)
+	renderer.set_property("stock-size", 24)
 
 
 def _null_set_pix_cell_thumb_selectable(renderer):
