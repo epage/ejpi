@@ -152,7 +152,6 @@ class Calculator(object):
 		menu = hildonize.hildonize_menu(
 			self._window,
 			self._widgetTree.get_widget("mainMenubar"),
-			[]
 		)
 
 		for scrollingWidgetName in (
@@ -365,6 +364,10 @@ class Calculator(object):
 				self._window.unfullscreen()
 			else:
 				self._window.fullscreen()
+		elif event.keyval == ord("c") and event.get_state() & gtk.gdk.CONTROL_MASK:
+			equationNode = self.__history.history.peek()
+			result = str(equationNode.evaluate())
+			self._clipboard.set_text(result)
 		elif event.keyval == ord("l") and event.get_state() & gtk.gdk.CONTROL_MASK:
 			with open(constants._user_logpath_, "r") as f:
 				logLines = f.xreadlines()
