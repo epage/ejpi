@@ -24,6 +24,11 @@ __email__ = "eopage@byu.net"
 __version__ = constants.__version__
 __build__ = constants.__build__
 __changelog__ = """
+0.9.7
+* Added shortcut to copy result
+* BugFix: Attempt two at bigger X button
+* Added support for creating .deb generic linux package files
+
 0.9.6
 * Fullscreen by Ctrl+Enter
 * "Enter" in number entry causes a push
