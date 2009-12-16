@@ -29,7 +29,7 @@
 		},
 		(2, 0): {
 			"CENTER": {"action": "0x", "type": "text", "text": "0x", },
-			"NORTH": {"action": "[hex]", "type": "text", "text": "hex", },
+			"SOUTH": {"action": "[hex]", "type": "text", "text": "hex", },
 			"NORTH_WEST": {"action": "a", "type": "text", "text": "A", },
 			"WEST": {"action": "b", "type": "text", "text": "B", },
 			"SOUTH_WEST": {"action": "c", "type": "text", "text": "C", },

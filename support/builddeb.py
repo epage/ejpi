@@ -26,7 +26,9 @@ __build__ = constants.__build__
 __changelog__ = """
 0.9.7
 * Added shortcut to copy result
+* Shortcuts: Backspace - as expected, Ctrl+Backspace - unpops, Enter - pops
 * BugFix: Attempt two at bigger X button
+* Bugfix: Inconsistent location of pie items on the computer section
 * Added support for creating .deb generic linux package files
 
 0.9.6

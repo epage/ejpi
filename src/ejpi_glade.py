@@ -373,6 +373,12 @@ class Calculator(object):
 				logLines = f.xreadlines()
 				log = "".join(logLines)
 				self._clipboard.set_text(str(log))
+		elif event.keyval == gtk.keysyms.BackSpace and event.get_state() & gtk.gdk.CONTROL_MASK:
+			self.__historyStore.unpush()
+		elif event.keyval == gtk.keysyms.BackSpace:
+			self.__userEntry.pop()
+		elif event.keyval in RETURN_TYPES:
+			self.__history.push_entry()
 
 	@gtk_toolbox.log_exception(_moduleLogger)
 	def _on_push(self, *args):
