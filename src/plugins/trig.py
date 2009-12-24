@@ -34,7 +34,7 @@ def float_or_complex(float_func, complex_func):
 	return switching_func
 
 exp = operation.generate_function(float_or_complex(math.exp, cmath.exp), "exp", operation.Function.REP_FUNCTION, 1)
-log = operation.generate_function(float_or_complex(math.exp, cmath.exp), "log", operation.Function.REP_FUNCTION, 1)
+log = operation.generate_function(float_or_complex(math.log, cmath.log), "log", operation.Function.REP_FUNCTION, 1)
 
 PLUGIN.register_operation("exp", exp)
 PLUGIN.register_operation("log", log)

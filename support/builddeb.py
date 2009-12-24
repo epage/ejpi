@@ -24,6 +24,9 @@ __email__ = "eopage@byu.net"
 __version__ = constants.__version__
 __build__ = constants.__build__
 __changelog__ = """
+0.9.8
+* Fixing log support
+
 0.9.7
 * Added shortcut to copy result
 * Shortcuts: Backspace - as expected, Ctrl+Backspace - unpops, Enter - pops
