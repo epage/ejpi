@@ -13,8 +13,11 @@ import constants
 
 __appname__ = constants.__app_name__
 __description__ = """A Touch Screen Optimized RPN Calculator using Pie Menus
+.
 RPN: Stack based math, come on it is fun
+.
 Pie Menus: Press them or press-drag them
+.
 History: Its such a drag, so drag them around, delete them, etc
 .
 Homepage: http://ejpi.garage.maemo.org/
@@ -121,30 +124,24 @@ def build_package(distribution):
 	maemoSpecificDepends = ", python-osso | python2.5-osso, python-hildon | python2.5-hildon"
 	p.depends += {
 		"debian": ", python-glade2",
-		"chinook": maemoSpecificDepends,
 		"diablo": maemoSpecificDepends,
 		"fremantle": maemoSpecificDepends + ", python-glade2",
-		"mer": maemoSpecificDepends + ", python-glade2",
 	}[distribution]
 	p.section = {
 		"debian": "math",
-		"chinook": "accessories",
 		"diablo": "user/science",
 		"fremantle": "user/science",
-		"mer": "user/science",
 	}[distribution]
 	p.arch = "all"
 	p.urgency = "low"
-	p.distribution = "chinook diablo fremantle mer debian"
+	p.distribution = "diablo fremantle debian"
 	p.repository = "extras"
 	p.changelog = __changelog__
 	p.postinstall = __postinstall__
 	p.icon = {
 		"debian": "26x26-ejpi.png",
-		"chinook": "26x26-ejpi.png",
 		"diablo": "26x26-ejpi.png",
 		"fremantle": "64x64-ejpi.png", # Fremantle natively uses 48x48
-		"mer": "64x64-ejpi.png",
 	}[distribution]
 	p["/usr/bin"] = [ "ejpi.py" ]
 	for relPath, files in unflatten_files(find_files(".")).iteritems():
