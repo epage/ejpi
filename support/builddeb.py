@@ -27,66 +27,27 @@ __email__ = "eopage@byu.net"
 __version__ = constants.__version__
 __build__ = constants.__build__
 __changelog__ = """
-0.9.8
-* Fixing log support
-
-0.9.7
-* Added shortcut to copy result
-* Shortcuts: Backspace - as expected, Ctrl+Backspace - unpops, Enter - pops
-* BugFix: Attempt two at bigger X button
-* Bugfix: Inconsistent location of pie items on the computer section
-* Added support for creating .deb generic linux package files
-
-0.9.6
-* Fullscreen by Ctrl+Enter
-* "Enter" in number entry causes a push
-* Reversed stack order to be more proper
-* Logging support, Ctrl+l to copy the log
-* Fremantle Support
-
-0.9.4
- * Added icons
- * Minor improvements
- * Swapping the keyboard positions, seem more friendly to my thumb location this way
-
-0.9.3 - ""
- * Added +/-, !, sq, and sqrt functions
- * Improved Documentation
- * Copy of calculation result and the corresponding equation
- * Bug fixes
-
-0.9.2 - ""
- * Experimenting with faster startup by including pyc files in package
- * Minor tweaks and bug fixes
-
-0.9.1 - "Laziness doesn't always pay off"
- * Profiled the code with an especial focus on the pie menus
- * Tried to reduce potential bugs with double clicks
- * Fixed a visual artifact issue on popup
-
-0.9.0 - "Feed is for horses, so what about feedback?"
- * Initial public release
- * Pie menus for keys
- * Modifiable history
- * Supports different number types and bases
- * Basic trig support
-"""
+* Port to QT
+""".strip()
 
 
 __postinstall__ = """#!/bin/sh -e
 
 gtk-update-icon-cache -f /usr/share/icons/hicolor
-rm -f ~/.ejpi/ejpi.log
+rm -f ~/.%(name)s/%(name)s.log
+""" % {"name": constants.__app_name__}
+
+__preremove__ = """#!/bin/sh -e
 """
 
 
-def find_files(path):
+def find_files(prefix, path):
 	for root, dirs, files in os.walk(path):
 		for file in files:
-			if file.startswith("src-"):
+			if file.startswith(prefix+"-"):
 				fileParts = file.split("-")
 				unused, relPathParts, newName = fileParts[0], fileParts[1:-1], fileParts[-1]
-				assert unused == "src"
+				assert unused == prefix
 				relPath = os.sep.join(relPathParts)
 				yield relPath, file, newName
 
@@ -111,7 +72,6 @@ def build_package(distribution):
 	p.prettyName = constants.__pretty_app_name__
 	p.description = __description__
 	p.bugTracker = "https://bugs.maemo.org/enter_bug.cgi?product=ejpi"
-	#p.upgradeDescription = __changelog__.split("\n\n", 1)[0]
 	p.author = __author__
 	p.mail = __email__
 	p.license = "lgpl"
@@ -143,16 +103,16 @@ def build_package(distribution):
 		"diablo": "26x26-ejpi.png",
 		"fremantle": "64x64-ejpi.png", # Fremantle natively uses 48x48
 	}[distribution]
-	p["/usr/bin"] = [ "ejpi.py" ]
-	for relPath, files in unflatten_files(find_files(".")).iteritems():
-		fullPath = "/usr/lib/ejpi"
+	p["/opt/%s/bin" % constants.__appname__] = [ "%s.py" % constants.__appname__ ]
+	for relPath, files in unflatten_files(find_files("src", ".")).iteritems():
+		fullPath = "/opt/%s/lib" % constants.__appname__
 		if relPath:
 			fullPath += os.sep+relPath
 		p[fullPath] = list(
 			"|".join((oldName, newName))
 			for (oldName, newName) in files
 		)
-	p["/usr/share/applications/hildon"] = ["ejpi.desktop"]
+	p["/usr/share/applications/hildon"] = ["%s.desktop" % constants.__appname__]
 	p["/usr/share/icons/hicolor/26x26/hildon"] = ["26x26-ejpi.png|ejpi.png"]
 	p["/usr/share/icons/hicolor/64x64/hildon"] = ["64x64-ejpi.png|ejpi.png"]
 	p["/usr/share/icons/hicolor/scalable/hildon"] = ["scale-ejpi.png|ejpi.png"]

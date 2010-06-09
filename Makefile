@@ -25,7 +25,7 @@ CTAGS=ctags-exuberant
 all: test
 
 run: $(OBJ)
-	$(SOURCE_PATH)/$(PROJECT_NAME)_glade.py
+	$(SOURCE_PATH)/$(PROJECT_NAME).py
 
 profile: $(OBJ)
 	$(PROFILE_GEN) $(PROGRAM)
@@ -45,7 +45,6 @@ package: $(OBJ)
 	cp $(SOURCE_PATH)/$(PROJECT_NAME).py  $(BUILD_PATH)/generic
 	$(foreach file, $(DATA), cp $(file) $(BUILD_PATH)/generic/$(subst /,-,$(file)) ; )
 	$(foreach file, $(SOURCE), cp $(file) $(BUILD_PATH)/generic/$(subst /,-,$(file)) ; )
-	#$(foreach file, $(OBJ), cp $(file) $(BUILD_PATH)/generic/$(subst /,-,$(file)) ; )
 	cp support/$(PROJECT_NAME).desktop $(BUILD_PATH)/generic
 	cp support/icons/26.png $(BUILD_PATH)/generic/26x26-$(PROJECT_NAME).png
 	cp support/icons/64.png $(BUILD_PATH)/generic/64x64-$(PROJECT_NAME).png
