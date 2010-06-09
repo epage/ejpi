@@ -10,7 +10,7 @@ import inspect
 import ConfigParser
 
 from libraries import gtkpieboard
-from libraries.recipes import io
+from util import io
 import operation
 
 

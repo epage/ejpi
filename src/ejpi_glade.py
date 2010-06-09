@@ -21,17 +21,18 @@ import gtk
 import gtk.glade
 
 import hildonize
+import gtk_toolbox
 
+import constants
 from libraries import gtkpie
 from libraries import gtkpieboard
+import util.misc as misc_utils
 import plugin_utils
 import history
 import gtkhistory
-import gtk_toolbox
-import constants
 
 
-_moduleLogger = logging.getLogger("ejpi_glade")
+_moduleLogger = logging.getLogger(__name__)
 
 PLUGIN_SEARCH_PATHS = [
 	os.path.join(os.path.dirname(__file__), "plugins/"),
@@ -214,7 +215,7 @@ class Calculator(object):
 		self._widgetTree.get_widget("entryView").connect("activate", self._on_push)
 		self.__pluginButton.connect("clicked", self._on_kb_plugin_selection_button)
 
-		hildonize.set_application_title(self._window, "%s" % constants.__pretty_app_name__)
+		hildonize.set_application_name("%s" % constants.__pretty_app_name__)
 		self._window.connect("destroy", self._on_close)
 		self._window.show_all()
 
@@ -258,7 +259,7 @@ class Calculator(object):
 			"pluginKeyboard": pluginKeyboard,
 		})
 
-	@gtk_toolbox.log_exception(_moduleLogger)
+	@misc_utils.log_exception(_moduleLogger)
 	def _on_kb_plugin_selection_button(self, *args):
 		pluginNames = [plugin["pluginName"] for plugin in self.__activeKeyboards]
 		oldIndex = pluginNames.index(self.__pluginButton.get_label())
@@ -300,7 +301,7 @@ class Calculator(object):
 				line = " ".join(data for data in lineData)
 				f.write("%s\n" % line)
 
-	@gtk_toolbox.log_exception(_moduleLogger)
+	@misc_utils.log_exception(_moduleLogger)
 	def _on_device_state_change(self, shutdown, save_unsaved_data, memory_low, system_inactivity, message, userData):
 		"""
 		For system_inactivity, we have no background tasks to pause
@@ -313,14 +314,14 @@ class Calculator(object):
 		if save_unsaved_data or shutdown:
 			self.__save_history()
 
-	@gtk_toolbox.log_exception(_moduleLogger)
+	@misc_utils.log_exception(_moduleLogger)
 	def _on_window_state_change(self, widget, event, *args):
 		if event.new_window_state & gtk.gdk.WINDOW_STATE_FULLSCREEN:
 			self._isFullScreen = True
 		else:
 			self._isFullScreen = False
 
-	@gtk_toolbox.log_exception(_moduleLogger)
+	@misc_utils.log_exception(_moduleLogger)
 	def _on_close(self, *args, **kwds):
 		try:
 			self.__save_history()
@@ -336,24 +337,24 @@ class Calculator(object):
 		finally:
 			gtk.main_quit()
 
-	@gtk_toolbox.log_exception(_moduleLogger)
+	@misc_utils.log_exception(_moduleLogger)
 	def _on_copy(self, *args):
 		equationNode = self.__history.history.peek()
 		result = str(equationNode.evaluate())
 		self._clipboard.set_text(result)
 
-	@gtk_toolbox.log_exception(_moduleLogger)
+	@misc_utils.log_exception(_moduleLogger)
 	def _on_copy_equation(self, *args):
 		equationNode = self.__history.history.peek()
 		equation = str(equationNode)
 		self._clipboard.set_text(equation)
 
-	@gtk_toolbox.log_exception(_moduleLogger)
+	@misc_utils.log_exception(_moduleLogger)
 	def _on_paste(self, *args):
 		contents = self._clipboard.wait_for_text()
 		self.__userEntry.append(contents)
 
-	@gtk_toolbox.log_exception(_moduleLogger)
+	@misc_utils.log_exception(_moduleLogger)
 	def _on_key_press(self, widget, event, *args):
 		RETURN_TYPES = (gtk.keysyms.Return, gtk.keysyms.ISO_Enter, gtk.keysyms.KP_Enter)
 		if (
@@ -380,33 +381,33 @@ class Calculator(object):
 		elif event.keyval in RETURN_TYPES:
 			self.__history.push_entry()
 
-	@gtk_toolbox.log_exception(_moduleLogger)
+	@misc_utils.log_exception(_moduleLogger)
 	def _on_push(self, *args):
 		self.__history.push_entry()
 
-	@gtk_toolbox.log_exception(_moduleLogger)
+	@misc_utils.log_exception(_moduleLogger)
 	def _on_unpush(self, *args):
 		self.__historyStore.unpush()
 
-	@gtk_toolbox.log_exception(_moduleLogger)
+	@misc_utils.log_exception(_moduleLogger)
 	def _on_entry_direct(self, keys, modifiers):
 		if "shift" in modifiers:
 			keys = keys.upper()
 		self.__userEntry.append(keys)
 
-	@gtk_toolbox.log_exception(_moduleLogger)
+	@misc_utils.log_exception(_moduleLogger)
 	def _on_entry_backspace(self, *args):
 		self.__userEntry.pop()
 
-	@gtk_toolbox.log_exception(_moduleLogger)
+	@misc_utils.log_exception(_moduleLogger)
 	def _on_entry_clear(self, *args):
 		self.__userEntry.clear()
 
-	@gtk_toolbox.log_exception(_moduleLogger)
+	@misc_utils.log_exception(_moduleLogger)
 	def _on_clear_all(self, *args):
 		self.__history.clear()
 
-	@gtk_toolbox.log_exception(_moduleLogger)
+	@misc_utils.log_exception(_moduleLogger)
 	def _on_about_activate(self, *args):
 		dlg = gtk.AboutDialog()
 		dlg.set_name(constants.__pretty_app_name__)
@@ -436,7 +437,7 @@ def run_doctest():
 		sys.exit(1)
 
 
-def run_calculator():
+def run():
 	gtk.gdk.threads_init()
 
 	gtkpie.IMAGES.add_path(os.path.join(os.path.dirname(__file__), "libraries/images"), )
@@ -472,4 +473,4 @@ if __name__ == "__main__":
 	if commandOptions.test:
 		run_doctest()
 	else:
-		run_calculator()
+		run()

@@ -12,13 +12,13 @@ import pango
 import gtk
 
 
-import gtk_toolbox
+import util.misc as misc_utils
 import hildonize
 import history
 import operation
 
 
-_moduleLogger = logging.getLogger("gtkhistory")
+_moduleLogger = logging.getLogger(__name__)
 
 
 class GtkCalcHistory(history.AbstractHistory):
@@ -119,7 +119,7 @@ class GtkCalcHistory(history.AbstractHistory):
 			data = row[self.DATA_IDX]
 			yield data
 
-	@gtk_toolbox.log_exception(_moduleLogger)
+	@misc_utils.log_exception(_moduleLogger)
 	def _on_close_activated(self, treeView, path, viewColumn):
 		if viewColumn is self.__closeColumn:
 			del self.__historyStore[path[0]]
