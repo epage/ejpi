@@ -15,6 +15,8 @@ import constants
 import maeqt
 from util import misc as misc_utils
 
+import qhistory
+
 
 _moduleLogger = logging.getLogger(__name__)
 
@@ -51,6 +53,9 @@ class Calculator(object):
 
 		self._app.lastWindowClosed.connect(self._on_app_quit)
 		self.load_settings()
+
+		self._mainWindow = MainWindow(None, self)
+		self._mainWindow.window.destroyed.connect(self._on_child_close)
 
 	def load_settings(self):
 		try:
@@ -120,7 +125,10 @@ class MainWindow(object):
 	def __init__(self, parent, app):
 		self._app = app
 
+		self._historyView = qhistory.QCalcHistory()
+
 		self._layout = QtGui.QVBoxLayout()
+		self._layout.addWidget(self._historyView.toplevel)
 
 		centralWidget = QtGui.QWidget()
 		centralWidget.setLayout(self._layout)
@@ -138,9 +146,9 @@ class MainWindow(object):
 		self._closeWindowAction.triggered.connect(self._on_close_window)
 
 		if IS_MAEMO:
-			fileMenu = self._window.menuBar().addMenu("&File")
+			#fileMenu = self._window.menuBar().addMenu("&File")
 
-			viewMenu = self._window.menuBar().addMenu("&View")
+			#viewMenu = self._window.menuBar().addMenu("&View")
 
 			self._window.addAction(self._closeWindowAction)
 			self._window.addAction(self._app.quitAction)
