@@ -14,7 +14,6 @@ from PyQt4 import QtCore
 import constants
 import maeqt
 from util import misc as misc_utils
-import unit_data
 
 
 _moduleLogger = logging.getLogger(__name__)
@@ -23,27 +22,10 @@ _moduleLogger = logging.getLogger(__name__)
 IS_MAEMO = True
 
 
-class REPLACEME(object):
-
-	_DATA_PATHS = [
-		os.path.dirname(__file__),
-		os.path.join(os.path.dirname(__file__), "../data"),
-		os.path.join(os.path.dirname(__file__), "../lib"),
-		'/usr/share/%s' % constants.__app_name__,
-		'/usr/lib/%s' % constants.__app_name__,
-	]
+class Calculator(object):
 
 	def __init__(self, app):
-		self._dataPath = ""
-		for dataPath in self._DATA_PATHS:
-			appIconPath = os.path.join(dataPath, "pixmaps", "%s.png" %  constants.__app_name__)
-			if os.path.isfile(appIconPath):
-				self._dataPath = dataPath
-				break
-		else:
-			raise RuntimeError("UI Descriptor not found!")
 		self._app = app
-		self._appIconPath = appIconPath
 		self._recent = []
 		self._hiddenCategories = set()
 		self._hiddenUnits = {}
@@ -89,10 +71,6 @@ class REPLACEME(object):
 		}
 		with open(constants._user_settings_, "w") as settingsFile:
 			simplejson.dump(settings, settingsFile)
-
-	@property
-	def appIconPath(self):
-		return self._appIconPath
 
 	@property
 	def fullscreenAction(self):
@@ -152,7 +130,6 @@ class MainWindow(object):
 		maeqt.set_autorient(self._window, True)
 		maeqt.set_stackable(self._window, True)
 		self._window.setWindowTitle("%s" % constants.__pretty_app_name__)
-		self._window.setWindowIcon(QtGui.QIcon(self._app.appIconPath))
 		self._window.setCentralWidget(centralWidget)
 
 		self._closeWindowAction = QtGui.QAction(None)
@@ -219,7 +196,7 @@ class MainWindow(object):
 
 def run():
 	app = QtGui.QApplication([])
-	handle = REPLACEME(app)
+	handle = Calculator(app)
 	return app.exec_()
 
 
