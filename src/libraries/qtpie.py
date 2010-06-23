@@ -182,19 +182,13 @@ class QPieMenu(QtGui.QWidget):
 		painter.setBrush(background)
 		painter.drawPie(innerRect, 0, 360 * 16)
 
-		light.setAlpha(128)
-		painter.setPen(QtGui.QPen(light, 1))
+		painter.setPen(QtGui.QPen(dark, 1))
 		painter.setBrush(QtCore.Qt.NoBrush)
-		painter.drawArc(innerRect, 225 * 16, 180 * 16)
+		painter.drawEllipse(innerRect)
 
 		painter.setPen(QtGui.QPen(dark, 1))
-		painter.drawArc(innerRect, 45 * 16, 180 * 16)
-
-		painter.setPen(QtGui.QPen(light, 1))
 		painter.setBrush(QtCore.Qt.NoBrush)
-		painter.drawArc(adjustmentRect, 45 * 16, 180 * 16)
-		painter.setPen(QtGui.QPen(dark, 1))
-		painter.drawArc(adjustmentRect, 225 * 16, 180 * 16)
+		painter.drawEllipse(adjustmentRect)
 
 		r = QtCore.QRect(innerRect)
 		innerRect.setLeft(r.center().x() + ((r.left() - r.center().x()) / 3) * 1)
