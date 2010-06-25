@@ -40,12 +40,18 @@ class QPieMenu(QtGui.QWidget):
 	aboutToShow = QtCore.pyqtSignal()
 	aboutToHide = QtCore.pyqtSignal()
 
+	SELECTION_CENTER = -1
+	SELECTION_NONE = -2
+
+	NULL_CENTER = QtGui.QAction(None)
+
 	def __init__(self, parent = None):
 		QtGui.QWidget.__init__(self, parent)
 		self._innerRadius = self.INNER_RADIUS_DEFAULT
 		self._outerRadius = self.OUTER_RADIUS_DEFAULT
 		self._children = []
-		self._selectionIndex = -2
+		self._center = self.NULL_CENTER
+		self._selectionIndex = self.SELECTION_NONE
 
 		self._motion = 0
 		self._mouseButtonPressed = True
@@ -67,6 +73,9 @@ class QPieMenu(QtGui.QWidget):
 	def removeItemAt(self, index):
 		item = self._children.pop(index)
 		self._invalidate_view()
+
+	def set_center(self, item):
+		self._center = item
 
 	def clear(self):
 		del self._children[:]
@@ -119,15 +128,15 @@ class QPieMenu(QtGui.QWidget):
 			self._select_at(self._angle_to_index(lastMousePos))
 		else:
 			if radius < self._innerRadius:
-				self._selectionIndex = -1
+				self._selectionIndex = self.SELECTION_CENTER
 			else:
-				self._selectionIndex = -2
+				self._selectionIndex = self.SELECTION_NONE
 
 		QtGui.QWidget.showEvent(self, showEvent)
 
 	def hideEvent(self, hideEvent):
 		self.canceled.emit()
-		self._selectionIndex = -2
+		self._selectionIndex = self.SELECTION_NONE
 		QtGui.QWidget.hideEvent(self, hideEvent)
 
 	def paintEvent(self, paintEvent):
@@ -145,28 +154,124 @@ class QPieMenu(QtGui.QWidget):
 
 			painter.fillRect(self.rect(), painter.brush())
 		else:
-			for i, child in enumerate(self._children):
-				if i == self._selectionIndex:
-					painter.setBrush(self.palette().highlight())
+			for i in xrange(len(self._children)):
+				self._paint_slice_background(painter, adjustmentRect, i)
+
+		self._paint_center_background(painter, adjustmentRect)
+		self._paint_center_foreground(painter)
+
+		for i in xrange(len(self._children)):
+			self._paint_slice_foreground(painter, i)
+
+		screen = QtGui.QPainter(self)
+		screen.drawPixmap(QtCore.QPoint(0, 0), self._canvas)
+
+		QtGui.QWidget.paintEvent(self, paintEvent)
+
+	def __len__(self):
+		return len(self._children)
+
+	def _invalidate_view(self):
+		pass
+
+	def _generate_mask(self, mask):
+		"""
+		Specifies on the mask the shape of the pie menu
+		"""
+		painter = QtGui.QPainter(mask)
+		painter.setPen(QtCore.Qt.color1)
+		painter.setBrush(QtCore.Qt.color1)
+		painter.drawEllipse(mask.rect().adjusted(0, 0, -1, -1))
+
+	def _paint_slice_background(self, painter, adjustmentRect, i):
+		if i == self._selectionIndex and self._children[i].isEnabled():
+			painter.setBrush(self.palette().highlight())
+		else:
+			painter.setBrush(self.palette().background())
+		painter.setPen(self.palette().mid().color())
+
+		a = self._index_to_angle(i, True)
+		b = self._index_to_angle(i + 1, True)
+		if b < a:
+			b += 2*math.pi
+		size = b - a
+		if size < 0:
+			size += 2*math.pi
+
+		startAngleInDeg = (a * 360 * 16) / (2*math.pi)
+		sizeInDeg = (size * 360 * 16) / (2*math.pi)
+		painter.drawPie(adjustmentRect, int(startAngleInDeg), int(sizeInDeg))
+
+	def _paint_slice_foreground(self, painter, i):
+		child = self._children[i]
+
+		a = self._index_to_angle(i, True)
+		b = self._index_to_angle(i + 1, True)
+		if b < a:
+			b += 2*math.pi
+		middleAngle = (a + b) / 2
+		averageRadius = (self._innerRadius + self._outerRadius) / 2
+
+		sliceX = averageRadius * math.cos(middleAngle)
+		sliceY = - averageRadius * math.sin(middleAngle)
+
+		pieX = self._canvas.rect().center().x()
+		pieY = self._canvas.rect().center().y()
+		self._paint_label(
+			painter, child.action(), i == self._selectionIndex, pieX+sliceX, pieY+sliceY
+		)
+
+	def _paint_label(self, painter, action, isSelected, x, y):
+		text = action.text()
+		fontMetrics = painter.fontMetrics()
+		if text:
+			textBoundingRect = fontMetrics.boundingRect(text)
+		else:
+			textBoundingRect = QtCore.QRect()
+		textWidth = textBoundingRect.width()
+		textHeight = textBoundingRect.height()
+
+		icon = action.icon().pixmap(
+			QtCore.QSize(self.ICON_SIZE_DEFAULT, self.ICON_SIZE_DEFAULT),
+			QtGui.QIcon.Normal,
+			QtGui.QIcon.On,
+		)
+		averageWidth = (icon.width() + textWidth)/2
+		if not icon.isNull():
+			iconRect = QtCore.QRect(
+				x - averageWidth,
+				y - icon.height()/2,
+				icon.width(),
+				icon.height(),
+			)
+
+			painter.drawPixmap(iconRect, icon)
+
+		if text:
+			if isSelected:
+				if action.isEnabled():
+					pen = self.palette().highlightedText()
+					brush = self.palette().highlight()
 				else:
-					painter.setBrush(self.palette().background())
-				painter.setPen(self.palette().mid().color())
+					pen = self.palette().mid()
+					brush = self.palette().background()
+			else:
+				if action.isEnabled():
+					pen = self.palette().text()
+				else:
+					pen = self.palette().mid()
+				brush = self.palette().background()
 
-				a = self._index_to_angle(i, True)
-				b = self._index_to_angle(i + 1, True)
-				if b < a:
-					b += 2*math.pi
-				size = b - a
-				if size < 0:
-					size += 2*math.pi
+			leftX = x - averageWidth + icon.width()
+			topY = y + textHeight/2
+			painter.setPen(pen.color())
+			painter.setBrush(brush)
+			painter.drawText(leftX, topY, text)
 
-				startAngleInDeg = (a * 360 * 16) / (2*math.pi)
-				sizeInDeg = (size * 360 * 16) / (2*math.pi)
-				painter.drawPie(adjustmentRect, int(startAngleInDeg), int(sizeInDeg))
-
+	def _paint_center_background(self, painter, adjustmentRect):
 		dark = self.palette().dark().color()
 		light = self.palette().light().color()
-		if self._selectionIndex == -1:
+		if self._selectionIndex == self.SELECTION_CENTER and self._center.isEnabled():
 			background = self.palette().highlight().color()
 		else:
 			background = self.palette().background().color()
@@ -196,91 +301,16 @@ class QPieMenu(QtGui.QWidget):
 		innerRect.setTop(r.center().y() + ((r.top() - r.center().y()) / 3) * 1)
 		innerRect.setBottom(r.center().y() + ((r.bottom() - r.center().y()) / 3) * 1)
 
-		if self._selectionIndex == -1:
-			text = self.palette().highlightedText().color()
-		else:
-			text = self.palette().text().color()
+	def _paint_center_foreground(self, painter):
+		pieX = self._canvas.rect().center().x()
+		pieY = self._canvas.rect().center().y()
 
-		for i, child in enumerate(self._children):
-			text = child.action().text()
+		x = pieX
+		y = pieY
 
-			a = self._index_to_angle(i, True)
-			b = self._index_to_angle(i + 1, True)
-			if b < a:
-				b += 2*math.pi
-			middleAngle = (a + b) / 2
-			averageRadius = (self._innerRadius + self._outerRadius) / 2
-
-			sliceX = averageRadius * math.cos(middleAngle)
-			sliceY = - averageRadius * math.sin(middleAngle)
-
-			pieX = self._canvas.rect().center().x()
-			pieY = self._canvas.rect().center().y()
-
-			fontMetrics = painter.fontMetrics()
-			if text:
-				textBoundingRect = fontMetrics.boundingRect(text)
-			else:
-				textBoundingRect = QtCore.QRect()
-			textWidth = textBoundingRect.width()
-			textHeight = textBoundingRect.height()
-
-			icon = child.action().icon().pixmap(
-				QtCore.QSize(self.ICON_SIZE_DEFAULT, self.ICON_SIZE_DEFAULT),
-				QtGui.QIcon.Normal,
-				QtGui.QIcon.On,
-			)
-			averageWidth = (icon.width() + textWidth)/2
-			if not icon.isNull():
-				iconRect = QtCore.QRect(
-					pieX + sliceX - averageWidth,
-					pieY + sliceY - icon.height()/2,
-					icon.width(),
-					icon.height(),
-				)
-
-				painter.drawPixmap(iconRect, icon)
-
-			if text:
-				if i == self._selectionIndex:
-					if child.action().isEnabled():
-						pen = self.palette().highlightedText()
-						brush = self.palette().highlight()
-					else:
-						pen = self.palette().mid()
-						brush = self.palette().background()
-				else:
-					if child.action().isEnabled():
-						pen = self.palette().text()
-					else:
-						pen = self.palette().mid()
-					brush = self.palette().background()
-
-				leftX = pieX + sliceX - averageWidth + icon.width()
-				topY = pieY + sliceY + textHeight/2
-				painter.setPen(pen.color())
-				painter.setBrush(brush)
-				painter.drawText(leftX, topY, text)
-
-		screen = QtGui.QPainter(self)
-		screen.drawPixmap(QtCore.QPoint(0, 0), self._canvas)
-
-		QtGui.QWidget.paintEvent(self, paintEvent)
-
-	def __len__(self):
-		return len(self._children)
-
-	def _invalidate_view(self):
-		pass
-
-	def _generate_mask(self, mask):
-		"""
-		Specifies on the mask the shape of the pie menu
-		"""
-		painter = QtGui.QPainter(mask)
-		painter.setPen(QtCore.Qt.color1)
-		painter.setBrush(QtCore.Qt.color1)
-		painter.drawEllipse(mask.rect().adjusted(0, 0, -1, -1))
+		self._paint_label(
+			painter, self._center.action(), self._selectionIndex == self.SELECTION_CENTER, x, y
+		)
 
 	def _select_at(self, index):
 		self._selectionIndex = index
@@ -329,7 +359,7 @@ class QPieMenu(QtGui.QWidget):
 	def _angle_to_index(self, angle):
 		numChildren = len(self._children)
 		if numChildren == 0:
-			return -1
+			return self.SELECTION_CENTER
 
 		totalWeight = sum(child.weight() for child in self._children)
 		if totalWeight == 0:
@@ -384,6 +414,7 @@ class QPieMenu(QtGui.QWidget):
 
 if __name__ == "__main__":
 	app = QtGui.QApplication([])
+	QPieMenu.NULL_CENTER.setEnabled(False)
 
 	if False:
 		pie = QPieMenu()
@@ -397,6 +428,24 @@ if __name__ == "__main__":
 		spie.insertItem(singleItem)
 		spie.show()
 
+	if False:
+		oneAction = QtGui.QAction(None)
+		oneAction.setText("Chew")
+		oneItem = QActionPieItem(oneAction)
+		twoAction = QtGui.QAction(None)
+		twoAction.setText("Foo")
+		twoItem = QActionPieItem(twoAction)
+		iconTextAction = QtGui.QAction(None)
+		iconTextAction.setText("Icon")
+		iconTextAction.setIcon(QtGui.QIcon.fromTheme("gtk-close"))
+		iconTextItem = QActionPieItem(iconTextAction)
+		mpie = QPieMenu()
+		mpie.insertItem(oneItem)
+		mpie.insertItem(twoItem)
+		mpie.insertItem(oneItem)
+		mpie.insertItem(iconTextItem)
+		mpie.show()
+
 	if True:
 		oneAction = QtGui.QAction(None)
 		oneAction.setText("Chew")
@@ -404,11 +453,19 @@ if __name__ == "__main__":
 		twoAction = QtGui.QAction(None)
 		twoAction.setText("Foo")
 		twoItem = QActionPieItem(twoAction)
+		iconAction = QtGui.QAction(None)
+		iconAction.setIcon(QtGui.QIcon.fromTheme("gtk-open"))
+		iconItem = QActionPieItem(iconAction)
+		iconTextAction = QtGui.QAction(None)
+		iconTextAction.setText("Icon")
+		iconTextAction.setIcon(QtGui.QIcon.fromTheme("gtk-close"))
+		iconTextItem = QActionPieItem(iconTextAction)
 		mpie = QPieMenu()
+		mpie.set_center(iconItem)
 		mpie.insertItem(oneItem)
 		mpie.insertItem(twoItem)
 		mpie.insertItem(oneItem)
-		mpie.insertItem(twoItem)
+		mpie.insertItem(iconTextItem)
 		mpie.show()
 
 	app.exec_()
