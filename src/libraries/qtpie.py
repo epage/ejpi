@@ -106,7 +106,7 @@ class QPieMenu(QtGui.QWidget):
 	def mousePressEvent(self, mouseEvent):
 		lastSelection = self._selectionIndex
 
-		lastMousePos = self.mapFromGlobal(QtGui.QCursor.pos())
+		lastMousePos = mouseEvent.pos()
 		self._update_selection(lastMousePos)
 		self._mouseButtonPressed = True
 		self._mousePosition = lastMousePos
@@ -118,7 +118,7 @@ class QPieMenu(QtGui.QWidget):
 	def mouseMoveEvent(self, mouseEvent):
 		lastSelection = self._selectionIndex
 
-		lastMousePos = self.mapFromGlobal(QtGui.QCursor.pos())
+		lastMousePos = mouseEvent.pos()
 		self._update_selection(lastMousePos)
 
 		if lastSelection != self._selectionIndex:
@@ -128,7 +128,7 @@ class QPieMenu(QtGui.QWidget):
 	def mouseReleaseEvent(self, mouseEvent):
 		lastSelection = self._selectionIndex
 
-		lastMousePos = self.mapFromGlobal(QtGui.QCursor.pos())
+		lastMousePos = mouseEvent.pos()
 		self._update_selection(lastMousePos)
 		self._mouseButtonPressed = False
 		self._mousePosition = ()
@@ -337,7 +337,6 @@ class QPieMenu(QtGui.QWidget):
 			self._selectionIndex -= loopDelta
 
 	def _update_selection(self, lastMousePos):
-		lastMousePos = self.mapFromGlobal(QtGui.QCursor.pos())
 		radius = self._radius_at(lastMousePos)
 		if radius < self._innerRadius:
 			self._selectionIndex = self.SELECTION_CENTER
