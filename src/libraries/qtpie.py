@@ -34,7 +34,7 @@ class QPieMenu(QtGui.QWidget):
 	OUTER_RADIUS_DEFAULT = 64
 	ICON_SIZE_DEFAULT = 32
 
-	activated = QtCore.pyqtSignal((), (int, ))
+	activated = QtCore.pyqtSignal(int)
 	highlighted = QtCore.pyqtSignal(int)
 	canceled = QtCore.pyqtSignal()
 	aboutToShow = QtCore.pyqtSignal()
@@ -53,8 +53,7 @@ class QPieMenu(QtGui.QWidget):
 		self._center = self.NULL_CENTER
 		self._selectionIndex = self.SELECTION_NONE
 
-		self._motion = 0
-		self._mouseButtonPressed = True
+		self._mouseButtonPressed = False
 		self._mousePosition = ()
 
 		canvasSize = self._outerRadius * 2 + 1
@@ -68,30 +67,24 @@ class QPieMenu(QtGui.QWidget):
 
 	def insertItem(self, item, index = -1):
 		self._children.insert(index, item)
-		self._invalidate_view()
+		self.update()
 
 	def removeItemAt(self, index):
 		item = self._children.pop(index)
-		self._invalidate_view()
+		self.update()
 
 	def set_center(self, item):
 		self._center = item
 
 	def clear(self):
 		del self._children[:]
-		self._invalidate_view()
+		self.update()
 
 	def itemAt(self, index):
 		return self._children[index]
 
 	def indexAt(self, point):
 		return self._angle_to_index(self._angle_at(point))
-
-	def setHighlightedItem(self, index):
-		pass
-
-	def highlightedItem(self):
-		pass
 
 	def innerRadius(self):
 		return self._innerRadius
@@ -110,6 +103,39 @@ class QPieMenu(QtGui.QWidget):
 		diameter = self._outerRadius * 2 + 1
 		return QtCore.QSize(diameter, diameter)
 
+	def mousePressEvent(self, mouseEvent):
+		lastSelection = self._selectionIndex
+
+		lastMousePos = self.mapFromGlobal(QtGui.QCursor.pos())
+		self._update_selection(lastMousePos)
+		self._mouseButtonPressed = True
+		self._mousePosition = lastMousePos
+
+		if lastSelection != self._selectionIndex:
+			self.highlighted.emit(self._selectionIndex)
+			self.update()
+
+	def mouseMoveEvent(self, mouseEvent):
+		lastSelection = self._selectionIndex
+
+		lastMousePos = self.mapFromGlobal(QtGui.QCursor.pos())
+		self._update_selection(lastMousePos)
+
+		if lastSelection != self._selectionIndex:
+			self.highlighted.emit(self._selectionIndex)
+			self.update()
+
+	def mouseReleaseEvent(self, mouseEvent):
+		lastSelection = self._selectionIndex
+
+		lastMousePos = self.mapFromGlobal(QtGui.QCursor.pos())
+		self._update_selection(lastMousePos)
+		self._mouseButtonPressed = False
+		self._mousePosition = ()
+
+		self._activate_at(self._selectionIndex)
+		self.update()
+
 	def showEvent(self, showEvent):
 		self.aboutToShow.emit()
 
@@ -120,17 +146,8 @@ class QPieMenu(QtGui.QWidget):
 			self._canvas.setMask(self._mask)
 			self.setMask(self._mask)
 
-		self._motion = 0
-
 		lastMousePos = self.mapFromGlobal(QtGui.QCursor.pos())
-		radius = self._radius_at(lastMousePos)
-		if self._innerRadius <= radius and radius <= self._outerRadius:
-			self._select_at(self._angle_to_index(lastMousePos))
-		else:
-			if radius < self._innerRadius:
-				self._selectionIndex = self.SELECTION_CENTER
-			else:
-				self._selectionIndex = self.SELECTION_NONE
+		self._update_selection(lastMousePos)
 
 		QtGui.QWidget.showEvent(self, showEvent)
 
@@ -170,9 +187,6 @@ class QPieMenu(QtGui.QWidget):
 
 	def __len__(self):
 		return len(self._children)
-
-	def _invalidate_view(self):
-		pass
 
 	def _generate_mask(self, mask):
 		"""
@@ -322,11 +336,27 @@ class QPieMenu(QtGui.QWidget):
 		while numChildren <= self._selectionIndex:
 			self._selectionIndex -= loopDelta
 
+	def _update_selection(self, lastMousePos):
+		lastMousePos = self.mapFromGlobal(QtGui.QCursor.pos())
+		radius = self._radius_at(lastMousePos)
+		if radius < self._innerRadius:
+			self._selectionIndex = self.SELECTION_CENTER
+		elif radius <= self._outerRadius:
+			self._select_at(self._angle_to_index(self._angle_at(lastMousePos)))
+		else:
+			self._selectionIndex = self.SELECTION_NONE
+
 	def _activate_at(self, index):
-		child = self.itemAt(index)
-		if child.action.isEnabled:
-			child.action.trigger()
-		self.activated.emit()
+		if index == self.SELECTION_NONE:
+			print "Nothing selected"
+			return
+		elif index == self.SELECTION_CENTER:
+			child = self._center
+		else:
+			child = self.itemAt(index)
+		if child.action().isEnabled():
+			child.action().trigger()
+		self.activated.emit(index)
 		self.aboutToHide.emit()
 		self.hide()
 
@@ -366,17 +396,17 @@ class QPieMenu(QtGui.QWidget):
 			totalWeight = 1
 		baseAngle = (2 * math.pi) / totalWeight
 
-		iterAngle = math.pi / 2 - (self.itemAt(0).weight * baseAngle) / 2
+		iterAngle = math.pi / 2 - (self.itemAt(0).weight() * baseAngle) / 2
 		while iterAngle < 0:
 			iterAngle += 2 * math.pi
 
 		oldIterAngle = iterAngle
 		for index, child in enumerate(self._children):
-			iterAngle += child.weight * baseAngle
-			if oldIterAngle < iterAngle and angle <= iterAngle:
-				return index
-			elif oldIterAngle < (iterAngle + 2*math.pi) and angle <= (iterAngle + 2*math.pi):
-				return index
+			iterAngle += child.weight() * baseAngle
+			if oldIterAngle < angle and angle <= iterAngle:
+				return index - 1 if index != 0 else numChildren - 1
+			elif oldIterAngle < (angle + 2*math.pi) and (angle + 2*math.pi <= iterAngle):
+				return index - 1 if index != 0 else numChildren - 1
 			oldIterAngle = iterAngle
 
 	def _radius_at(self, pos):
@@ -400,16 +430,25 @@ class QPieMenu(QtGui.QWidget):
 	def _on_key_press(self, keyEvent):
 		if keyEvent.key in [QtCore.Qt.Key_Right, QtCore.Qt.Key_Down, QtCore.Qt.Key_Tab]:
 			self._select_at(self._selectionIndex + 1)
+			self.update()
 		elif keyEvent.key in [QtCore.Qt.Key_Left, QtCore.Qt.Key_Up, QtCore.Qt.Key_Backtab]:
 			self._select_at(self._selectionIndex - 1)
+			self.update()
 		elif keyEvent.key in [QtCore.Qt.Key_Return, QtCore.Qt.Key_Enter, QtCore.Qt.Key_Space]:
-			self._motion = 0
 			self._activate_at(self._selectionIndex)
 		elif keyEvent.key in [QtCore.Qt.Key_Escape, QtCore.Qt.Key_Backspace]:
-			pass
+			self._activate_at(self.SELECTION_NONE)
 
 	def _on_mouse_press(self, mouseEvent):
 		self._mouseButtonPressed = True
+
+
+def _print(msg):
+	print msg
+
+
+def _on_about_to_hide(app):
+	app.exit()
 
 
 if __name__ == "__main__":
@@ -449,16 +488,20 @@ if __name__ == "__main__":
 	if True:
 		oneAction = QtGui.QAction(None)
 		oneAction.setText("Chew")
+		oneAction.triggered.connect(lambda: _print("Chew"))
 		oneItem = QActionPieItem(oneAction)
 		twoAction = QtGui.QAction(None)
 		twoAction.setText("Foo")
+		twoAction.triggered.connect(lambda: _print("Foo"))
 		twoItem = QActionPieItem(twoAction)
 		iconAction = QtGui.QAction(None)
 		iconAction.setIcon(QtGui.QIcon.fromTheme("gtk-open"))
+		iconAction.triggered.connect(lambda: _print("Icon"))
 		iconItem = QActionPieItem(iconAction)
 		iconTextAction = QtGui.QAction(None)
 		iconTextAction.setText("Icon")
 		iconTextAction.setIcon(QtGui.QIcon.fromTheme("gtk-close"))
+		iconTextAction.triggered.connect(lambda: _print("Icon and text"))
 		iconTextItem = QActionPieItem(iconTextAction)
 		mpie = QPieMenu()
 		mpie.set_center(iconItem)
@@ -467,5 +510,6 @@ if __name__ == "__main__":
 		mpie.insertItem(oneItem)
 		mpie.insertItem(iconTextItem)
 		mpie.show()
+		mpie.aboutToHide.connect(lambda: _on_about_to_hide(app))
 
 	app.exec_()
