@@ -6,6 +6,9 @@ from PyQt4 import QtGui
 from PyQt4 import QtCore
 
 
+_TWOPI = 2 * math.pi
+
+
 def _radius_at(center, pos):
 	delta = pos - center
 	xDelta = delta.x()
@@ -23,7 +26,7 @@ def _angle_at(center, pos):
 	radius = math.sqrt(xDelta ** 2 + yDelta ** 2)
 	angle = math.acos(xDelta / radius)
 	if 0 <= yDelta:
-		angle = 2*math.pi - angle
+		angle = _TWOPI - angle
 
 	return angle
 
@@ -66,11 +69,16 @@ class PieFiling(object):
 		self._children = []
 		self._center = self.NULL_CENTER
 
+		self._cacheIndexToAngle = {}
+		self._cacheTotalWeight = 0
+
 	def insertItem(self, item, index = -1):
 		self._children.insert(index, item)
+		self._invalidate_cache()
 
 	def removeItemAt(self, index):
 		item = self._children.pop(index)
+		self._invalidate_cache()
 
 	def set_center(self, item):
 		if item is None:
@@ -82,6 +90,8 @@ class PieFiling(object):
 
 	def clear(self):
 		del self._children[:]
+		self._center = self.NULL_CENTER
+		self._invalidate_cache()
 
 	def itemAt(self, index):
 		return self._children[index]
@@ -110,13 +120,19 @@ class PieFiling(object):
 	def __getitem__(self, index):
 		return self._children[index]
 
+	def _invalidate_cache(self):
+		self._cacheIndexToAngle.clear()
+		self._cacheTotalWeight = sum(child.weight() for child in self._children)
+		if self._cacheTotalWeight == 0:
+			self._cacheTotalWeight = 1
+
 	def _index_to_angle(self, index, isShifted):
+		key = index, isShifted
+		if key in self._cacheIndexToAngle:
+			return self._cacheIndexToAngle[key]
 		index = index % len(self._children)
 
-		totalWeight = sum(child.weight() for child in self._children)
-		if totalWeight == 0:
-			totalWeight = 1
-		baseAngle = (2 * math.pi) / totalWeight
+		baseAngle = _TWOPI / self._cacheTotalWeight
 
 		angle = math.pi / 2
 		if isShifted:
@@ -125,15 +141,16 @@ class PieFiling(object):
 			else:
 				angle -= baseAngle / 2
 		while angle < 0:
-			angle += 2*math.pi
+			angle += _TWOPI
 
 		for i, child in enumerate(self._children):
 			if index < i:
 				break
 			angle += child.weight() * baseAngle
-		while (2*math.pi) < angle:
-			angle -= 2*math.pi
+		while _TWOPI < angle:
+			angle -= _TWOPI
 
+		self._cacheIndexToAngle[key] = angle
 		return angle
 
 	def _angle_to_index(self, angle):
@@ -141,21 +158,18 @@ class PieFiling(object):
 		if numChildren == 0:
 			return self.SELECTION_CENTER
 
-		totalWeight = sum(child.weight() for child in self._children)
-		if totalWeight == 0:
-			totalWeight = 1
-		baseAngle = (2 * math.pi) / totalWeight
+		baseAngle = _TWOPI / self._cacheTotalWeight
 
 		iterAngle = math.pi / 2 - (self.itemAt(0).weight() * baseAngle) / 2
 		while iterAngle < 0:
-			iterAngle += 2 * math.pi
+			iterAngle += _TWOPI
 
 		oldIterAngle = iterAngle
 		for index, child in enumerate(self._children):
 			iterAngle += child.weight() * baseAngle
 			if oldIterAngle < angle and angle <= iterAngle:
 				return index - 1 if index != 0 else numChildren - 1
-			elif oldIterAngle < (angle + 2*math.pi) and (angle + 2*math.pi <= iterAngle):
+			elif oldIterAngle < (angle + _TWOPI) and (angle + _TWOPI <= iterAngle):
 				return index - 1 if index != 0 else numChildren - 1
 			oldIterAngle = iterAngle
 
@@ -269,13 +283,13 @@ class PieArtist(object):
 		a = self._filing._index_to_angle(i, True)
 		b = self._filing._index_to_angle(i + 1, True)
 		if b < a:
-			b += 2*math.pi
+			b += _TWOPI
 		size = b - a
 		if size < 0:
-			size += 2*math.pi
+			size += _TWOPI
 
-		startAngleInDeg = (a * 360 * 16) / (2*math.pi)
-		sizeInDeg = (size * 360 * 16) / (2*math.pi)
+		startAngleInDeg = (a * 360 * 16) / _TWOPI
+		sizeInDeg = (size * 360 * 16) / _TWOPI
 		painter.drawPie(adjustmentRect, int(startAngleInDeg), int(sizeInDeg))
 
 	def _paint_slice_foreground(self, painter, i, selectionIndex):
@@ -284,7 +298,7 @@ class PieArtist(object):
 		a = self._filing._index_to_angle(i, True)
 		b = self._filing._index_to_angle(i + 1, True)
 		if b < a:
-			b += 2*math.pi
+			b += _TWOPI
 		middleAngle = (a + b) / 2
 		averageRadius = (self._cachedInnerRadius + self._cachedOuterRadius) / 2
 
@@ -448,6 +462,8 @@ class QPieButton(QtGui.QWidget):
 
 	def __init__(self, buttonSlice, parent = None):
 		QtGui.QWidget.__init__(self, parent)
+		self._cachedCenterPosition = self.rect().center()
+
 		self._filing = PieFiling()
 		self._display = QPieDisplay(self._filing, None, QtCore.Qt.SplashScreen)
 		self._selectionIndex = PieFiling.SELECTION_NONE
@@ -481,7 +497,7 @@ class QPieButton(QtGui.QWidget):
 		return self._filing.itemAt(index)
 
 	def indexAt(self, point):
-		return self._filing.indexAt(self.rect().center(), point)
+		return self._filing.indexAt(self._cachedCenterPosition, point)
 
 	def innerRadius(self):
 		return self._filing.innerRadius()
@@ -504,7 +520,7 @@ class QPieButton(QtGui.QWidget):
 
 		lastMousePos = mouseEvent.pos()
 		self._mousePosition = lastMousePos
-		self._update_selection(self.rect().center())
+		self._update_selection(self._cachedCenterPosition)
 
 		if lastSelection != self._selectionIndex:
 			self.highlighted.emit(self._selectionIndex)
@@ -519,7 +535,7 @@ class QPieButton(QtGui.QWidget):
 			self._update_selection(lastMousePos)
 		else:
 			# Relative
-			self._update_selection(self.rect().center() + (lastMousePos - self._mousePosition))
+			self._update_selection(self._cachedCenterPosition + (lastMousePos - self._mousePosition))
 
 		if lastSelection != self._selectionIndex:
 			self.highlighted.emit(self._selectionIndex)
@@ -534,7 +550,7 @@ class QPieButton(QtGui.QWidget):
 			self._update_selection(lastMousePos)
 		else:
 			# Relative
-			self._update_selection(self.rect().center() + (lastMousePos - self._mousePosition))
+			self._update_selection(self._cachedCenterPosition + (lastMousePos - self._mousePosition))
 		self._mousePosition = None
 
 		self._activate_at(self._selectionIndex)
@@ -572,6 +588,7 @@ class QPieButton(QtGui.QWidget):
 
 	def showEvent(self, showEvent):
 		self._buttonArtist.show(self.palette())
+		self._cachedCenterPosition = self.rect().center()
 
 		QtGui.QWidget.showEvent(self, showEvent)
 
@@ -611,7 +628,7 @@ class QPieButton(QtGui.QWidget):
 		self._selectionIndex = index
 
 	def _update_selection(self, lastMousePos):
-		radius = _radius_at(self.rect().center(), lastMousePos)
+		radius = _radius_at(self._cachedCenterPosition, lastMousePos)
 		if radius < self._filing.innerRadius():
 			self._select_at(PieFiling.SELECTION_CENTER)
 		elif radius <= self._filing.outerRadius():
@@ -645,6 +662,8 @@ class QPieMenu(QtGui.QWidget):
 
 	def __init__(self, parent = None):
 		QtGui.QWidget.__init__(self, parent)
+		self._cachedCenterPosition = self.rect().center()
+
 		self._filing = PieFiling()
 		self._artist = PieArtist(self._filing)
 		self._selectionIndex = PieFiling.SELECTION_NONE
@@ -676,7 +695,7 @@ class QPieMenu(QtGui.QWidget):
 		return self._filing.itemAt(index)
 
 	def indexAt(self, point):
-		return self._filing.indexAt(self.rect().center(), point)
+		return self._filing.indexAt(self._cachedCenterPosition, point)
 
 	def innerRadius(self):
 		return self._filing.innerRadius()
@@ -728,10 +747,18 @@ class QPieMenu(QtGui.QWidget):
 
 	def keyPressEvent(self, keyEvent):
 		if keyEvent.key() in [QtCore.Qt.Key_Right, QtCore.Qt.Key_Down, QtCore.Qt.Key_Tab]:
-			self._select_at(self._selectionIndex + 1)
+			if self._selectionIndex != len(self._filing) - 1:
+				nextSelection = self._selectionIndex + 1
+			else:
+				nextSelection = 0
+			self._select_at(nextSelection)
 			self.update()
 		elif keyEvent.key() in [QtCore.Qt.Key_Left, QtCore.Qt.Key_Up, QtCore.Qt.Key_Backtab]:
-			self._select_at(self._selectionIndex - 1)
+			if 0 < self._selectionIndex:
+				nextSelection = self._selectionIndex - 1
+			else:
+				nextSelection = len(self._filing) - 1
+			self._select_at(nextSelection)
 			self.update()
 		elif keyEvent.key() in [QtCore.Qt.Key_Return, QtCore.Qt.Key_Enter, QtCore.Qt.Key_Space]:
 			self._activate_at(self._selectionIndex)
@@ -742,6 +769,7 @@ class QPieMenu(QtGui.QWidget):
 
 	def showEvent(self, showEvent):
 		self.aboutToShow.emit()
+		self._cachedCenterPosition = self.rect().center()
 
 		mask = self._artist.show(self.palette())
 		self.setMask(mask)
@@ -767,15 +795,8 @@ class QPieMenu(QtGui.QWidget):
 	def _select_at(self, index):
 		self._selectionIndex = index
 
-		numChildren = len(self._filing)
-		loopDelta = max(numChildren, 1)
-		while self._selectionIndex < 0:
-			self._selectionIndex += loopDelta
-		while numChildren <= self._selectionIndex:
-			self._selectionIndex -= loopDelta
-
 	def _update_selection(self, lastMousePos):
-		radius = _radius_at(self.rect().center(), lastMousePos)
+		radius = _radius_at(self._cachedCenterPosition, lastMousePos)
 		if radius < self._filing.innerRadius():
 			self._selectionIndex = PieFiling.SELECTION_CENTER
 		elif radius <= self._filing.outerRadius():
@@ -845,7 +866,7 @@ if __name__ == "__main__":
 		mpie.insertItem(iconTextItem)
 		mpie.show()
 
-	if False:
+	if True:
 		oneAction = QtGui.QAction(None)
 		oneAction.setText("Chew")
 		oneAction.triggered.connect(lambda: _print("Chew"))
@@ -873,7 +894,7 @@ if __name__ == "__main__":
 		mpie.aboutToHide.connect(lambda: _on_about_to_hide(app))
 		mpie.canceled.connect(lambda: _print("Canceled"))
 
-	if True:
+	if False:
 		oneAction = QtGui.QAction(None)
 		oneAction.setText("Chew")
 		oneAction.triggered.connect(lambda: _print("Chew"))
