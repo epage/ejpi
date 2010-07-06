@@ -7,16 +7,18 @@ from PyQt4 import QtCore
 
 
 def _radius_at(center, pos):
-	xDelta = pos.x() - center.x()
-	yDelta = pos.y() - center.y()
+	delta = pos - center
+	xDelta = delta.x()
+	yDelta = delta.y()
 
 	radius = math.sqrt(xDelta ** 2 + yDelta ** 2)
 	return radius
 
 
 def _angle_at(center, pos):
-	xDelta = pos.x() - center.x()
-	yDelta = pos.y() - center.y()
+	delta = pos - center
+	xDelta = delta.x()
+	yDelta = delta.y()
 
 	radius = math.sqrt(xDelta ** 2 + yDelta ** 2)
 	angle = math.acos(xDelta / radius)
@@ -289,8 +291,9 @@ class PieArtist(object):
 		sliceX = averageRadius * math.cos(middleAngle)
 		sliceY = - averageRadius * math.sin(middleAngle)
 
-		pieX = self._canvas.rect().center().x()
-		pieY = self._canvas.rect().center().y()
+		piePos = self._canvas.rect().center()
+		pieX = piePos.x()
+		pieY = piePos.y()
 		self._paint_label(
 			painter, child.action(), i == selectionIndex, pieX+sliceX, pieY+sliceY
 		)
@@ -310,13 +313,15 @@ class PieArtist(object):
 			QtGui.QIcon.Normal,
 			QtGui.QIcon.On,
 		)
-		averageWidth = (icon.width() + textWidth)/2
+		iconWidth = icon.width()
+		iconHeight = icon.width()
+		averageWidth = (iconWidth + textWidth)/2
 		if not icon.isNull():
 			iconRect = QtCore.QRect(
 				x - averageWidth,
-				y - icon.height()/2,
-				icon.width(),
-				icon.height(),
+				y - iconHeight/2,
+				iconWidth,
+				iconHeight,
 			)
 
 			painter.drawPixmap(iconRect, icon)
@@ -336,7 +341,7 @@ class PieArtist(object):
 					pen = self.palette.mid()
 				brush = self.palette.background()
 
-			leftX = x - averageWidth + icon.width()
+			leftX = x - averageWidth + iconWidth
 			topY = y + textHeight/2
 			painter.setPen(pen.color())
 			painter.setBrush(brush)
@@ -351,9 +356,10 @@ class PieArtist(object):
 			background = self.palette.background().color()
 
 		innerRadius = self._cachedInnerRadius
+		adjustmentCenterPos = adjustmentRect.center()
 		innerRect = QtCore.QRect(
-			adjustmentRect.center().x() - innerRadius,
-			adjustmentRect.center().y() - innerRadius,
+			adjustmentCenterPos.x() - innerRadius,
+			adjustmentCenterPos.y() - innerRadius,
 			innerRadius * 2 + 1,
 			innerRadius * 2 + 1,
 		)
@@ -371,14 +377,16 @@ class PieArtist(object):
 		painter.drawEllipse(adjustmentRect)
 
 		r = QtCore.QRect(innerRect)
-		innerRect.setLeft(r.center().x() + ((r.left() - r.center().x()) / 3) * 1)
-		innerRect.setRight(r.center().x() + ((r.right() - r.center().x()) / 3) * 1)
-		innerRect.setTop(r.center().y() + ((r.top() - r.center().y()) / 3) * 1)
-		innerRect.setBottom(r.center().y() + ((r.bottom() - r.center().y()) / 3) * 1)
+		innerCenter = r.center()
+		innerRect.setLeft(innerCenter.x() + ((r.left() - innerCenter.x()) / 3) * 1)
+		innerRect.setRight(innerCenter.x() + ((r.right() - innerCenter.x()) / 3) * 1)
+		innerRect.setTop(innerCenter.y() + ((r.top() - innerCenter.y()) / 3) * 1)
+		innerRect.setBottom(innerCenter.y() + ((r.bottom() - innerCenter.y()) / 3) * 1)
 
 	def _paint_center_foreground(self, painter, selectionIndex):
-		pieX = self._canvas.rect().center().x()
-		pieY = self._canvas.rect().center().y()
+		centerPos = self._canvas.rect().center()
+		pieX = centerPos.x()
+		pieY = centerPos.y()
 
 		x = pieX
 		y = pieY
@@ -393,7 +401,7 @@ class PieArtist(object):
 
 class QPieDisplay(QtGui.QWidget):
 
-	def __init__(self, filing, parent = None, flags = 0):
+	def __init__(self, filing, parent = None, flags = QtCore.Qt.Window):
 		QtGui.QWidget.__init__(self, parent, flags)
 		self._filing = filing
 		self._artist = PieArtist(self._filing)
@@ -865,7 +873,7 @@ if __name__ == "__main__":
 		mpie.aboutToHide.connect(lambda: _on_about_to_hide(app))
 		mpie.canceled.connect(lambda: _print("Canceled"))
 
-	if False:
+	if True:
 		oneAction = QtGui.QAction(None)
 		oneAction.setText("Chew")
 		oneAction.triggered.connect(lambda: _print("Chew"))
@@ -892,7 +900,7 @@ if __name__ == "__main__":
 		mpie = QPieDisplay(pieFiling)
 		mpie.show()
 
-	if True:
+	if False:
 		oneAction = QtGui.QAction(None)
 		oneAction.setText("Chew")
 		oneAction.triggered.connect(lambda: _print("Chew"))
