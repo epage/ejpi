@@ -6,6 +6,26 @@ from PyQt4 import QtGui
 from PyQt4 import QtCore
 
 
+def _radius_at(center, pos):
+	xDelta = pos.x() - center.x()
+	yDelta = pos.y() - center.y()
+
+	radius = math.sqrt(xDelta ** 2 + yDelta ** 2)
+	return radius
+
+
+def _angle_at(center, pos):
+	xDelta = pos.x() - center.x()
+	yDelta = pos.y() - center.y()
+
+	radius = math.sqrt(xDelta ** 2 + yDelta ** 2)
+	angle = math.acos(xDelta / radius)
+	if 0 <= yDelta:
+		angle = 2*math.pi - angle
+
+	return angle
+
+
 class QActionPieItem(object):
 
 	def __init__(self, action, weight = 1):
@@ -30,21 +50,19 @@ class QActionPieItem(object):
 
 class PieFiling(object):
 
-	INNER_RADIUS_DEFAULT = 24
-	OUTER_RADIUS_DEFAULT = 64
+	INNER_RADIUS_DEFAULT = 32
+	OUTER_RADIUS_DEFAULT = 128
 
 	SELECTION_CENTER = -1
 	SELECTION_NONE = -2
 
-	NULL_CENTER = QtGui.QAction(None)
+	NULL_CENTER = QActionPieItem(QtGui.QAction(None))
 
-	def __init__(self, centerPos):
+	def __init__(self):
 		self._innerRadius = self.INNER_RADIUS_DEFAULT
 		self._outerRadius = self.OUTER_RADIUS_DEFAULT
 		self._children = []
 		self._center = self.NULL_CENTER
-
-		self._centerPos = centerPos
 
 	def insertItem(self, item, index = -1):
 		self._children.insert(index, item)
@@ -66,17 +84,14 @@ class PieFiling(object):
 	def itemAt(self, index):
 		return self._children[index]
 
-	def indexAt(self, point):
-		return self._angle_to_index(self._angle_at(point))
+	def indexAt(self, center, point):
+		return self._angle_to_index(_angle_at(center, point))
 
 	def innerRadius(self):
 		return self._innerRadius
 
 	def setInnerRadius(self, radius):
 		self._innerRadius = radius
-
-	def setCenterPosition(self, centerPos):
-		self._centerPos = centerPos
 
 	def outerRadius(self):
 		return self._outerRadius
@@ -142,24 +157,6 @@ class PieFiling(object):
 				return index - 1 if index != 0 else numChildren - 1
 			oldIterAngle = iterAngle
 
-	def _radius_at(self, pos):
-		xDelta = pos.x() - self._centerPos.x()
-		yDelta = pos.y() - self._centerPos.y()
-
-		radius = math.sqrt(xDelta ** 2 + yDelta ** 2)
-		return radius
-
-	def _angle_at(self, pos):
-		xDelta = pos.x() - self._centerPos.x()
-		yDelta = pos.y() - self._centerPos.y()
-
-		radius = math.sqrt(xDelta ** 2 + yDelta ** 2)
-		angle = math.acos(xDelta / radius)
-		if 0 <= yDelta:
-			angle = 2*math.pi - angle
-
-		return angle
-
 
 class PieArtist(object):
 
@@ -175,9 +172,25 @@ class PieArtist(object):
 		self._mask = None
 		self.palette = None
 
-	def sizeHint(self):
-		diameter = self._cachedOuterRadius * 2 + 1
+	def pieSize(self):
+		diameter = self._filing.outerRadius() * 2 + 1
 		return QtCore.QSize(diameter, diameter)
+
+	def centerSize(self):
+		painter = QtGui.QPainter(self._canvas)
+		text = self._filing.center().action().text()
+		fontMetrics = painter.fontMetrics()
+		if text:
+			textBoundingRect = fontMetrics.boundingRect(text)
+		else:
+			textBoundingRect = QtCore.QRect()
+		textWidth = textBoundingRect.width()
+		textHeight = textBoundingRect.height()
+
+		return QtCore.QSize(
+			textWidth + self.ICON_SIZE_DEFAULT,
+			max(textHeight, self.ICON_SIZE_DEFAULT),
+		)
 
 	def show(self, palette):
 		self.palette = palette
@@ -188,7 +201,7 @@ class PieArtist(object):
 		):
 			self._cachedOuterRadius = self._filing.outerRadius()
 			self._cachedInnerRadius = self._filing.innerRadius()
-			self._canvas = self._canvas.scaled(self.sizeHint())
+			self._canvas = self._canvas.scaled(self.pieSize())
 
 		if self._mask is None:
 			self._mask = QtGui.QBitmap(self._canvas.size())
@@ -207,13 +220,22 @@ class PieArtist(object):
 		adjustmentRect = self._canvas.rect().adjusted(0, 0, -1, -1)
 
 		numChildren = len(self._filing)
-		if numChildren < 2:
+		if numChildren == 0:
+			if selectionIndex == PieFiling.SELECTION_CENTER and self._filing.center().isEnabled():
+				painter.setBrush(self.palette.highlight())
+			else:
+				painter.setBrush(self.palette.background())
+
+			painter.fillRect(self._canvas.rect(), painter.brush())
+			self._paint_center_foreground(painter, selectionIndex)
+			return self._canvas
+		elif numChildren == 1:
 			if selectionIndex == 0 and self._filing[0].isEnabled():
 				painter.setBrush(self.palette.highlight())
 			else:
 				painter.setBrush(self.palette.background())
 
-			painter.fillRect(self.rect(), painter.brush())
+			painter.fillRect(self._canvas.rect(), painter.brush())
 		else:
 			for i in xrange(len(self._filing)):
 				self._paint_slice_background(painter, adjustmentRect, i, selectionIndex)
@@ -369,6 +391,242 @@ class PieArtist(object):
 		)
 
 
+class QPieDisplay(QtGui.QWidget):
+
+	def __init__(self, filing, parent = None, flags = 0):
+		QtGui.QWidget.__init__(self, parent, flags)
+		self._filing = filing
+		self._artist = PieArtist(self._filing)
+		self._selectionIndex = PieFiling.SELECTION_NONE
+
+	def popup(self, pos):
+		self._update_selection(pos)
+		self.show()
+
+	def sizeHint(self):
+		return self._artist.pieSize()
+
+	def showEvent(self, showEvent):
+		mask = self._artist.show(self.palette())
+		self.setMask(mask)
+
+		QtGui.QWidget.showEvent(self, showEvent)
+
+	def hideEvent(self, hideEvent):
+		self._artist.hide()
+		self._selectionIndex = PieFiling.SELECTION_NONE
+		QtGui.QWidget.hideEvent(self, hideEvent)
+
+	def paintEvent(self, paintEvent):
+		canvas = self._artist.paint(self._selectionIndex)
+
+		screen = QtGui.QPainter(self)
+		screen.drawPixmap(QtCore.QPoint(0, 0), canvas)
+
+		QtGui.QWidget.paintEvent(self, paintEvent)
+
+	def selectAt(self, index):
+		self._selectionIndex = index
+		self.update()
+
+
+class QPieButton(QtGui.QWidget):
+
+	activated = QtCore.pyqtSignal(int)
+	highlighted = QtCore.pyqtSignal(int)
+	canceled = QtCore.pyqtSignal()
+	aboutToShow = QtCore.pyqtSignal()
+	aboutToHide = QtCore.pyqtSignal()
+
+	def __init__(self, buttonSlice, parent = None):
+		QtGui.QWidget.__init__(self, parent)
+		self._filing = PieFiling()
+		self._display = QPieDisplay(self._filing, None, QtCore.Qt.SplashScreen)
+		self._selectionIndex = PieFiling.SELECTION_NONE
+
+		self._buttonFiling = PieFiling()
+		self._buttonFiling.set_center(buttonSlice)
+		self._buttonArtist = PieArtist(self._buttonFiling)
+		centerSize = self._buttonArtist.centerSize()
+		self._buttonFiling.setOuterRadius(max(centerSize.width(), centerSize.height()))
+		self._poppedUp = False
+
+		self._mousePosition = None
+		self.setFocusPolicy(QtCore.Qt.StrongFocus)
+
+	def insertItem(self, item, index = -1):
+		self._filing.insertItem(item, index)
+
+	def removeItemAt(self, index):
+		self._filing.removeItemAt(index)
+
+	def set_center(self, item):
+		self._filing.set_center(item)
+
+	def set_button(self, item):
+		self.update()
+
+	def clear(self):
+		self._filing.clear()
+
+	def itemAt(self, index):
+		return self._filing.itemAt(index)
+
+	def indexAt(self, point):
+		return self._filing.indexAt(self.rect().center(), point)
+
+	def innerRadius(self):
+		return self._filing.innerRadius()
+
+	def setInnerRadius(self, radius):
+		self._filing.setInnerRadius(radius)
+
+	def outerRadius(self):
+		return self._filing.outerRadius()
+
+	def setOuterRadius(self, radius):
+		self._filing.setOuterRadius(radius)
+
+	def sizeHint(self):
+		return self._buttonArtist.pieSize()
+
+	def mousePressEvent(self, mouseEvent):
+		self._popup_child(mouseEvent.globalPos())
+		lastSelection = self._selectionIndex
+
+		lastMousePos = mouseEvent.pos()
+		self._mousePosition = lastMousePos
+		self._update_selection(self.rect().center())
+
+		if lastSelection != self._selectionIndex:
+			self.highlighted.emit(self._selectionIndex)
+			self._display.selectAt(self._selectionIndex)
+
+	def mouseMoveEvent(self, mouseEvent):
+		lastSelection = self._selectionIndex
+
+		lastMousePos = mouseEvent.pos()
+		if self._mousePosition is None:
+			# Absolute
+			self._update_selection(lastMousePos)
+		else:
+			# Relative
+			self._update_selection(self.rect().center() + (lastMousePos - self._mousePosition))
+
+		if lastSelection != self._selectionIndex:
+			self.highlighted.emit(self._selectionIndex)
+			self._display.selectAt(self._selectionIndex)
+
+	def mouseReleaseEvent(self, mouseEvent):
+		lastSelection = self._selectionIndex
+
+		lastMousePos = mouseEvent.pos()
+		if self._mousePosition is None:
+			# Absolute
+			self._update_selection(lastMousePos)
+		else:
+			# Relative
+			self._update_selection(self.rect().center() + (lastMousePos - self._mousePosition))
+		self._mousePosition = None
+
+		self._activate_at(self._selectionIndex)
+		self._hide_child()
+
+	def keyPressEvent(self, keyEvent):
+		if keyEvent.key() in [QtCore.Qt.Key_Right, QtCore.Qt.Key_Down, QtCore.Qt.Key_Tab]:
+			self._popup_child(QtGui.QCursor.pos())
+			if self._selectionIndex != len(self._filing) - 1:
+				nextSelection = self._selectionIndex + 1
+			else:
+				nextSelection = 0
+			self._select_at(nextSelection)
+			self._display.selectAt(self._selectionIndex)
+		elif keyEvent.key() in [QtCore.Qt.Key_Left, QtCore.Qt.Key_Up, QtCore.Qt.Key_Backtab]:
+			self._popup_child(QtGui.QCursor.pos())
+			if 0 < self._selectionIndex:
+				nextSelection = self._selectionIndex - 1
+			else:
+				nextSelection = len(self._filing) - 1
+			self._select_at(nextSelection)
+			self._display.selectAt(self._selectionIndex)
+		elif keyEvent.key() in [QtCore.Qt.Key_Space]:
+			self._popup_child(QtGui.QCursor.pos())
+			self._select_at(PieFiling.SELECTION_CENTER)
+			self._display.selectAt(self._selectionIndex)
+		elif keyEvent.key() in [QtCore.Qt.Key_Return, QtCore.Qt.Key_Enter, QtCore.Qt.Key_Space]:
+			self._activate_at(self._selectionIndex)
+			self._hide_child()
+		elif keyEvent.key() in [QtCore.Qt.Key_Escape, QtCore.Qt.Key_Backspace]:
+			self._activate_at(PieFiling.SELECTION_NONE)
+			self._hide_child()
+		else:
+			QtGui.QWidget.keyPressEvent(self, keyEvent)
+
+	def showEvent(self, showEvent):
+		self._buttonArtist.show(self.palette())
+
+		QtGui.QWidget.showEvent(self, showEvent)
+
+	def hideEvent(self, hideEvent):
+		self._display.hide()
+		self._select_at(PieFiling.SELECTION_NONE)
+		QtGui.QWidget.hideEvent(self, hideEvent)
+
+	def paintEvent(self, paintEvent):
+		if self._poppedUp:
+			canvas = self._buttonArtist.paint(PieFiling.SELECTION_CENTER)
+		else:
+			canvas = self._buttonArtist.paint(PieFiling.SELECTION_NONE)
+
+		screen = QtGui.QPainter(self)
+		screen.drawPixmap(QtCore.QPoint(0, 0), canvas)
+
+		QtGui.QWidget.paintEvent(self, paintEvent)
+
+	def _popup_child(self, position):
+		self._poppedUp = True
+		self.aboutToShow.emit()
+
+		position = position - QtCore.QPoint(self._filing.outerRadius(), self._filing.outerRadius())
+		self._display.move(position)
+		self._display.show()
+
+		self.update()
+
+	def _hide_child(self):
+		self._poppedUp = False
+		self.aboutToHide.emit()
+		self._display.hide()
+		self.update()
+
+	def _select_at(self, index):
+		self._selectionIndex = index
+
+	def _update_selection(self, lastMousePos):
+		radius = _radius_at(self.rect().center(), lastMousePos)
+		if radius < self._filing.innerRadius():
+			self._select_at(PieFiling.SELECTION_CENTER)
+		elif radius <= self._filing.outerRadius():
+			self._select_at(self.indexAt(lastMousePos))
+		else:
+			self._select_at(PieFiling.SELECTION_NONE)
+
+	def _activate_at(self, index):
+		if index == PieFiling.SELECTION_NONE:
+			self.canceled.emit()
+			return
+		elif index == PieFiling.SELECTION_CENTER:
+			child = self._filing.center()
+		else:
+			child = self.itemAt(index)
+
+		if child.action().isEnabled():
+			child.action().trigger()
+			self.activated.emit(index)
+		else:
+			self.canceled.emit()
+
+
 class QPieMenu(QtGui.QWidget):
 
 	activated = QtCore.pyqtSignal(int)
@@ -379,16 +637,15 @@ class QPieMenu(QtGui.QWidget):
 
 	def __init__(self, parent = None):
 		QtGui.QWidget.__init__(self, parent)
-		self._filing = PieFiling(self.rect().center())
+		self._filing = PieFiling()
 		self._artist = PieArtist(self._filing)
 		self._selectionIndex = PieFiling.SELECTION_NONE
 
-		self._mouseButtonPressed = False
 		self._mousePosition = ()
+		self.setFocusPolicy(QtCore.Qt.StrongFocus)
 
 	def popup(self, pos):
-		index = self.indexAt(self.mapFromGlobal(QtGui.QCursor.pos()))
-		self._mousePosition = pos
+		self._update_selection(pos)
 		self.show()
 
 	def insertItem(self, item, index = -1):
@@ -401,6 +658,7 @@ class QPieMenu(QtGui.QWidget):
 
 	def set_center(self, item):
 		self._filing.set_center(item)
+		self.update()
 
 	def clear(self):
 		self._filing.clear()
@@ -410,7 +668,7 @@ class QPieMenu(QtGui.QWidget):
 		return self._filing.itemAt(index)
 
 	def indexAt(self, point):
-		return self._filing.indexAt(point)
+		return self._filing.indexAt(self.rect().center(), point)
 
 	def innerRadius(self):
 		return self._filing.innerRadius()
@@ -427,14 +685,13 @@ class QPieMenu(QtGui.QWidget):
 		self.update()
 
 	def sizeHint(self):
-		return self._artist.sizeHint()
+		return self._artist.pieSize()
 
 	def mousePressEvent(self, mouseEvent):
 		lastSelection = self._selectionIndex
 
 		lastMousePos = mouseEvent.pos()
 		self._update_selection(lastMousePos)
-		self._mouseButtonPressed = True
 		self._mousePosition = lastMousePos
 
 		if lastSelection != self._selectionIndex:
@@ -456,16 +713,28 @@ class QPieMenu(QtGui.QWidget):
 
 		lastMousePos = mouseEvent.pos()
 		self._update_selection(lastMousePos)
-		self._mouseButtonPressed = False
 		self._mousePosition = ()
 
 		self._activate_at(self._selectionIndex)
 		self.update()
 
+	def keyPressEvent(self, keyEvent):
+		if keyEvent.key() in [QtCore.Qt.Key_Right, QtCore.Qt.Key_Down, QtCore.Qt.Key_Tab]:
+			self._select_at(self._selectionIndex + 1)
+			self.update()
+		elif keyEvent.key() in [QtCore.Qt.Key_Left, QtCore.Qt.Key_Up, QtCore.Qt.Key_Backtab]:
+			self._select_at(self._selectionIndex - 1)
+			self.update()
+		elif keyEvent.key() in [QtCore.Qt.Key_Return, QtCore.Qt.Key_Enter, QtCore.Qt.Key_Space]:
+			self._activate_at(self._selectionIndex)
+		elif keyEvent.key() in [QtCore.Qt.Key_Escape, QtCore.Qt.Key_Backspace]:
+			self._activate_at(PieFiling.SELECTION_NONE)
+		else:
+			QtGui.QWidget.keyPressEvent(self, keyEvent)
+
 	def showEvent(self, showEvent):
 		self.aboutToShow.emit()
 
-		self._filing.setCenterPosition(self.rect().center())
 		mask = self._artist.show(self.palette())
 		self.setMask(mask)
 
@@ -475,7 +744,6 @@ class QPieMenu(QtGui.QWidget):
 		QtGui.QWidget.showEvent(self, showEvent)
 
 	def hideEvent(self, hideEvent):
-		self.canceled.emit()
 		self._artist.hide()
 		self._selectionIndex = PieFiling.SELECTION_NONE
 		QtGui.QWidget.hideEvent(self, hideEvent)
@@ -499,7 +767,7 @@ class QPieMenu(QtGui.QWidget):
 			self._selectionIndex -= loopDelta
 
 	def _update_selection(self, lastMousePos):
-		radius = self._filing._radius_at(lastMousePos)
+		radius = _radius_at(self.rect().center(), lastMousePos)
 		if radius < self._filing.innerRadius():
 			self._selectionIndex = PieFiling.SELECTION_CENTER
 		elif radius <= self._filing.outerRadius():
@@ -509,29 +777,22 @@ class QPieMenu(QtGui.QWidget):
 
 	def _activate_at(self, index):
 		if index == PieFiling.SELECTION_NONE:
-			print "Nothing selected"
+			self.canceled.emit()
+			self.aboutToHide.emit()
+			self.hide()
 			return
 		elif index == PieFiling.SELECTION_CENTER:
 			child = self._filing.center()
 		else:
 			child = self.itemAt(index)
-		if child.action().isEnabled():
+
+		if child.isEnabled():
 			child.action().trigger()
-		self.activated.emit(index)
+			self.activated.emit(index)
+		else:
+			self.canceled.emit()
 		self.aboutToHide.emit()
 		self.hide()
-
-	def _on_key_press(self, keyEvent):
-		if keyEvent.key in [QtCore.Qt.Key_Right, QtCore.Qt.Key_Down, QtCore.Qt.Key_Tab]:
-			self._select_at(self._selectionIndex + 1)
-			self.update()
-		elif keyEvent.key in [QtCore.Qt.Key_Left, QtCore.Qt.Key_Up, QtCore.Qt.Key_Backtab]:
-			self._select_at(self._selectionIndex - 1)
-			self.update()
-		elif keyEvent.key in [QtCore.Qt.Key_Return, QtCore.Qt.Key_Enter, QtCore.Qt.Key_Space]:
-			self._activate_at(self._selectionIndex)
-		elif keyEvent.key in [QtCore.Qt.Key_Escape, QtCore.Qt.Key_Backspace]:
-			self._activate_at(PieFiling.SELECTION_NONE)
 
 
 def _print(msg):
@@ -576,7 +837,7 @@ if __name__ == "__main__":
 		mpie.insertItem(iconTextItem)
 		mpie.show()
 
-	if True:
+	if False:
 		oneAction = QtGui.QAction(None)
 		oneAction.setText("Chew")
 		oneAction.triggered.connect(lambda: _print("Chew"))
@@ -602,5 +863,61 @@ if __name__ == "__main__":
 		mpie.insertItem(iconTextItem)
 		mpie.show()
 		mpie.aboutToHide.connect(lambda: _on_about_to_hide(app))
+		mpie.canceled.connect(lambda: _print("Canceled"))
+
+	if False:
+		oneAction = QtGui.QAction(None)
+		oneAction.setText("Chew")
+		oneAction.triggered.connect(lambda: _print("Chew"))
+		oneItem = QActionPieItem(oneAction)
+		twoAction = QtGui.QAction(None)
+		twoAction.setText("Foo")
+		twoAction.triggered.connect(lambda: _print("Foo"))
+		twoItem = QActionPieItem(twoAction)
+		iconAction = QtGui.QAction(None)
+		iconAction.setIcon(QtGui.QIcon.fromTheme("gtk-open"))
+		iconAction.triggered.connect(lambda: _print("Icon"))
+		iconItem = QActionPieItem(iconAction)
+		iconTextAction = QtGui.QAction(None)
+		iconTextAction.setText("Icon")
+		iconTextAction.setIcon(QtGui.QIcon.fromTheme("gtk-close"))
+		iconTextAction.triggered.connect(lambda: _print("Icon and text"))
+		iconTextItem = QActionPieItem(iconTextAction)
+		pieFiling = PieFiling()
+		pieFiling.set_center(iconItem)
+		pieFiling.insertItem(oneItem)
+		pieFiling.insertItem(twoItem)
+		pieFiling.insertItem(oneItem)
+		pieFiling.insertItem(iconTextItem)
+		mpie = QPieDisplay(pieFiling)
+		mpie.show()
+
+	if True:
+		oneAction = QtGui.QAction(None)
+		oneAction.setText("Chew")
+		oneAction.triggered.connect(lambda: _print("Chew"))
+		oneItem = QActionPieItem(oneAction)
+		twoAction = QtGui.QAction(None)
+		twoAction.setText("Foo")
+		twoAction.triggered.connect(lambda: _print("Foo"))
+		twoItem = QActionPieItem(twoAction)
+		iconAction = QtGui.QAction(None)
+		iconAction.setIcon(QtGui.QIcon.fromTheme("gtk-open"))
+		iconAction.triggered.connect(lambda: _print("Icon"))
+		iconItem = QActionPieItem(iconAction)
+		iconTextAction = QtGui.QAction(None)
+		iconTextAction.setText("Icon")
+		iconTextAction.setIcon(QtGui.QIcon.fromTheme("gtk-close"))
+		iconTextAction.triggered.connect(lambda: _print("Icon and text"))
+		iconTextItem = QActionPieItem(iconTextAction)
+		mpie = QPieButton(iconItem)
+		mpie.set_center(iconItem)
+		mpie.insertItem(oneItem)
+		mpie.insertItem(twoItem)
+		mpie.insertItem(oneItem)
+		mpie.insertItem(iconTextItem)
+		mpie.show()
+		mpie.aboutToHide.connect(lambda: _on_about_to_hide(app))
+		mpie.canceled.connect(lambda: _print("Canceled"))
 
 	app.exec_()
