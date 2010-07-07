@@ -211,13 +211,10 @@ class QCalcHistory(history.AbstractHistory):
 
 	def push(self, node):
 		simpleNode = node.simplify()
-		row = RowData(node, simpleNode)
+		row = RowData(self._prettyRenderer, node, simpleNode)
 		self._historyStore.push(row)
 
-		selection = self._historyView.get_selection()
-		selectionPath = (len(self._historyStore)-1, )
-		selection.select_path(selectionPath)
-		self._historyView.scroll_to_cell(selectionPath)
+		# @todo Scroll to bottom
 
 	def pop(self):
 		if len(self._historyStore) == 0:

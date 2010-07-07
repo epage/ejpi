@@ -1,9 +1,25 @@
 #!/usr/bin/env python
 
 import math
+import logging
 
 from PyQt4 import QtGui
 from PyQt4 import QtCore
+
+try:
+	from util import misc as misc_utils
+except ImportError:
+	class misc_utils(object):
+
+		@staticmethod
+		def log_exception(logger):
+
+			def wrapper(func):
+				return func
+			return wrapper
+
+
+_moduleLogger = logging.getLogger(__name__)
 
 
 _TWOPI = 2 * math.pi
@@ -428,17 +444,20 @@ class QPieDisplay(QtGui.QWidget):
 	def sizeHint(self):
 		return self._artist.pieSize()
 
+	@misc_utils.log_exception(_moduleLogger)
 	def showEvent(self, showEvent):
 		mask = self._artist.show(self.palette())
 		self.setMask(mask)
 
 		QtGui.QWidget.showEvent(self, showEvent)
 
+	@misc_utils.log_exception(_moduleLogger)
 	def hideEvent(self, hideEvent):
 		self._artist.hide()
 		self._selectionIndex = PieFiling.SELECTION_NONE
 		QtGui.QWidget.hideEvent(self, hideEvent)
 
+	@misc_utils.log_exception(_moduleLogger)
 	def paintEvent(self, paintEvent):
 		canvas = self._artist.paint(self._selectionIndex)
 
@@ -514,6 +533,7 @@ class QPieButton(QtGui.QWidget):
 	def sizeHint(self):
 		return self._buttonArtist.pieSize()
 
+	@misc_utils.log_exception(_moduleLogger)
 	def mousePressEvent(self, mouseEvent):
 		self._popup_child(mouseEvent.globalPos())
 		lastSelection = self._selectionIndex
@@ -526,6 +546,7 @@ class QPieButton(QtGui.QWidget):
 			self.highlighted.emit(self._selectionIndex)
 			self._display.selectAt(self._selectionIndex)
 
+	@misc_utils.log_exception(_moduleLogger)
 	def mouseMoveEvent(self, mouseEvent):
 		lastSelection = self._selectionIndex
 
@@ -541,6 +562,7 @@ class QPieButton(QtGui.QWidget):
 			self.highlighted.emit(self._selectionIndex)
 			self._display.selectAt(self._selectionIndex)
 
+	@misc_utils.log_exception(_moduleLogger)
 	def mouseReleaseEvent(self, mouseEvent):
 		lastSelection = self._selectionIndex
 
@@ -556,6 +578,7 @@ class QPieButton(QtGui.QWidget):
 		self._activate_at(self._selectionIndex)
 		self._hide_child()
 
+	@misc_utils.log_exception(_moduleLogger)
 	def keyPressEvent(self, keyEvent):
 		if keyEvent.key() in [QtCore.Qt.Key_Right, QtCore.Qt.Key_Down, QtCore.Qt.Key_Tab]:
 			self._popup_child(QtGui.QCursor.pos())
@@ -586,17 +609,20 @@ class QPieButton(QtGui.QWidget):
 		else:
 			QtGui.QWidget.keyPressEvent(self, keyEvent)
 
+	@misc_utils.log_exception(_moduleLogger)
 	def showEvent(self, showEvent):
 		self._buttonArtist.show(self.palette())
 		self._cachedCenterPosition = self.rect().center()
 
 		QtGui.QWidget.showEvent(self, showEvent)
 
+	@misc_utils.log_exception(_moduleLogger)
 	def hideEvent(self, hideEvent):
 		self._display.hide()
 		self._select_at(PieFiling.SELECTION_NONE)
 		QtGui.QWidget.hideEvent(self, hideEvent)
 
+	@misc_utils.log_exception(_moduleLogger)
 	def paintEvent(self, paintEvent):
 		if self._poppedUp:
 			canvas = self._buttonArtist.paint(PieFiling.SELECTION_CENTER)
@@ -607,6 +633,12 @@ class QPieButton(QtGui.QWidget):
 		screen.drawPixmap(QtCore.QPoint(0, 0), canvas)
 
 		QtGui.QWidget.paintEvent(self, paintEvent)
+
+	def __iter__(self):
+		return iter(self._filing)
+
+	def __len__(self):
+		return len(self._filing)
 
 	def _popup_child(self, position):
 		self._poppedUp = True
@@ -714,6 +746,7 @@ class QPieMenu(QtGui.QWidget):
 	def sizeHint(self):
 		return self._artist.pieSize()
 
+	@misc_utils.log_exception(_moduleLogger)
 	def mousePressEvent(self, mouseEvent):
 		lastSelection = self._selectionIndex
 
@@ -725,6 +758,7 @@ class QPieMenu(QtGui.QWidget):
 			self.highlighted.emit(self._selectionIndex)
 			self.update()
 
+	@misc_utils.log_exception(_moduleLogger)
 	def mouseMoveEvent(self, mouseEvent):
 		lastSelection = self._selectionIndex
 
@@ -735,6 +769,7 @@ class QPieMenu(QtGui.QWidget):
 			self.highlighted.emit(self._selectionIndex)
 			self.update()
 
+	@misc_utils.log_exception(_moduleLogger)
 	def mouseReleaseEvent(self, mouseEvent):
 		lastSelection = self._selectionIndex
 
@@ -745,6 +780,7 @@ class QPieMenu(QtGui.QWidget):
 		self._activate_at(self._selectionIndex)
 		self.update()
 
+	@misc_utils.log_exception(_moduleLogger)
 	def keyPressEvent(self, keyEvent):
 		if keyEvent.key() in [QtCore.Qt.Key_Right, QtCore.Qt.Key_Down, QtCore.Qt.Key_Tab]:
 			if self._selectionIndex != len(self._filing) - 1:
@@ -767,6 +803,7 @@ class QPieMenu(QtGui.QWidget):
 		else:
 			QtGui.QWidget.keyPressEvent(self, keyEvent)
 
+	@misc_utils.log_exception(_moduleLogger)
 	def showEvent(self, showEvent):
 		self.aboutToShow.emit()
 		self._cachedCenterPosition = self.rect().center()
@@ -779,11 +816,13 @@ class QPieMenu(QtGui.QWidget):
 
 		QtGui.QWidget.showEvent(self, showEvent)
 
+	@misc_utils.log_exception(_moduleLogger)
 	def hideEvent(self, hideEvent):
 		self._artist.hide()
 		self._selectionIndex = PieFiling.SELECTION_NONE
 		QtGui.QWidget.hideEvent(self, hideEvent)
 
+	@misc_utils.log_exception(_moduleLogger)
 	def paintEvent(self, paintEvent):
 		canvas = self._artist.paint(self._selectionIndex)
 
@@ -791,6 +830,12 @@ class QPieMenu(QtGui.QWidget):
 		screen.drawPixmap(QtCore.QPoint(0, 0), canvas)
 
 		QtGui.QWidget.paintEvent(self, paintEvent)
+
+	def __iter__(self):
+		return iter(self._filing)
+
+	def __len__(self):
+		return len(self._filing)
 
 	def _select_at(self, index):
 		self._selectionIndex = index
@@ -824,6 +869,10 @@ class QPieMenu(QtGui.QWidget):
 		self.hide()
 
 
+def init_pies():
+	PieFiling.NULL_CENTER.setEnabled(False)
+
+
 def _print(msg):
 	print msg
 
@@ -834,7 +883,7 @@ def _on_about_to_hide(app):
 
 if __name__ == "__main__":
 	app = QtGui.QApplication([])
-	PieFiling.NULL_CENTER.setEnabled(False)
+	init_pies()
 
 	if False:
 		pie = QPieMenu()

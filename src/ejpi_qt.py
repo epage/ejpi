@@ -6,6 +6,7 @@ from __future__ import with_statement
 import sys
 import os
 import simplejson
+import string
 import logging
 
 from PyQt4 import QtGui
@@ -15,6 +16,10 @@ import constants
 import maeqt
 from util import misc as misc_utils
 
+from libraries import qtpie
+from libraries import qtpieboard
+import plugin_utils
+import history
 import qhistory
 
 
@@ -22,6 +27,11 @@ _moduleLogger = logging.getLogger(__name__)
 
 
 IS_MAEMO = True
+
+
+PLUGIN_SEARCH_PATHS = [
+	os.path.join(os.path.dirname(__file__), "plugins/"),
+]
 
 
 class Calculator(object):
@@ -32,7 +42,6 @@ class Calculator(object):
 		self._hiddenCategories = set()
 		self._hiddenUnits = {}
 		self._clipboard = QtGui.QApplication.clipboard()
-
 		self._mainWindow = None
 
 		self._fullscreenAction = QtGui.QAction(None)
@@ -120,15 +129,145 @@ class Calculator(object):
 		self._close_windows()
 
 
+class QErrorDisplay(object):
+
+	def __init__(self):
+		self._messages = []
+
+		icon = QtGui.QIcon.fromTheme("gtk-dialog-error")
+		self._severityIcon = icon.pixmap(32, 32)
+		self._severityLabel = QtGui.QLabel()
+		self._severityLabel.setPixmap(self._severityIcon)
+
+		self._message = QtGui.QLabel()
+		self._message.setText("Boo")
+
+		icon = QtGui.QIcon.fromTheme("gtk-close")
+		self._closeIcon = icon.pixmap(32, 32)
+		self._closeLabel = QtGui.QLabel()
+		self._closeLabel.setPixmap(self._closeIcon)
+
+		self._controlLayout = QtGui.QHBoxLayout()
+		self._controlLayout.addWidget(self._severityLabel)
+		self._controlLayout.addWidget(self._message)
+		self._controlLayout.addWidget(self._closeLabel)
+
+		self._topLevelLayout = QtGui.QHBoxLayout()
+
+	@property
+	def toplevel(self):
+		return self._topLevelLayout
+
+	def push_message(self, message):
+		self._messages.append(message)
+		if 1 == len(self._messages):
+			self._show_message(message)
+
+	def push_exception(self):
+		userMessage = str(sys.exc_info()[1])
+		self.push_message(userMessage)
+		_moduleLogger.exception(userMessage)
+
+	def pop_message(self):
+		del self._messages[0]
+		if 0 == len(self._messages):
+			self._hide_message()
+		else:
+			self._message.setText(self._messages[0])
+
+	def _on_close(self, *args):
+		self.pop_message()
+
+	def _show_message(self, message):
+		self._message.set_text(message)
+		self._topLevelLayout.addLayout(self._controlLayout)
+
+	def _hide_message(self):
+		self._message.set_text("")
+		self._topLevelLayout.removeItem(self._controlLayout)
+
+
+class QValueEntry(object):
+
+	def __init__(self):
+		self._widget = QtGui.QLineEdit("")
+		self._widget.setInputMethodHints(QtCore.Qt.ImhPreferNumbers)
+		self._actualEntryDisplay = ""
+
+	@property
+	def toplevel(self):
+		return self._widget
+
+	def get_value(self):
+		value = self._actualEntryDisplay.strip()
+		if any(
+			0 < value.find(whitespace)
+			for whitespace in string.whitespace
+		):
+			self.clear()
+			raise ValueError('Invalid input "%s"' % value)
+		return value
+
+	def set_value(self, value):
+		value = value.strip()
+		if any(
+			0 < value.find(whitespace)
+			for whitespace in string.whitespace
+		):
+			raise ValueError('Invalid input "%s"' % value)
+		self._actualEntryDisplay = value
+		self._widget.setText(value)
+
+	def append(self, value):
+		value = value.strip()
+		if any(
+			0 < value.find(whitespace)
+			for whitespace in string.whitespace
+		):
+			raise ValueError('Invalid input "%s"' % value)
+		self.set_value(self.get_value() + value)
+
+	def pop(self):
+		value = self.get_value()[0:-1]
+		self.set_value(value)
+
+	def clear(self):
+		self.set_value("")
+
+	value = property(get_value, set_value, clear)
+
+
 class MainWindow(object):
+
+	_plugin_search_paths = [
+		"/opt/epi/lib/plugins/",
+		"/usr/lib/ejpi/plugins/",
+		os.path.join(os.path.dirname(__file__), "plugins/"),
+	]
+
+	_user_history = "%s/history.stack" % constants._data_path_
 
 	def __init__(self, parent, app):
 		self._app = app
 
 		self._historyView = qhistory.QCalcHistory()
 
-		self._layout = QtGui.QVBoxLayout()
-		self._layout.addWidget(self._historyView.toplevel)
+		self._errorDisplay = QErrorDisplay()
+
+		self._userEntry = QValueEntry()
+
+		self._controlLayout = QtGui.QVBoxLayout()
+		self._controlLayout.addLayout(self._errorDisplay.toplevel)
+		self._controlLayout.addWidget(self._historyView.toplevel)
+		self._controlLayout.addWidget(self._userEntry.toplevel)
+
+		self._pluginKeyboardSpot = QtGui.QVBoxLayout()
+		self._inputLayout = QtGui.QVBoxLayout()
+		self._inputLayout.addLayout(self._pluginKeyboardSpot)
+
+		self._layout = QtGui.QHBoxLayout()
+		self._layout.addLayout(self._controlLayout)
+		self._layout.addLayout(self._inputLayout)
 
 		centralWidget = QtGui.QWidget()
 		centralWidget.setLayout(self._layout)
@@ -162,6 +301,55 @@ class MainWindow(object):
 			viewMenu.addAction(self._app.fullscreenAction)
 
 		self._window.addAction(self._app.logAction)
+
+		self._constantPlugins = plugin_utils.ConstantPluginManager()
+		self._constantPlugins.add_path(*self._plugin_search_paths)
+		for pluginName in ["Builtin", "Trigonometry", "Computer", "Alphabet"]:
+			try:
+				pluginId = self._constantPlugins.lookup_plugin(pluginName)
+				self._constantPlugins.enable_plugin(pluginId)
+			except:
+				_moduleLogger.info("Failed to load plugin %s" % pluginName)
+
+		self._operatorPlugins = plugin_utils.OperatorPluginManager()
+		self._operatorPlugins.add_path(*self._plugin_search_paths)
+		for pluginName in ["Builtin", "Trigonometry", "Computer", "Alphabet"]:
+			try:
+				pluginId = self._operatorPlugins.lookup_plugin(pluginName)
+				self._operatorPlugins.enable_plugin(pluginId)
+			except:
+				_moduleLogger.info("Failed to load plugin %s" % pluginName)
+
+		self._keyboardPlugins = plugin_utils.KeyboardPluginManager()
+		self._keyboardPlugins.add_path(*self._plugin_search_paths)
+		self._activeKeyboards = []
+
+		self._history = history.RpnCalcHistory(
+			self._historyView,
+			self._userEntry, self._errorDisplay,
+			self._constantPlugins.constants, self._operatorPlugins.operators
+		)
+		self._load_history()
+
+		# Basic keyboard stuff
+		self._handler = qtpieboard.KeyboardHandler(self._on_entry_direct)
+		self._handler.register_command_handler("push", self._on_push)
+		self._handler.register_command_handler("unpush", self._on_unpush)
+		self._handler.register_command_handler("backspace", self._on_entry_backspace)
+		self._handler.register_command_handler("clear", self._on_entry_clear)
+
+		# Main keyboard
+		builtinKeyboardId = self._keyboardPlugins.lookup_plugin("Builtin")
+		self._keyboardPlugins.enable_plugin(builtinKeyboardId)
+		self._builtinPlugin = self._keyboardPlugins.keyboards["Builtin"].construct_keyboard()
+		self._builtinKeyboard = self._builtinPlugin.setup(self._history, self._handler)
+		self._inputLayout.addLayout(self._builtinKeyboard.toplevel)
+
+		# Plugins
+		self.enable_plugin(self._keyboardPlugins.lookup_plugin("Trigonometry"))
+		self.enable_plugin(self._keyboardPlugins.lookup_plugin("Computer"))
+		self.enable_plugin(self._keyboardPlugins.lookup_plugin("Alphabet"))
+		self._set_plugin_kb(0)
 
 		self.set_fullscreen(self._app.fullscreenAction.isChecked())
 		self._window.show()
@@ -197,14 +385,84 @@ class MainWindow(object):
 		for child in self.walk_children():
 			child.set_fullscreen(isFullscreen)
 
+	def enable_plugin(self, pluginId):
+		self._keyboardPlugins.enable_plugin(pluginId)
+		pluginData = self._keyboardPlugins.plugin_info(pluginId)
+		pluginName = pluginData[0]
+		plugin = self._keyboardPlugins.keyboards[pluginName].construct_keyboard()
+		pluginKeyboard = plugin.setup(self._history, self._handler)
+
+		self._activeKeyboards.append({
+			"pluginName": pluginName,
+			"plugin": plugin,
+			"pluginKeyboard": pluginKeyboard,
+		})
+
+	def _set_plugin_kb(self, pluginIndex):
+		plugin = self._activeKeyboards[pluginIndex]
+		# @todo self._pluginButton.set_label(plugin["pluginName"])
+
+		for i in xrange(self._pluginKeyboardSpot.count()):
+			self._pluginKeyboardSpot.removeItem(self._pluginKeyboardSpot.itemAt(i))
+		pluginKeyboard = plugin["pluginKeyboard"]
+		self._pluginKeyboardSpot.addItem(pluginKeyboard.toplevel)
+
+	def _load_history(self):
+		serialized = []
+		try:
+			with open(self._user_history, "rU") as f:
+				serialized = (
+					(part.strip() for part in line.split(" "))
+					for line in f.readlines()
+				)
+		except IOError, e:
+			if e.errno != 2:
+				raise
+		self._history.deserialize_stack(serialized)
+
+	def _save_history(self):
+		serialized = self._history.serialize_stack()
+		with open(self._user_history, "w") as f:
+			for lineData in serialized:
+				line = " ".join(data for data in lineData)
+				f.write("%s\n" % line)
+
+	@misc_utils.log_exception(_moduleLogger)
+	def _on_entry_direct(self, keys, modifiers):
+		if "shift" in modifiers:
+			keys = keys.upper()
+		self._userEntry.append(keys)
+
+	@misc_utils.log_exception(_moduleLogger)
+	def _on_push(self, *args):
+		self._history.push_entry()
+
+	@misc_utils.log_exception(_moduleLogger)
+	def _on_unpush(self, *args):
+		self._historyStore.unpush()
+
+	@misc_utils.log_exception(_moduleLogger)
+	def _on_entry_backspace(self, *args):
+		self._userEntry.pop()
+
+	@misc_utils.log_exception(_moduleLogger)
+	def _on_entry_clear(self, *args):
+		self._userEntry.clear()
+
+	@misc_utils.log_exception(_moduleLogger)
+	def _on_clear_all(self, *args):
+		self._history.clear()
+
 	@misc_utils.log_exception(_moduleLogger)
 	def _on_close_window(self, checked = True):
+		self._save_history()
 		self.close()
 
 
 def run():
 	app = QtGui.QApplication([])
 	handle = Calculator(app)
+	qtpie.init_pies()
 	return app.exec_()
 
 

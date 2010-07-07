@@ -3,55 +3,69 @@
 
 from __future__ import division
 
-import copy
+import os
 import warnings
 
-import gobject
-import gtk
+from PyQt4 import QtGui
+from PyQt4 import QtCore
 
-import gtkpie
+import qtpie
 
 
-class PieKeyboard(gtk.Table):
+class PieKeyboard(object):
 
-	def __init__(self, style, rows, columns, alternateStyles=True):
-		super(PieKeyboard, self).__init__(rows, columns, homogeneous=True)
+	SLICE_CENTER = -1
+	SLICE_NORTH = 0
+	SLICE_NORTH_WEST = 1
+	SLICE_WEST = 2
+	SLICE_SOUTH_WEST = 3
+	SLICE_SOUTH = 4
+	SLICE_SOUTH_EAST = 5
+	SLICE_EAST = 6
+	SLICE_NORTH_EAST = 7
+
+	MAX_ANGULAR_SLICES = 8
+
+	SLICE_DIRECTIONS = [
+		SLICE_CENTER,
+		SLICE_NORTH,
+		SLICE_NORTH_WEST,
+		SLICE_WEST,
+		SLICE_SOUTH_WEST,
+		SLICE_SOUTH,
+		SLICE_SOUTH_EAST,
+		SLICE_EAST,
+		SLICE_NORTH_EAST,
+	]
+
+	SLICE_DIRECTION_NAMES = [
+		"CENTER",
+		"NORTH",
+		"NORTH_WEST",
+		"WEST",
+		"SOUTH_WEST",
+		"SOUTH",
+		"SOUTH_EAST",
+		"EAST",
+		"NORTH_EAST",
+	]
+
+	def __init__(self, rows, columns):
+		self._layout = QtGui.QGridLayout()
 
 		self.__cells = {}
-		for row in xrange(rows):
-			for column in xrange(columns):
-				popup = gtkpie.PiePopup(
-					self._alternate_style(row, column, style) if alternateStyles else style
-				)
-				self.attach(popup, column, column+1, row, row+1)
-				self.__cells[(row, column)] = popup
 
-	def add_slice(self, row, column, slice, direction):
-		pie = self.__cells[(row, column)]
-		pie.add_slice(slice, direction)
+	@property
+	def toplevel(self):
+		return self._layout
 
-	def add_slices(self, row, column, slices):
-		pie = self.__cells[(row, column)]
-		for direction, slice in slices.iteritems():
-			pie.add_slice(slice, direction)
+	def add_pie(self, row, column, pieButton):
+		assert len(pieButton) == 8
+		self._layout.addWidget(pieButton, row, column)
+		self.__cells[(row, column)] = pieButton
 
 	def get_pie(self, row, column):
 		return self.__cells[(row, column)]
-
-	@classmethod
-	def _alternate_style(cls, row, column, style):
-		i = row + column
-		isEven = (i % 2) == 0
-
-		if not isEven:
-			return style
-
-		altStyle = copy.copy(style)
-		selected = altStyle[True]
-		notSelected = altStyle[False]
-		altStyle[False] = selected
-		altStyle[True] = notSelected
-		return altStyle
 
 
 class KeyboardModifier(object):
@@ -75,36 +89,50 @@ class KeyboardModifier(object):
 		self.once = False
 
 
-gobject.type_register(PieKeyboard)
-
-
 def parse_keyboard_data(text):
 	return eval(text)
 
 
-def load_keyboard(keyboardName, dataTree, keyboard, keyboardHandler):
-	for (row, column), pieData in dataTree.iteritems():
-		showAllSlices = pieData["showAllSlices"]
-		keyboard.get_pie(row, column).showAllSlices = showAllSlices
-		for direction, directionName in enumerate(gtkpie.PieSlice.SLICE_DIRECTION_NAMES):
-			if directionName not in pieData:
-				continue
-			sliceName = "%s-(%d, %d)-%s" % (keyboardName, row, column, directionName)
-
+def _enumerate_pie_slices(pieData, iconPaths):
+	for direction, directionName in zip(
+		PieKeyboard.SLICE_DIRECTIONS, PieKeyboard.SLICE_DIRECTION_NAMES
+	):
+		if directionName in pieData:
 			sliceData = pieData[directionName]
-			sliceAction = sliceData["action"]
-			sliceType = sliceData["type"]
-			if sliceType == "text":
-				text = sliceData["text"]
-				# font = sliceData["font"] # @TODO
-				slice = gtkpie.TextLabelPieSlice(text, handler=keyboardHandler)
-			elif sliceType == "image":
-				path = sliceData["path"]
-				slice = gtkpie.ImageLabelPieSlice(path, handler=keyboardHandler)
 
-			slice.name = sliceName
-			keyboard.add_slice(row, column, slice, direction)
-			keyboardHandler.map_slice_action(slice, sliceAction)
+			action = QtGui.QAction(None)
+			try:
+				action.setText(sliceData["text"])
+			except KeyError:
+				pass
+			try:
+				relativeIconPath = sliceData["path"]
+			except KeyError:
+				pass
+			else:
+				for iconPath in iconPaths:
+					absIconPath = os.path.join(iconPath, relativeIconPath)
+					if os.path.exists(absIconPath):
+						action.setIcon(QtGui.QIcon(absIconPath))
+						break
+			pieItem = qtpie.QActionPieItem(action)
+		else:
+			pieItem = qtpie.PieFiling.NULL_CENTER
+			action = ""
+		yield direction, pieItem, action
+
+
+def load_keyboard(keyboardName, dataTree, keyboard, keyboardHandler, iconPaths):
+	for (row, column), pieData in dataTree.iteritems():
+		pieItems = list(_enumerate_pie_slices(pieData, iconPaths))
+		assert pieItems[0][0] == PieKeyboard.SLICE_CENTER, pieItems[0]
+		_, center, centerAction = pieItems.pop(0)
+
+		pieButton = qtpie.QPieButton(center)
+		pieButton.set_center(center)
+		for direction, pieItem, action in pieItems:
+			pieButton.insertItem(pieItem)
+		keyboard.add_pie(row, column, pieButton)
 
 
 class KeyboardHandler(object):

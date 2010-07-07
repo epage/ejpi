@@ -9,7 +9,7 @@ import os
 import inspect
 import ConfigParser
 
-from libraries import gtkpieboard
+from libraries import qtpieboard
 from util import io
 import operation
 
@@ -33,18 +33,18 @@ class PieKeyboardPlugin(object):
 		self.factory = factory
 		self.__handler = None
 
-	def setup(self, calcStack, style, boardHandler):
+	def setup(self, calcStack, boardHandler):
 		self.__handler = boardHandler
 
 		with open(self.factory.mapFile, "r") as mapfile:
-			boardTree = gtkpieboard.parse_keyboard_data("\n".join(mapfile.readlines()))
+			boardTree = qtpieboard.parse_keyboard_data("\n".join(mapfile.readlines()))
 
 		rows, columns = boardTree["dimensions"]
 		keyboardName = boardTree["name"]
 		keyTree = boardTree["keys"]
 
-		keyboard = gtkpieboard.PieKeyboard(style, rows, columns)
-		gtkpieboard.load_keyboard(keyboardName, keyTree, keyboard, self.__handler)
+		keyboard = qtpieboard.PieKeyboard(rows, columns)
+		qtpieboard.load_keyboard(keyboardName, keyTree, keyboard, self.__handler, self.factory.iconPaths)
 
 		for commandName, operator in self.factory.commands.iteritems():
 			handler = CommandStackHandler(calcStack, commandName, operator)
@@ -68,6 +68,7 @@ class PieKeyboardPluginFactory(object):
 		self.name = pluginName
 		self.mapFile = keyboardMapFile
 		self.commands = {}
+		self.iconPaths = [os.path.join(os.path.dirname(keyboardMapFile), "images")]
 
 	def register_operation(self, commandName, operator):
 		self.commands[commandName] = operator
