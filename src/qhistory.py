@@ -41,11 +41,11 @@ class RowData(object):
 
 	@property
 	def equation(self):
-		return operation.render_operation(self._prettyRenderer, self._node),
+		return operation.render_operation(self._prettyRenderer, self._node)
 
 	@property
 	def result(self):
-		return operation.render_operation(self._prettyRenderer, self._simpleNode),
+		return operation.render_operation(self._prettyRenderer, self._simpleNode)
 
 	def data(self, column):
 		if column == self.CLOSE_COLUMN:
@@ -76,21 +76,24 @@ class HistoryModel(QtCore.QAbstractItemModel):
 	def data(self, index, role):
 		if not index.isValid():
 			return None
+
+		if role == QtCore.Qt.DisplayRole:
+			item = index.internalPointer()
+			if isinstance(item, RowData):
+				print "d-rw", item.data(index.column())
+				return item.data(index.column())
+			elif item is RowData.HEADERS:
+				print "d-h", item[index.column()]
+				return item[index.column()]
+		elif role == QtCore.Qt.TextAlignmentRole:
+			return RowData.ALIGNMENT[index.column()]
 		elif role == QtCore.Qt.DecorationRole:
 			if index.column() == RowData.CLOSE_COLUMN:
 				return None
 			else:
 				return None
-		elif role == QtCore.Qt.TextAlignmentRole:
-			return RowData.ALIGNMENT[index.column()]
-		elif role != QtCore.Qt.DisplayRole:
+		else:
 			return None
-
-		item = index.internalPointer()
-		if isinstance(item, RowData):
-			return item.data(index.column())
-		elif item is RowData.HEADERS:
-			return item[index.column()]
 
 	@misc_utils.log_exception(_moduleLogger)
 	def flags(self, index):
@@ -111,12 +114,13 @@ class HistoryModel(QtCore.QAbstractItemModel):
 		if not self.hasIndex(row, column, parent):
 			return QtCore.QModelIndex()
 
-		if parent.isValid():
+		elif parent.isValid():
 			return QtCore.QModelIndex()
 
 		parentItem = RowData.HEADERS
 		childItem = self._children[row]
 		if childItem:
+			print "i", row, column, childItem
 			return self.createIndex(row, column, childItem)
 		else:
 			return QtCore.QModelIndex()
@@ -138,18 +142,23 @@ class HistoryModel(QtCore.QAbstractItemModel):
 			return 0
 
 		if not parent.isValid():
+			print "rc", len(self._children)
 			return len(self._children)
 		else:
+			print "rc", len(self._children)
 			return len(self._children)
 
 	def push(self, row):
 		self._children.append(row)
 		self._signal_rows_added()
+		print "push", row
+		print "push", len(self._children)
 
 	def pop(self):
 		data = self._children[-1]
 		del self._children[-1]
 		self._signal_rows_removed()
+		print "pop", data
 		return data
 
 	def peek(self):
@@ -168,13 +177,15 @@ class HistoryModel(QtCore.QAbstractItemModel):
 
 	def _signal_rows_added(self):
 		# @todo Only signal new rows
-		self._all_changed
+		self._all_changed()
 
 	def _signal_rows_removed(self):
 		# @todo Only signal new rows
-		self._all_changed
+		self._all_changed()
 
 	def _all_changed(self):
+		if not self._children:
+			return
 		topLeft = self.createIndex(0, 0, self._children[0])
 		bottomRight = self.createIndex(len(self._children)-1, len(RowData.HEADERS)-1, self._children[-1])
 		self.dataChanged.emit(topLeft, bottomRight)

@@ -116,10 +116,11 @@ def _enumerate_pie_slices(pieData, iconPaths):
 						action.setIcon(QtGui.QIcon(absIconPath))
 						break
 			pieItem = qtpie.QActionPieItem(action)
+			actionToken = sliceData["action"]
 		else:
 			pieItem = qtpie.PieFiling.NULL_CENTER
-			action = ""
-		yield direction, pieItem, action
+			actionToken = ""
+		yield direction, pieItem, actionToken
 
 
 def load_keyboard(keyboardName, dataTree, keyboard, keyboardHandler, iconPaths):
@@ -130,8 +131,10 @@ def load_keyboard(keyboardName, dataTree, keyboard, keyboardHandler, iconPaths):
 
 		pieButton = qtpie.QPieButton(center)
 		pieButton.set_center(center)
+		keyboardHandler.map_slice_action(center, centerAction)
 		for direction, pieItem, action in pieItems:
 			pieButton.insertItem(pieItem)
+			keyboardHandler.map_slice_action(pieItem, action)
 		keyboard.add_pie(row, column, pieButton)
 
 
@@ -166,14 +169,11 @@ class KeyboardHandler(object):
 		del self.__modifiers["<%s>" % modifierName]
 
 	def map_slice_action(self, slice, action):
-		self.__sliceActions[slice.name] = action
+		callback = lambda direction: self(direction, action)
+		slice.action().triggered.connect(callback)
+		self.__sliceActions[slice] = (action, callback)
 
-	def __call__(self, pie, slice, direction):
-		try:
-			action = self.__sliceActions[slice.name]
-		except KeyError:
-			return
-
+	def __call__(self, direction, action):
 		activeModifiers = [
 			mod.name
 			for mod in self.__modifiers.itervalues()
