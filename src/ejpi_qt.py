@@ -143,9 +143,8 @@ class QErrorDisplay(object):
 		self._message.setText("Boo")
 
 		icon = QtGui.QIcon.fromTheme("gtk-close")
-		self._closeIcon = icon.pixmap(32, 32)
-		self._closeLabel = QtGui.QLabel()
-		self._closeLabel.setPixmap(self._closeIcon)
+		self._closeLabel = QtGui.QPushButton(icon, "")
+		self._closeLabel.clicked.connect(self._on_close)
 
 		self._controlLayout = QtGui.QHBoxLayout()
 		self._controlLayout.addWidget(self._severityLabel)
@@ -153,6 +152,8 @@ class QErrorDisplay(object):
 		self._controlLayout.addWidget(self._closeLabel)
 
 		self._topLevelLayout = QtGui.QHBoxLayout()
+		self._topLevelLayout.addLayout(self._controlLayout)
+		self._hide_message()
 
 	@property
 	def toplevel(self):
@@ -180,11 +181,15 @@ class QErrorDisplay(object):
 
 	def _show_message(self, message):
 		self._message.setText(message)
-		self._topLevelLayout.addLayout(self._controlLayout)
+		self._severityLabel.show()
+		self._message.show()
+		self._closeLabel.show()
 
 	def _hide_message(self):
 		self._message.setText("")
-		self._topLevelLayout.removeItem(self._controlLayout)
+		self._severityLabel.hide()
+		self._message.hide()
+		self._closeLabel.hide()
 
 
 class QValueEntry(object):
@@ -250,10 +255,8 @@ class MainWindow(object):
 	def __init__(self, parent, app):
 		self._app = app
 
-		self._historyView = qhistory.QCalcHistory()
-
 		self._errorDisplay = QErrorDisplay()
-
+		self._historyView = qhistory.QCalcHistory(self._errorDisplay)
 		self._userEntry = QValueEntry()
 
 		self._controlLayout = QtGui.QVBoxLayout()

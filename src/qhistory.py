@@ -18,186 +18,20 @@ import operation
 _moduleLogger = logging.getLogger(__name__)
 
 
-class RowData(object):
-
-	HEADERS = ["", "Equation", "Result"]
-	ALIGNMENT = [QtCore.Qt.AlignLeft, QtCore.Qt.AlignLeft, QtCore.Qt.AlignLeft]
-	CLOSE_COLUMN = 0
-	EQ_COLUMN = 1
-	RESULT_COLUMN = 2
-
-	def __init__(self, renderer, node, simpleNode):
-		self._node = node
-		self._simpleNode = simpleNode
-		self._prettyRenderer = renderer
-
-	@property
-	def node(self):
-		return self._node
-
-	@property
-	def simpleNode(self):
-		return self._simpleNode
-
-	@property
-	def equation(self):
-		return operation.render_operation(self._prettyRenderer, self._node)
-
-	@property
-	def result(self):
-		return operation.render_operation(self._prettyRenderer, self._simpleNode)
-
-	def data(self, column):
-		if column == self.CLOSE_COLUMN:
-			return ""
-		elif column == self.EQ_COLUMN:
-			return self.equation
-		elif column == self.RESULT_COLUMN:
-			return self.result
-		else:
-			return None
-
-
-class HistoryModel(QtCore.QAbstractItemModel):
-
-	def __init__(self, parent=None):
-		super(HistoryModel, self).__init__(parent)
-
-		self._children = []
-
-	@misc_utils.log_exception(_moduleLogger)
-	def columnCount(self, parent):
-		if parent.isValid():
-			return 0
-		else:
-			return len(RowData.HEADERS)
-
-	@misc_utils.log_exception(_moduleLogger)
-	def data(self, index, role):
-		if not index.isValid():
-			return None
-
-		if role == QtCore.Qt.DisplayRole:
-			item = index.internalPointer()
-			if isinstance(item, RowData):
-				print "d-rw", item.data(index.column())
-				return item.data(index.column())
-			elif item is RowData.HEADERS:
-				print "d-h", item[index.column()]
-				return item[index.column()]
-		elif role == QtCore.Qt.TextAlignmentRole:
-			return RowData.ALIGNMENT[index.column()]
-		elif role == QtCore.Qt.DecorationRole:
-			if index.column() == RowData.CLOSE_COLUMN:
-				return None
-			else:
-				return None
-		else:
-			return None
-
-	@misc_utils.log_exception(_moduleLogger)
-	def flags(self, index):
-		if not index.isValid():
-			return QtCore.Qt.NoItemFlags
-
-		return QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable
-
-	@misc_utils.log_exception(_moduleLogger)
-	def headerData(self, section, orientation, role):
-		if orientation == QtCore.Qt.Horizontal and role == QtCore.Qt.DisplayRole:
-			return RowData.HEADERS[section]
-
-		return None
-
-	@misc_utils.log_exception(_moduleLogger)
-	def index(self, row, column, parent):
-		if not self.hasIndex(row, column, parent):
-			return QtCore.QModelIndex()
-
-		elif parent.isValid():
-			return QtCore.QModelIndex()
-
-		parentItem = RowData.HEADERS
-		childItem = self._children[row]
-		if childItem:
-			print "i", row, column, childItem
-			return self.createIndex(row, column, childItem)
-		else:
-			return QtCore.QModelIndex()
-
-	@misc_utils.log_exception(_moduleLogger)
-	def parent(self, index):
-		if not index.isValid():
-			return QtCore.QModelIndex()
-
-		childItem = index.internalPointer()
-		if isinstance(childItem, RowData):
-			return QtCore.QModelIndex()
-		elif childItem is RowData.HEADERS:
-			return None
-
-	@misc_utils.log_exception(_moduleLogger)
-	def rowCount(self, parent):
-		if 0 < parent.column():
-			return 0
-
-		if not parent.isValid():
-			print "rc", len(self._children)
-			return len(self._children)
-		else:
-			print "rc", len(self._children)
-			return len(self._children)
-
-	def push(self, row):
-		self._children.append(row)
-		self._signal_rows_added()
-		print "push", row
-		print "push", len(self._children)
-
-	def pop(self):
-		data = self._children[-1]
-		del self._children[-1]
-		self._signal_rows_removed()
-		print "pop", data
-		return data
-
-	def peek(self):
-		data = self._children[-1]
-		return data
-
-	def clear(self):
-		del self._children[:]
-		self._all_changed
-
-	def __len__(self):
-		return len(self._children)
-
-	def __iter__(self):
-		return iter(self._children)
-
-	def _signal_rows_added(self):
-		# @todo Only signal new rows
-		self._all_changed()
-
-	def _signal_rows_removed(self):
-		# @todo Only signal new rows
-		self._all_changed()
-
-	def _all_changed(self):
-		if not self._children:
-			return
-		topLeft = self.createIndex(0, 0, self._children[0])
-		bottomRight = self.createIndex(len(self._children)-1, len(RowData.HEADERS)-1, self._children[-1])
-		self.dataChanged.emit(topLeft, bottomRight)
-
-
 class QCalcHistory(history.AbstractHistory):
 
-	def __init__(self):
+	_CLOSE_COLUMN = 0
+	_EQ_COLUMN = 1
+	_RESULT_COLUMN = 2
+
+	def __init__(self, errorReporter):
 		super(QCalcHistory, self).__init__()
 		self._prettyRenderer = operation.render_number()
+		self._errorReporter = errorReporter
 
-		self._historyStore = HistoryModel()
+		self._historyStore = QtGui.QStandardItemModel()
+		self._historyStore.setHorizontalHeaderLabels(["", "Equation", "Result"])
+		self._historyStore.itemChanged.connect(self._on_item_changed)
 
 		self._historyView = QtGui.QTreeView()
 		self._historyView.setModel(self._historyStore)
@@ -211,41 +45,103 @@ class QCalcHistory(history.AbstractHistory):
 		viewHeader.setSortIndicatorShown(True)
 		viewHeader.setClickable(True)
 
-		viewHeader.setResizeMode(RowData.CLOSE_COLUMN, QtGui.QHeaderView.ResizeToContents)
-		viewHeader.setResizeMode(RowData.EQ_COLUMN, QtGui.QHeaderView.ResizeToContents)
-		viewHeader.setResizeMode(RowData.RESULT_COLUMN, QtGui.QHeaderView.ResizeToContents)
+		viewHeader.setResizeMode(self._CLOSE_COLUMN, QtGui.QHeaderView.ResizeToContents)
+		viewHeader.setResizeMode(self._EQ_COLUMN, QtGui.QHeaderView.Stretch)
+		viewHeader.setResizeMode(self._RESULT_COLUMN, QtGui.QHeaderView.ResizeToContents)
 		viewHeader.setStretchLastSection(False)
+
+		self._rowCount = 0
+		self._programmaticUpdate = False
 
 	@property
 	def toplevel(self):
 		return self._historyView
 
+	@property
+	def errorReporter(self):
+		return self._errorReporter
+
 	def push(self, node):
 		simpleNode = node.simplify()
-		row = RowData(self._prettyRenderer, node, simpleNode)
-		self._historyStore.push(row)
 
-		# @todo Scroll to bottom
+		icon = QtGui.QStandardItem(QtGui.QIcon.fromTheme("gtk-close"), "")
+		icon.setEditable(False)
+		equation = QtGui.QStandardItem(operation.render_operation(self._prettyRenderer, node))
+		equation.setData(node)
+		result = QtGui.QStandardItem(operation.render_operation(self._prettyRenderer, simpleNode))
+		result.setData(simpleNode)
+
+		row = (icon, equation, result)
+		self._historyStore.appendRow(row)
+
+		index = result.index()
+		self._historyView.scrollTo(index)
+		self._rowCount += 1
 
 	def pop(self):
-		if len(self._historyStore) == 0:
+		if len(self) == 0:
 			raise IndexError("Not enough items in the history for the operation")
 
-		row = self._historyStore.pop()
-		return row.node
+		icon, equation, result = self._historyStore.takeRow(self._rowCount - 1)
+		self._rowCount -= 1
+		return equation.data().toPyObject()
 
 	def peek(self):
-		if len(self._historyStore) == 0:
+		if len(self) == 0:
 			raise IndexError("Not enough items in the history for the operation")
-		row = self._historyStore.peek()
-		return row.node
+
+		icon, equation, result = self._historyStore.takeRow(self._rowCount - 1)
+		row = (icon, equation, result)
+		self._historyStore.appendRow(row)
+
+		return equation.data().toPyObject()
 
 	def clear(self):
 		self._historyStore.clear()
+		self._rowCount = 0
+
+	@misc_utils.log_exception(_moduleLogger)
+	def _on_item_changed(self, item):
+		if self._programmaticUpdate:
+			_moduleLogger.info("Blocking updating %r recursively" % item)
+			return
+		self._programmaticUpdate = True
+		try:
+			if item.column() in [self._EQ_COLUMN, self._RESULT_COLUMN]:
+				self._update_input(item)
+			else:
+				raise NotImplementedError("Unsupported column to edit %s" % item.column())
+		except StandardError, e:
+			self.errorReporter.push_exception()
+		finally:
+			self._programmaticUpdate = False
+
+	def _parse_value(self, value):
+		raise NotImplementedError("What?")
+
+	def _update_input(self, item):
+		node = item.data().toPyObject()
+		try:
+			eqNode = self._parse_value(str(item.text()))
+			newText = operation.render_operation(self._prettyRenderer, eqNode)
+
+			eqItem = self._historyStore.item(item.row(), self._EQ_COLUMN)
+			eqItem.setData(eqNode)
+			eqItem.setText(newText)
+
+			resultNode = eqNode.simplify()
+			resultText = operation.render_operation(self._prettyRenderer, resultNode)
+			resultItem = self._historyStore.item(item.row(), self._RESULT_COLUMN)
+			resultItem.setData(resultNode)
+			resultItem.setText(resultText)
+		except:
+			oldText = operation.render_operation(self._prettyRenderer, node)
+			item.setText(oldText)
+			raise
 
 	def __len__(self):
-		return len(self._historyStore)
+		return self._rowCount
 
 	def __iter__(self):
-		for row in iter(self._historyStore):
-			yield row.node
+		for i in xrange(self._rowCount):
+			yield self._historyStore.item(i, 1).data().toPyObject()

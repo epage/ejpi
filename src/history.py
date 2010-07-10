@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 
+import re
 import weakref
 
 from util import algorithms
@@ -12,6 +13,15 @@ __BASE_MAPPINGS = {
 	"0o": 8,
 	"0b": 2,
 }
+
+
+_VARIABLE_VALIDATION_RE = re.compile("^[a-zA-Z0-9]+$")
+
+
+def validate_variable_name(variableName):
+	match = _VARIABLE_VALIDATION_RE.match(variableName)
+	if match is None:
+		raise RuntimeError("Invalid characters")
 
 
 def parse_number(userInput):
@@ -101,6 +111,7 @@ class RpnCalcHistory(object):
 
 	def __init__(self, history, entry, errorReporting, constants, operations):
 		self.history = history
+		self.history._parse_value = self._parse_value
 		self.__entry = weakref.ref(entry)
 
 		self.__errorReporter = errorReporting
@@ -176,6 +187,7 @@ class RpnCalcHistory(object):
 		except KeyError:
 			pass
 
+		validate_variable_name(userInput)
 		return operation.Variable(userInput)
 
 	def _apply_operation(self, Node):
