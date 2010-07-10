@@ -278,6 +278,7 @@ class MainWindow(object):
 		centralWidget = QtGui.QWidget()
 		centralWidget.setLayout(self._layout)
 
+		QtGui.QApplication.desktop().resized.connect(self._on_desktop_size_change)
 		self._window = QtGui.QMainWindow(parent)
 		self._window.setAttribute(QtCore.Qt.WA_DeleteOnClose, True)
 		maeqt.set_autorient(self._window, True)
@@ -285,6 +286,16 @@ class MainWindow(object):
 		self._window.setWindowTitle("%s" % constants.__pretty_app_name__)
 		self._window.setCentralWidget(centralWidget)
 		self._window.destroyed.connect(self._on_close_window)
+
+		self._copyItemAction = QtGui.QAction(None)
+		self._copyItemAction.setText("Copy")
+		self._copyItemAction.setShortcut(QtGui.QKeySequence("CTRL+c"))
+		self._copyItemAction.triggered.connect(self._on_copy)
+
+		self._pasteItemAction = QtGui.QAction(None)
+		self._pasteItemAction.setText("Paste")
+		self._pasteItemAction.setShortcut(QtGui.QKeySequence("CTRL+v"))
+		self._pasteItemAction.triggered.connect(self._on_paste)
 
 		self._closeWindowAction = QtGui.QAction(None)
 		self._closeWindowAction.setText("Close")
@@ -296,6 +307,8 @@ class MainWindow(object):
 
 			#viewMenu = self._window.menuBar().addMenu("&View")
 
+			self._window.addAction(self._copyItemAction)
+			self._window.addAction(self._pasteItemAction)
 			self._window.addAction(self._closeWindowAction)
 			self._window.addAction(self._app.quitAction)
 			self._window.addAction(self._app.fullscreenAction)
@@ -444,6 +457,21 @@ class MainWindow(object):
 			for lineData in serialized:
 				line = " ".join(data for data in lineData)
 				f.write("%s\n" % line)
+
+	@misc_utils.log_exception(_moduleLogger)
+	def _on_desktop_size_change(self):
+		print QtGui.QApplication.desktop().screenGeometry()
+
+	@misc_utils.log_exception(_moduleLogger)
+	def _on_copy(self, *args):
+		eqNode = self._historyView.peek()
+		resultNode = eqNode.simplify()
+		self._app._clipboard.setText(str(resultNode))
+
+	@misc_utils.log_exception(_moduleLogger)
+	def _on_paste(self, *args):
+		result = str(self._app._clipboard.text())
+		self._userEntry.append(result)
 
 	@misc_utils.log_exception(_moduleLogger)
 	def _on_entry_direct(self, keys, modifiers):
