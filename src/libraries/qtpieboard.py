@@ -152,11 +152,11 @@ class KeyboardHandler(object):
 		self.register_modifier("Alt")
 
 	def register_command_handler(self, command, handler):
-		#@todo Make this handle multiple handlers or switch to gobject events
+		# @todo Look into hooking these up directly to the pie actions
 		self.__commandHandlers["[%s]" % command] = handler
 
 	def unregister_command_handler(self, command):
-		#@todo Make this handle multiple handlers or switch to gobject events
+		# @todo Look into hooking these up directly to the pie actions
 		del self.__commandHandlers["[%s]" % command]
 
 	def register_modifier(self, modifierName):
