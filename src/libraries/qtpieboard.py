@@ -59,6 +59,14 @@ class PieKeyboard(object):
 	def toplevel(self):
 		return self._layout
 
+	def show(self):
+		for cell in self.__cells.itervalues():
+			cell.show()
+
+	def hide(self):
+		for cell in self.__cells.itervalues():
+			cell.hide()
+
 	def add_pie(self, row, column, pieButton):
 		assert len(pieButton) == 8
 		self._layout.addWidget(pieButton, row, column)

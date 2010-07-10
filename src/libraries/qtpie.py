@@ -480,6 +480,8 @@ class QPieButton(QtGui.QWidget):
 	aboutToShow = QtCore.pyqtSignal()
 	aboutToHide = QtCore.pyqtSignal()
 
+	BUTTON_RADIUS = 24
+
 	def __init__(self, buttonSlice, parent = None):
 		QtGui.QWidget.__init__(self, parent)
 		self._cachedCenterPosition = self.rect().center()
@@ -490,9 +492,9 @@ class QPieButton(QtGui.QWidget):
 
 		self._buttonFiling = PieFiling()
 		self._buttonFiling.set_center(buttonSlice)
+		# @todo Figure out how to make the button auto-fill to content
+		self._buttonFiling.setOuterRadius(self.BUTTON_RADIUS)
 		self._buttonArtist = PieArtist(self._buttonFiling)
-		centerSize = self._buttonArtist.centerSize()
-		self._buttonFiling.setOuterRadius(max(centerSize.width(), centerSize.height()))
 		self._poppedUp = False
 
 		self._mousePosition = None
@@ -530,6 +532,12 @@ class QPieButton(QtGui.QWidget):
 
 	def setOuterRadius(self, radius):
 		self._filing.setOuterRadius(radius)
+
+	def buttonRadius(self):
+		return self._buttonFiling.outerRadius()
+
+	def setButtonRadius(self, radius):
+		self._buttonFiling.setOuterRadius(radius)
 
 	def sizeHint(self):
 		return self._buttonArtist.pieSize()
@@ -612,7 +620,6 @@ class QPieButton(QtGui.QWidget):
 
 	@misc_utils.log_exception(_moduleLogger)
 	def showEvent(self, showEvent):
-		self._buttonFiling.setOuterRadius(max(self.size().width(), self.size().height()) / 2)
 		self._buttonArtist.show(self.palette())
 		self._cachedCenterPosition = self.rect().center()
 

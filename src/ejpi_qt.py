@@ -267,9 +267,7 @@ class MainWindow(object):
 		self._controlLayout.addWidget(self._historyView.toplevel)
 		self._controlLayout.addWidget(self._userEntry.toplevel)
 
-		self._pluginKeyboardSpot = QtGui.QVBoxLayout()
 		self._inputLayout = QtGui.QVBoxLayout()
-		self._inputLayout.addLayout(self._pluginKeyboardSpot)
 
 		self._layout = QtGui.QHBoxLayout()
 		self._layout.addLayout(self._controlLayout)
@@ -350,12 +348,14 @@ class MainWindow(object):
 		self._keyboardPlugins.enable_plugin(builtinKeyboardId)
 		self._builtinPlugin = self._keyboardPlugins.keyboards["Builtin"].construct_keyboard()
 		self._builtinKeyboard = self._builtinPlugin.setup(self._history, self._handler)
-		self._inputLayout.addLayout(self._builtinKeyboard.toplevel)
 
 		# Plugins
 		self.enable_plugin(self._keyboardPlugins.lookup_plugin("Trigonometry"))
 		self.enable_plugin(self._keyboardPlugins.lookup_plugin("Computer"))
 		self.enable_plugin(self._keyboardPlugins.lookup_plugin("Alphabet"))
+		self._inputLayout.addLayout(self._builtinKeyboard.toplevel)
+		for keyboardData in self._activeKeyboards:
+			keyboardData["pluginKeyboard"].hide()
 		self._set_plugin_kb(0)
 
 		self.set_fullscreen(self._app.fullscreenAction.isChecked())
@@ -404,15 +404,18 @@ class MainWindow(object):
 			"plugin": plugin,
 			"pluginKeyboard": pluginKeyboard,
 		})
+		self._inputLayout.addLayout(pluginKeyboard.toplevel)
 
 	def _set_plugin_kb(self, pluginIndex):
 		plugin = self._activeKeyboards[pluginIndex]
-		# @todo self._pluginButton.set_label(plugin["pluginName"])
 
-		for i in xrange(self._pluginKeyboardSpot.count()):
-			self._pluginKeyboardSpot.removeItem(self._pluginKeyboardSpot.itemAt(i))
+		for keyboardData in self._activeKeyboards:
+			if plugin["pluginName"] != keyboardData["pluginName"]:
+				keyboardData["pluginKeyboard"].hide()
+
+		# @todo self._pluginButton.set_label(plugin["pluginName"])
 		pluginKeyboard = plugin["pluginKeyboard"]
-		self._pluginKeyboardSpot.addItem(pluginKeyboard.toplevel)
+		pluginKeyboard.show()
 
 	def _load_history(self):
 		serialized = []
