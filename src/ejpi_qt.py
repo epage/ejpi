@@ -271,17 +271,19 @@ class MainWindow(object):
 
 		self._inputLayout = QtGui.QVBoxLayout()
 
-		self._layout = QtGui.QHBoxLayout()
+		if maeqt.screen_orientation() == QtCore.Qt.Vertical:
+			self._layout = QtGui.QVBoxLayout()
+		else:
+			self._layout = QtGui.QHBoxLayout()
 		self._layout.addLayout(self._controlLayout)
 		self._layout.addLayout(self._inputLayout)
 
 		centralWidget = QtGui.QWidget()
 		centralWidget.setLayout(self._layout)
 
-		QtGui.QApplication.desktop().resized.connect(self._on_desktop_size_change)
 		self._window = QtGui.QMainWindow(parent)
 		self._window.setAttribute(QtCore.Qt.WA_DeleteOnClose, True)
-		maeqt.set_autorient(self._window, True)
+		#maeqt.set_autorient(self._window, True)
 		maeqt.set_stackable(self._window, True)
 		self._window.setWindowTitle("%s" % constants.__pretty_app_name__)
 		self._window.setCentralWidget(centralWidget)
@@ -359,11 +361,6 @@ class MainWindow(object):
 		self._handler.register_command_handler("clear", self._on_entry_clear)
 
 		# Main keyboard
-		builtinKeyboardId = self._keyboardPlugins.lookup_plugin("Builtins")
-		self._keyboardPlugins.enable_plugin(builtinKeyboardId)
-		self._builtinPlugin = self._keyboardPlugins.keyboards["Builtins"].construct_keyboard()
-		self._builtinKeyboard = self._builtinPlugin.setup(self._history, self._handler)
-
 		entryKeyboardId = self._keyboardPlugins.lookup_plugin("Entry")
 		self._keyboardPlugins.enable_plugin(entryKeyboardId)
 		entryPlugin = self._keyboardPlugins.keyboards["Entry"].construct_keyboard()
@@ -371,10 +368,10 @@ class MainWindow(object):
 		self._userEntryLayout.addLayout(entryKeyboard.toplevel)
 
 		# Plugins
-		self.enable_plugin(self._keyboardPlugins.lookup_plugin("Trigonometry"))
-		self.enable_plugin(self._keyboardPlugins.lookup_plugin("Computer"))
-		self.enable_plugin(self._keyboardPlugins.lookup_plugin("Alphabet"))
-		self._inputLayout.addLayout(self._builtinKeyboard.toplevel)
+		self.enable_plugin(self._keyboardPlugins.lookup_plugin("Builtins"))
+		#self.enable_plugin(self._keyboardPlugins.lookup_plugin("Trigonometry"))
+		#self.enable_plugin(self._keyboardPlugins.lookup_plugin("Computer"))
+		#self.enable_plugin(self._keyboardPlugins.lookup_plugin("Alphabet"))
 		for keyboardData in self._activeKeyboards:
 			keyboardData["pluginKeyboard"].hide()
 		self._set_plugin_kb(0)
@@ -459,10 +456,6 @@ class MainWindow(object):
 				f.write("%s\n" % line)
 
 	@misc_utils.log_exception(_moduleLogger)
-	def _on_desktop_size_change(self):
-		print QtGui.QApplication.desktop().screenGeometry()
-
-	@misc_utils.log_exception(_moduleLogger)
 	def _on_copy(self, *args):
 		eqNode = self._historyView.peek()
 		resultNode = eqNode.simplify()
@@ -485,7 +478,7 @@ class MainWindow(object):
 
 	@misc_utils.log_exception(_moduleLogger)
 	def _on_unpush(self, *args):
-		self._historyStore.unpush()
+		self._historyView.unpush()
 
 	@misc_utils.log_exception(_moduleLogger)
 	def _on_entry_backspace(self, *args):

@@ -1,4 +1,5 @@
 from PyQt4 import QtCore
+from PyQt4 import QtGui
 
 
 def _null_set_stackable(window, isStackable):
@@ -89,3 +90,11 @@ try:
 	mark_numbers_preferred = _newqt_mark_numbers_preferred
 except AttributeError:
 	mark_numbers_preferred = _null_mark_numbers_preferred
+
+
+def screen_orientation():
+	geom = QtGui.QApplication.desktop().screenGeometry()
+	if geom.width() <= geom.height():
+		return QtCore.Qt.Vertical
+	else:
+		return QtCore.Qt.Horizontal
