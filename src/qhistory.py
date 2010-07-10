@@ -40,6 +40,7 @@ class QCalcHistory(history.AbstractHistory):
 		self._historyView.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
 		self._historyView.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
 		self._historyView.setHeaderHidden(True)
+		self._historyView.activated.connect(self._on_delete_row)
 
 		viewHeader = self._historyView.header()
 		viewHeader.setSortIndicatorShown(True)
@@ -66,10 +67,13 @@ class QCalcHistory(history.AbstractHistory):
 
 		icon = QtGui.QStandardItem(QtGui.QIcon.fromTheme("gtk-close"), "")
 		icon.setEditable(False)
+		icon.setCheckable(False)
 		equation = QtGui.QStandardItem(operation.render_operation(self._prettyRenderer, node))
 		equation.setData(node)
+		equation.setCheckable(False)
 		result = QtGui.QStandardItem(operation.render_operation(self._prettyRenderer, simpleNode))
 		result.setData(simpleNode)
+		result.setCheckable(False)
 
 		row = (icon, equation, result)
 		self._historyStore.appendRow(row)
@@ -99,6 +103,13 @@ class QCalcHistory(history.AbstractHistory):
 	def clear(self):
 		self._historyStore.clear()
 		self._rowCount = 0
+
+	@misc_utils.log_exception(_moduleLogger)
+	def _on_delete_row(self, index):
+		if index.column() == self._CLOSE_COLUMN:
+			self._historyStore.removeRow(index.row(), index.parent())
+		else:
+			raise NotImplementedError("Unsupported column to activate %s" % index.column())
 
 	@misc_utils.log_exception(_moduleLogger)
 	def _on_item_changed(self, item):
