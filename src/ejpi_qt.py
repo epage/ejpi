@@ -165,8 +165,8 @@ class QErrorDisplay(object):
 
 	def push_exception(self):
 		userMessage = str(sys.exc_info()[1])
-		self.push_message(userMessage)
 		_moduleLogger.exception(userMessage)
+		self.push_message(userMessage)
 
 	def pop_message(self):
 		del self._messages[0]
@@ -179,11 +179,11 @@ class QErrorDisplay(object):
 		self.pop_message()
 
 	def _show_message(self, message):
-		self._message.set_text(message)
+		self._message.setText(message)
 		self._topLevelLayout.addLayout(self._controlLayout)
 
 	def _hide_message(self):
-		self._message.set_text("")
+		self._message.setText("")
 		self._topLevelLayout.removeItem(self._controlLayout)
 
 
@@ -278,6 +278,7 @@ class MainWindow(object):
 		maeqt.set_stackable(self._window, True)
 		self._window.setWindowTitle("%s" % constants.__pretty_app_name__)
 		self._window.setCentralWidget(centralWidget)
+		self._window.destroyed.connect(self._on_close_window)
 
 		self._closeWindowAction = QtGui.QAction(None)
 		self._closeWindowAction.setText("Close")
@@ -456,7 +457,6 @@ class MainWindow(object):
 	@misc_utils.log_exception(_moduleLogger)
 	def _on_close_window(self, checked = True):
 		self._save_history()
-		self.close()
 
 
 def run():
