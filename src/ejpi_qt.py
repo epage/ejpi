@@ -261,11 +261,13 @@ class MainWindow(object):
 		self._historyView = qhistory.QCalcHistory(self._errorDisplay)
 		self._userEntry = QValueEntry()
 		self._userEntry.entry.returnPressed.connect(self._on_push)
+		self._userEntryLayout = QtGui.QHBoxLayout()
+		self._userEntryLayout.addWidget(self._userEntry.toplevel)
 
 		self._controlLayout = QtGui.QVBoxLayout()
 		self._controlLayout.addLayout(self._errorDisplay.toplevel)
 		self._controlLayout.addWidget(self._historyView.toplevel)
-		self._controlLayout.addWidget(self._userEntry.toplevel)
+		self._controlLayout.addLayout(self._userEntryLayout)
 
 		self._inputLayout = QtGui.QVBoxLayout()
 
@@ -348,6 +350,12 @@ class MainWindow(object):
 		self._keyboardPlugins.enable_plugin(builtinKeyboardId)
 		self._builtinPlugin = self._keyboardPlugins.keyboards["Builtin"].construct_keyboard()
 		self._builtinKeyboard = self._builtinPlugin.setup(self._history, self._handler)
+
+		entryKeyboardId = self._keyboardPlugins.lookup_plugin("Entry")
+		self._keyboardPlugins.enable_plugin(entryKeyboardId)
+		entryPlugin = self._keyboardPlugins.keyboards["Entry"].construct_keyboard()
+		entryKeyboard = entryPlugin.setup(self._history, self._handler)
+		self._userEntryLayout.addLayout(entryKeyboard.toplevel)
 
 		# Plugins
 		self.enable_plugin(self._keyboardPlugins.lookup_plugin("Trigonometry"))
