@@ -257,8 +257,9 @@ class PieArtist(object):
 				painter.setBrush(self.palette.highlight())
 			else:
 				painter.setBrush(self.palette.background())
+			painter.setPen(self.palette.mid().color())
 
-			painter.fillRect(self._canvas.rect(), painter.brush())
+			painter.drawRect(self._canvas.rect())
 			self._paint_center_foreground(painter, selectionIndex)
 			return self._canvas
 		elif numChildren == 1:
@@ -611,6 +612,7 @@ class QPieButton(QtGui.QWidget):
 
 	@misc_utils.log_exception(_moduleLogger)
 	def showEvent(self, showEvent):
+		self._buttonFiling.setOuterRadius(max(self.size().width(), self.size().height()) / 2)
 		self._buttonArtist.show(self.palette())
 		self._cachedCenterPosition = self.rect().center()
 
