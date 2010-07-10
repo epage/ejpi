@@ -311,7 +311,7 @@ class MainWindow(object):
 
 		self._constantPlugins = plugin_utils.ConstantPluginManager()
 		self._constantPlugins.add_path(*self._plugin_search_paths)
-		for pluginName in ["Builtin", "Trigonometry", "Computer", "Alphabet"]:
+		for pluginName in ["Builtins", "Trigonometry", "Computer", "Alphabet"]:
 			try:
 				pluginId = self._constantPlugins.lookup_plugin(pluginName)
 				self._constantPlugins.enable_plugin(pluginId)
@@ -320,7 +320,7 @@ class MainWindow(object):
 
 		self._operatorPlugins = plugin_utils.OperatorPluginManager()
 		self._operatorPlugins.add_path(*self._plugin_search_paths)
-		for pluginName in ["Builtin", "Trigonometry", "Computer", "Alphabet"]:
+		for pluginName in ["Builtins", "Trigonometry", "Computer", "Alphabet"]:
 			try:
 				pluginId = self._operatorPlugins.lookup_plugin(pluginName)
 				self._operatorPlugins.enable_plugin(pluginId)
@@ -346,9 +346,9 @@ class MainWindow(object):
 		self._handler.register_command_handler("clear", self._on_entry_clear)
 
 		# Main keyboard
-		builtinKeyboardId = self._keyboardPlugins.lookup_plugin("Builtin")
+		builtinKeyboardId = self._keyboardPlugins.lookup_plugin("Builtins")
 		self._keyboardPlugins.enable_plugin(builtinKeyboardId)
-		self._builtinPlugin = self._keyboardPlugins.keyboards["Builtin"].construct_keyboard()
+		self._builtinPlugin = self._keyboardPlugins.keyboards["Builtins"].construct_keyboard()
 		self._builtinKeyboard = self._builtinPlugin.setup(self._history, self._handler)
 
 		entryKeyboardId = self._keyboardPlugins.lookup_plugin("Entry")

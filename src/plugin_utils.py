@@ -36,14 +36,12 @@ class PieKeyboardPlugin(object):
 	def setup(self, calcStack, boardHandler):
 		self.__handler = boardHandler
 
-		with open(self.factory.mapFile, "r") as mapfile:
-			boardTree = qtpieboard.parse_keyboard_data("\n".join(mapfile.readlines()))
+		boardTree = self.factory.map
 
-		rows, columns = boardTree["dimensions"]
 		keyboardName = boardTree["name"]
 		keyTree = boardTree["keys"]
 
-		keyboard = qtpieboard.PieKeyboard(rows, columns)
+		keyboard = qtpieboard.PieKeyboard()
 		qtpieboard.load_keyboard(keyboardName, keyTree, keyboard, self.__handler, self.factory.iconPaths)
 
 		for commandName, operator in self.factory.commands.iteritems():
@@ -64,11 +62,11 @@ class PieKeyboardPlugin(object):
 
 class PieKeyboardPluginFactory(object):
 
-	def __init__(self, pluginName, keyboardMapFile):
+	def __init__(self, pluginName, keyboardMap, iconPaths):
 		self.name = pluginName
-		self.mapFile = keyboardMapFile
+		self.map = keyboardMap
 		self.commands = {}
-		self.iconPaths = [os.path.join(os.path.dirname(keyboardMapFile), "images")]
+		self.iconPaths = iconPaths
 
 	def register_operation(self, commandName, operator):
 		self.commands[commandName] = operator

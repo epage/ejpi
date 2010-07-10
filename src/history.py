@@ -21,7 +21,7 @@ _VARIABLE_VALIDATION_RE = re.compile("^[a-zA-Z0-9]+$")
 def validate_variable_name(variableName):
 	match = _VARIABLE_VALIDATION_RE.match(variableName)
 	if match is None:
-		raise RuntimeError("Invalid characters")
+		raise RuntimeError("Invalid characters in '%s'" % variableName)
 
 
 def parse_number(userInput):

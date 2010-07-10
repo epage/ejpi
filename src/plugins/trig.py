@@ -1,7 +1,5 @@
 from __future__ import division
 
-import os
-import operator
 import math
 import cmath
 
@@ -12,8 +10,58 @@ sys.path.append("../")
 import plugin_utils
 
 
-_MAP_FILE_PATH = os.path.join(os.path.dirname(__file__), "trig.map")
-PLUGIN = plugin_utils.PieKeyboardPluginFactory("Trigonometry", _MAP_FILE_PATH)
+_NAME = "Trigonometry"
+_MAP = {
+	"name": _NAME,
+	"keys": {
+		(0, 0): {
+			"CENTER": {"action": "[sinh]", "type": "text", "text": "sinh", },
+			"SOUTH": {"action": "[asinh]", "type": "text", "text": "asinh", },
+			"showAllSlices": False,
+		},
+		(0, 1): {
+			"CENTER": {"action": "[cosh]", "type": "text", "text": "cosh", },
+			"SOUTH": {"action": "[acosh]", "type": "text", "text": "acosh", },
+			"showAllSlices": False,
+		},
+		(0, 2): {
+			"CENTER": {"action": "[tanh]", "type": "text", "text": "tanh", },
+			"SOUTH": {"action": "[atanh]", "type": "text", "text": "atanh", },
+			"showAllSlices": False,
+		},
+		(1, 0): {
+			"CENTER": {"action": "[exp]", "type": "text", "text": "exp", },
+			"NORTH": {"action": "[log]", "type": "text", "text": "log", },
+			"showAllSlices": True,
+		},
+		(1, 1): {
+			"CENTER": {"action": "pi", "type": "text", "text": "pi", },
+			"NORTH": {"action": "e", "type": "text", "text": "e", },
+			"showAllSlices": True,
+		},
+		(1, 2): {
+			"CENTER": {"action": "[rad]", "type": "text", "text": "rad", },
+			"NORTH": {"action": "[deg]", "type": "text", "text": "deg", },
+			"showAllSlices": True,
+		},
+		(2, 0): {
+			"CENTER": {"action": "[sin]", "type": "text", "text": "sin", },
+			"SOUTH": {"action": "[asin]", "type": "text", "text": "asin", },
+			"showAllSlices": False,
+		},
+		(2, 1): {
+			"CENTER": {"action": "[cos]", "type": "text", "text": "cos", },
+			"SOUTH": {"action": "[acos]", "type": "text", "text": "acos", },
+			"showAllSlices": False,
+		},
+		(2, 2): {
+			"CENTER": {"action": "[tan]", "type": "text", "text": "tan", },
+			"SOUTH": {"action": "[atan]", "type": "text", "text": "atan", },
+			"showAllSlices": False,
+		},
+	},
+}
+PLUGIN = plugin_utils.PieKeyboardPluginFactory(_NAME, _MAP, [])
 
 pi = operation.Constant("pi", operation.Value(math.pi, operation.render_float_eng))
 e = operation.Constant("e", operation.Value(math.e, operation.render_float_eng))

@@ -10,9 +10,62 @@ import sys
 sys.path.append("../")
 import plugin_utils
 
-
-_MAP_FILE_PATH = os.path.join(os.path.dirname(__file__), "builtins.map")
-PLUGIN = plugin_utils.PieKeyboardPluginFactory("Builtin", _MAP_FILE_PATH)
+_NAME = "Builtins"
+_MAP = {
+	"name": _NAME,
+	"keys": {
+		(0, 0): {
+			"CENTER": {"action": "7", "type": "text", "text": "7", },
+			"showAllSlices": True,
+		},
+		(0, 1): {
+			"CENTER": {"action": "8", "type": "text", "text": "8", },
+			"SOUTH": {"action": "[**]", "type": "text", "text": "**", },
+			"EAST": {"action": "[sq]", "type": "text", "text": "sq", },
+			"WEST": {"action": "[sqrt]", "type": "text", "text": "sqrt", },
+			"showAllSlices": False,
+		},
+		(0, 2): {
+			"CENTER": {"action": "9", "type": "text", "text": "9", },
+			"showAllSlices": True,
+		},
+		(1, 0): {
+			"CENTER": {"action": "4", "type": "text", "text": "4", },
+			"showAllSlices": True,
+		},
+		(1, 1): {
+			"CENTER": {"action": "5", "type": "text", "text": "5", },
+			"EAST": {"action": "[+]", "type": "text", "text": "+", },
+			"WEST": {"action": "[-]", "type": "text", "text": "-", },
+			"NORTH": {"action": "[*]", "type": "text", "text": "*", },
+			"SOUTH": {"action": "[/]", "type": "text", "text": "/", },
+			"showAllSlices": True,
+		},
+		(1, 2): {
+			"CENTER": {"action": "6", "type": "text", "text": "6", },
+			"showAllSlices": True,
+		},
+		(2, 0): {
+			"CENTER": {"action": "1", "type": "text", "text": "1", },
+			"EAST": {"action": "0", "type": "text", "text": "0", },
+			"showAllSlices": True,
+		},
+		(2, 1): {
+			"CENTER": {"action": "2", "type": "text", "text": "2", },
+			"EAST": {"action": "[abs]", "type": "text", "text": "abs", },
+			"NORTH": {"action": ".", "type": "text", "text": ".", },
+			"WEST": {"action": "[+-]", "type": "text", "text": "+/-", },
+			"showAllSlices": True,
+		},
+		(2, 2): {
+			"CENTER": {"action": "3", "type": "text", "text": "3", },
+			"NORTH": {"action": "[!]", "type": "text", "text": "!", },
+			"WEST": {"action": "j", "type": "text", "text": "j", },
+			"showAllSlices": True,
+		},
+	},
+}
+PLUGIN = plugin_utils.PieKeyboardPluginFactory(_NAME, _MAP, [])
 
 addition = operation.generate_function(operator.add, "+", operation.Function.REP_INFIX, 2)
 subtraction = operation.generate_function(operator.sub, "-", operation.Function.REP_INFIX, 2)
