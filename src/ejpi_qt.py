@@ -196,15 +196,18 @@ class QValueEntry(object):
 
 	def __init__(self):
 		self._widget = QtGui.QLineEdit("")
-		self._widget.setInputMethodHints(QtCore.Qt.ImhPreferNumbers)
-		self._actualEntryDisplay = ""
+		maeqt.mark_numbers_preferred(self._widget)
 
 	@property
 	def toplevel(self):
 		return self._widget
 
+	@property
+	def entry(self):
+		return self._widget
+
 	def get_value(self):
-		value = self._actualEntryDisplay.strip()
+		value = str(self._widget.text()).strip()
 		if any(
 			0 < value.find(whitespace)
 			for whitespace in string.whitespace
@@ -220,7 +223,6 @@ class QValueEntry(object):
 			for whitespace in string.whitespace
 		):
 			raise ValueError('Invalid input "%s"' % value)
-		self._actualEntryDisplay = value
 		self._widget.setText(value)
 
 	def append(self, value):
@@ -258,6 +260,7 @@ class MainWindow(object):
 		self._errorDisplay = QErrorDisplay()
 		self._historyView = qhistory.QCalcHistory(self._errorDisplay)
 		self._userEntry = QValueEntry()
+		self._userEntry.entry.returnPressed.connect(self._on_push)
 
 		self._controlLayout = QtGui.QVBoxLayout()
 		self._controlLayout.addLayout(self._errorDisplay.toplevel)
