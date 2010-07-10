@@ -73,6 +73,7 @@ class QCalcHistory(history.AbstractHistory):
 		equation.setCheckable(False)
 		result = QtGui.QStandardItem(operation.render_operation(self._prettyRenderer, simpleNode))
 		result.setData(simpleNode)
+		result.setEditable(False)
 		result.setCheckable(False)
 
 		row = (icon, equation, result)
@@ -108,6 +109,8 @@ class QCalcHistory(history.AbstractHistory):
 	def _on_delete_row(self, index):
 		if index.column() == self._CLOSE_COLUMN:
 			self._historyStore.removeRow(index.row(), index.parent())
+		elif index.column() == self._RESULT_COLUMN:
+			self._duplicate_row(index)
 		else:
 			raise NotImplementedError("Unsupported column to activate %s" % index.column())
 
@@ -126,6 +129,10 @@ class QCalcHistory(history.AbstractHistory):
 			self.errorReporter.push_exception()
 		finally:
 			self._programmaticUpdate = False
+
+	def _duplicate_row(self, index):
+		item = self._historyStore.item(index.row(), self._EQ_COLUMN)
+		self.push(item.data().toPyObject())
 
 	def _parse_value(self, value):
 		raise NotImplementedError("What?")
@@ -155,4 +162,7 @@ class QCalcHistory(history.AbstractHistory):
 
 	def __iter__(self):
 		for i in xrange(self._rowCount):
-			yield self._historyStore.item(i, 1).data().toPyObject()
+			item = self._historyStore.item(i, self._EQ_COLUMN)
+			if item is None:
+				continue
+			yield item.data().toPyObject()
