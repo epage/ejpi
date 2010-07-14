@@ -468,8 +468,10 @@ class QPieDisplay(QtGui.QWidget):
 		QtGui.QWidget.paintEvent(self, paintEvent)
 
 	def selectAt(self, index):
+		oldIndex = self._selectionIndex
 		self._selectionIndex = index
-		self.update()
+		if self.isVisible():
+			self.update()
 
 
 class QPieButton(QtGui.QWidget):
@@ -481,6 +483,7 @@ class QPieButton(QtGui.QWidget):
 	aboutToHide = QtCore.pyqtSignal()
 
 	BUTTON_RADIUS = 24
+	DELAY = 250
 
 	def __init__(self, buttonSlice, parent = None):
 		QtGui.QWidget.__init__(self, parent)
@@ -496,6 +499,12 @@ class QPieButton(QtGui.QWidget):
 		self._buttonFiling.setOuterRadius(self.BUTTON_RADIUS)
 		self._buttonArtist = PieArtist(self._buttonFiling)
 		self._poppedUp = False
+
+		self._delayPopupTimer = QtCore.QTimer()
+		self._delayPopupTimer.setInterval(self.DELAY)
+		self._delayPopupTimer.setSingleShot(True)
+		self._delayPopupTimer.timeout.connect(self._on_delayed_popup)
+		self._popupLocation = None
 
 		self._mousePosition = None
 		self.setFocusPolicy(QtCore.Qt.StrongFocus)
@@ -544,16 +553,22 @@ class QPieButton(QtGui.QWidget):
 
 	@misc_utils.log_exception(_moduleLogger)
 	def mousePressEvent(self, mouseEvent):
-		self._popup_child(mouseEvent.globalPos())
 		lastSelection = self._selectionIndex
 
 		lastMousePos = mouseEvent.pos()
 		self._mousePosition = lastMousePos
 		self._update_selection(self._cachedCenterPosition)
 
-		if lastSelection != self._selectionIndex:
-			self.highlighted.emit(self._selectionIndex)
-			self._display.selectAt(self._selectionIndex)
+		self.highlighted.emit(self._selectionIndex)
+
+		self._display.selectAt(self._selectionIndex)
+		self._popupLocation = mouseEvent.globalPos()
+		self._delayPopupTimer.start()
+
+	@misc_utils.log_exception(_moduleLogger)
+	def _on_delayed_popup(self):
+		assert self._popupLocation is not None
+		self._popup_child(self._popupLocation)
 
 	@misc_utils.log_exception(_moduleLogger)
 	def mouseMoveEvent(self, mouseEvent):
@@ -571,8 +586,14 @@ class QPieButton(QtGui.QWidget):
 			self.highlighted.emit(self._selectionIndex)
 			self._display.selectAt(self._selectionIndex)
 
+		if self._selectionIndex != PieFiling.SELECTION_CENTER and self._delayPopupTimer.isActive():
+			self._on_delayed_popup()
+
 	@misc_utils.log_exception(_moduleLogger)
 	def mouseReleaseEvent(self, mouseEvent):
+		self._delayPopupTimer.stop()
+		self._popupLocation = None
+
 		lastSelection = self._selectionIndex
 
 		lastMousePos = mouseEvent.pos()
@@ -610,9 +631,13 @@ class QPieButton(QtGui.QWidget):
 			self._select_at(PieFiling.SELECTION_CENTER)
 			self._display.selectAt(self._selectionIndex)
 		elif keyEvent.key() in [QtCore.Qt.Key_Return, QtCore.Qt.Key_Enter, QtCore.Qt.Key_Space]:
+			self._delayPopupTimer.stop()
+			self._popupLocation = None
 			self._activate_at(self._selectionIndex)
 			self._hide_child()
 		elif keyEvent.key() in [QtCore.Qt.Key_Escape, QtCore.Qt.Key_Backspace]:
+			self._delayPopupTimer.stop()
+			self._popupLocation = None
 			self._activate_at(PieFiling.SELECTION_NONE)
 			self._hide_child()
 		else:
@@ -652,6 +677,9 @@ class QPieButton(QtGui.QWidget):
 	def _popup_child(self, position):
 		self._poppedUp = True
 		self.aboutToShow.emit()
+
+		self._delayPopupTimer.stop()
+		self._popupLocation = None
 
 		position = position - QtCore.QPoint(self._filing.outerRadius(), self._filing.outerRadius())
 		self._display.move(position)
