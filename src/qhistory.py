@@ -40,7 +40,7 @@ class QCalcHistory(history.AbstractHistory):
 		self._historyView.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
 		self._historyView.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
 		self._historyView.setHeaderHidden(True)
-		self._historyView.activated.connect(self._on_delete_row)
+		self._historyView.activated.connect(self._on_row_activated)
 
 		viewHeader = self._historyView.header()
 		viewHeader.setSortIndicatorShown(True)
@@ -106,9 +106,10 @@ class QCalcHistory(history.AbstractHistory):
 		self._rowCount = 0
 
 	@misc_utils.log_exception(_moduleLogger)
-	def _on_delete_row(self, index):
+	def _on_row_activated(self, index):
 		if index.column() == self._CLOSE_COLUMN:
 			self._historyStore.removeRow(index.row(), index.parent())
+			self._rowCount -= 1
 		elif index.column() == self._RESULT_COLUMN:
 			self._duplicate_row(index)
 		else:
