@@ -110,6 +110,8 @@ class QCalcHistory(history.AbstractHistory):
 		if index.column() == self._CLOSE_COLUMN:
 			self._historyStore.removeRow(index.row(), index.parent())
 			self._rowCount -= 1
+		elif index.column() == self._EQ_COLUMN:
+			self._duplicate_row(index)
 		elif index.column() == self._RESULT_COLUMN:
 			self._duplicate_row(index)
 		else:
