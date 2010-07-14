@@ -438,11 +438,7 @@ class MainWindow(object):
 	def _set_plugin_kb(self, pluginIndex):
 		plugin = self._activeKeyboards[pluginIndex]
 
-		#for keyboardData in self._activeKeyboards:
-		#	if plugin["pluginName"] != keyboardData["pluginName"]:
-		#		keyboardData["pluginKeyboard"].hide()
-
-		# @todo self._pluginButton.set_label(plugin["pluginName"])
+		# @todo Switch the keyboard tab
 		pluginKeyboard = plugin["pluginKeyboard"]
 
 	def _load_history(self):
