@@ -195,6 +195,9 @@ class PieArtist(object):
 	ICON_SIZE_DEFAULT = 32
 
 	def __init__(self, filing):
+		# @bug The wrong text is being using on unselected pie menus
+		# @bug Plus it would be a good idea to fill in the icon body's
+		# @bug Maybe even make the icons glow?
 		self._filing = filing
 
 		self._cachedOuterRadius = self._filing.outerRadius()
