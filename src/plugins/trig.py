@@ -1,5 +1,6 @@
 from __future__ import division
 
+import os
 import math
 import cmath
 
@@ -11,6 +12,7 @@ import plugin_utils
 
 
 _NAME = "Trigonometry"
+_ICON = "trig.png"
 _MAP = {
 	"name": _NAME,
 	"keys": {
@@ -61,7 +63,8 @@ _MAP = {
 		},
 	},
 }
-PLUGIN = plugin_utils.PieKeyboardPluginFactory(_NAME, _MAP, [])
+_ICON_PATH = [os.path.join(os.path.dirname(__file__), "images")]
+PLUGIN = plugin_utils.PieKeyboardPluginFactory(_NAME, _ICON, _MAP, _ICON_PATH)
 
 pi = operation.Constant("pi", operation.Value(math.pi, operation.render_float_eng))
 e = operation.Constant("e", operation.Value(math.e, operation.render_float_eng))

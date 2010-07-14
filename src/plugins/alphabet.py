@@ -20,6 +20,7 @@ import plugin_utils
 
 
 _NAME = "Alphabet"
+_ICON = "alphabet.png"
 _MAP = {
 	"name": _NAME,
 	"keys": {
@@ -78,4 +79,5 @@ _MAP = {
 		},
 	},
 }
-PLUGIN = plugin_utils.PieKeyboardPluginFactory(_NAME, _MAP, [])
+_ICON_PATH = [os.path.join(os.path.dirname(__file__), "images")]
+PLUGIN = plugin_utils.PieKeyboardPluginFactory(_NAME, _ICON, _MAP, _ICON_PATH)

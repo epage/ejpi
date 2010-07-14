@@ -11,6 +11,7 @@ sys.path.append("../")
 import plugin_utils
 
 _NAME = "Builtins"
+_ICON = "builtins.png"
 _MAP = {
 	"name": _NAME,
 	"keys": {
@@ -65,7 +66,8 @@ _MAP = {
 		},
 	},
 }
-PLUGIN = plugin_utils.PieKeyboardPluginFactory(_NAME, _MAP, [])
+_ICON_PATH = [os.path.join(os.path.dirname(__file__), "images")]
+PLUGIN = plugin_utils.PieKeyboardPluginFactory(_NAME, _ICON, _MAP, _ICON_PATH)
 
 addition = operation.generate_function(operator.add, "+", operation.Function.REP_INFIX, 2)
 subtraction = operation.generate_function(operator.sub, "-", operation.Function.REP_INFIX, 2)

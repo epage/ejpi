@@ -52,20 +52,14 @@ class PieKeyboard(object):
 
 	def __init__(self):
 		self._layout = QtGui.QGridLayout()
+		self._widget = QtGui.QWidget()
+		self._widget.setLayout(self._layout)
 
 		self.__cells = {}
 
 	@property
 	def toplevel(self):
-		return self._layout
-
-	def show(self):
-		for cell in self.__cells.itervalues():
-			cell.show()
-
-	def hide(self):
-		for cell in self.__cells.itervalues():
-			cell.hide()
+		return self._widget
 
 	def add_pie(self, row, column, pieButton):
 		assert len(pieButton) == 8

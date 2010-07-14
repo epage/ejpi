@@ -62,10 +62,11 @@ class PieKeyboardPlugin(object):
 
 class PieKeyboardPluginFactory(object):
 
-	def __init__(self, pluginName, keyboardMap, iconPaths):
+	def __init__(self, pluginName, icon, keyboardMap, iconPaths):
 		self.name = pluginName
 		self.map = keyboardMap
 		self.commands = {}
+		self.icon = icon
 		self.iconPaths = iconPaths
 
 	def register_operation(self, commandName, operator):

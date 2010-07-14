@@ -153,11 +153,13 @@ class QErrorDisplay(object):
 
 		self._topLevelLayout = QtGui.QHBoxLayout()
 		self._topLevelLayout.addLayout(self._controlLayout)
+		self._widget = QtGui.QWidget()
+		self._widget.setLayout(self._topLevelLayout)
 		self._hide_message()
 
 	@property
 	def toplevel(self):
-		return self._topLevelLayout
+		return self._widget
 
 	def push_message(self, message):
 		self._messages.append(message)
@@ -181,15 +183,11 @@ class QErrorDisplay(object):
 
 	def _show_message(self, message):
 		self._message.setText(message)
-		self._severityLabel.show()
-		self._message.show()
-		self._closeLabel.show()
+		self._widget.show()
 
 	def _hide_message(self):
 		self._message.setText("")
-		self._severityLabel.hide()
-		self._message.hide()
-		self._closeLabel.hide()
+		self._widget.hide()
 
 
 class QValueEntry(object):
@@ -265,18 +263,21 @@ class MainWindow(object):
 		self._userEntryLayout.addWidget(self._userEntry.toplevel)
 
 		self._controlLayout = QtGui.QVBoxLayout()
-		self._controlLayout.addLayout(self._errorDisplay.toplevel)
+		self._controlLayout.addWidget(self._errorDisplay.toplevel)
 		self._controlLayout.addWidget(self._historyView.toplevel)
 		self._controlLayout.addLayout(self._userEntryLayout)
 
-		self._inputLayout = QtGui.QVBoxLayout()
+		self._keyboardTabs = QtGui.QTabWidget()
 
 		if maeqt.screen_orientation() == QtCore.Qt.Vertical:
-			self._layout = QtGui.QVBoxLayout()
+			defaultLayoutOrientation = QtGui.QBoxLayout.TopToBottom
+			self._keyboardTabs.setTabPosition(QtGui.QTabWidget.East)
 		else:
-			self._layout = QtGui.QHBoxLayout()
+			defaultLayoutOrientation = QtGui.QBoxLayout.LeftToRight
+			self._keyboardTabs.setTabPosition(QtGui.QTabWidget.North)
+		self._layout = QtGui.QBoxLayout(defaultLayoutOrientation)
 		self._layout.addLayout(self._controlLayout)
-		self._layout.addLayout(self._inputLayout)
+		self._layout.addWidget(self._keyboardTabs)
 
 		centralWidget = QtGui.QWidget()
 		centralWidget.setLayout(self._layout)
@@ -365,19 +366,18 @@ class MainWindow(object):
 		self._keyboardPlugins.enable_plugin(entryKeyboardId)
 		entryPlugin = self._keyboardPlugins.keyboards["Entry"].construct_keyboard()
 		entryKeyboard = entryPlugin.setup(self._history, self._handler)
-		self._userEntryLayout.addLayout(entryKeyboard.toplevel)
+		self._userEntryLayout.addWidget(entryKeyboard.toplevel)
 
 		# Plugins
 		self.enable_plugin(self._keyboardPlugins.lookup_plugin("Builtins"))
-		#self.enable_plugin(self._keyboardPlugins.lookup_plugin("Trigonometry"))
-		#self.enable_plugin(self._keyboardPlugins.lookup_plugin("Computer"))
-		#self.enable_plugin(self._keyboardPlugins.lookup_plugin("Alphabet"))
-		for keyboardData in self._activeKeyboards:
-			keyboardData["pluginKeyboard"].hide()
-		self._set_plugin_kb(0)
+		self.enable_plugin(self._keyboardPlugins.lookup_plugin("Trigonometry"))
+		self.enable_plugin(self._keyboardPlugins.lookup_plugin("Computer"))
+		self.enable_plugin(self._keyboardPlugins.lookup_plugin("Alphabet"))
 
 		self.set_fullscreen(self._app.fullscreenAction.isChecked())
+
 		self._window.show()
+		self._set_plugin_kb(0)
 
 	@property
 	def window(self):
@@ -415,6 +415,14 @@ class MainWindow(object):
 		pluginData = self._keyboardPlugins.plugin_info(pluginId)
 		pluginName = pluginData[0]
 		plugin = self._keyboardPlugins.keyboards[pluginName].construct_keyboard()
+		relIcon = self._keyboardPlugins.keyboards[pluginName].icon
+		for iconPath in self._keyboardPlugins.keyboards[pluginName].iconPaths:
+			absIconPath = os.path.join(iconPath, relIcon)
+			if os.path.exists(absIconPath):
+				icon = QtGui.QIcon(absIconPath)
+				break
+		else:
+			icon = None
 		pluginKeyboard = plugin.setup(self._history, self._handler)
 
 		self._activeKeyboards.append({
@@ -422,18 +430,20 @@ class MainWindow(object):
 			"plugin": plugin,
 			"pluginKeyboard": pluginKeyboard,
 		})
-		self._inputLayout.addLayout(pluginKeyboard.toplevel)
+		if icon is None:
+			self._keyboardTabs.addTab(pluginKeyboard.toplevel, pluginName)
+		else:
+			self._keyboardTabs.addTab(pluginKeyboard.toplevel, icon, "")
 
 	def _set_plugin_kb(self, pluginIndex):
 		plugin = self._activeKeyboards[pluginIndex]
 
-		for keyboardData in self._activeKeyboards:
-			if plugin["pluginName"] != keyboardData["pluginName"]:
-				keyboardData["pluginKeyboard"].hide()
+		#for keyboardData in self._activeKeyboards:
+		#	if plugin["pluginName"] != keyboardData["pluginName"]:
+		#		keyboardData["pluginKeyboard"].hide()
 
 		# @todo self._pluginButton.set_label(plugin["pluginName"])
 		pluginKeyboard = plugin["pluginKeyboard"]
-		pluginKeyboard.show()
 
 	def _load_history(self):
 		serialized = []
