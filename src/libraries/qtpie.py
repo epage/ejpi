@@ -489,6 +489,7 @@ class QPieButton(QtGui.QWidget):
 	DELAY = 250
 
 	def __init__(self, buttonSlice, parent = None):
+		# @bug Artifacts on Maemo 5 due to window 3D effects, find way to disable them for just these?
 		QtGui.QWidget.__init__(self, parent)
 		self._cachedCenterPosition = self.rect().center()
 

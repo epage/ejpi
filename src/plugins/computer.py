@@ -29,19 +29,11 @@ _MAP = {
 			"showAllSlices": False,
 		},
 		(1, 0): {
-			"CENTER": {"action": "[&]", "type": "text", "text": "and", },
+			"CENTER": {"action": "0o", "type": "text", "text": "0o", },
+			"SOUTH": {"action": "[oct]", "type": "text", "text": "oct", },
 			"showAllSlices": True,
 		},
 		(1, 1): {
-			"CENTER": {"action": "[|]", "type": "text", "text": "or", },
-			"NORTH": {"action": "[~]", "type": "text", "text": "not", },
-			"showAllSlices": True,
-		},
-		(1, 2): {
-			"CENTER": {"action": "[^]", "type": "text", "text": "xor", },
-			"showAllSlices": True,
-		},
-		(2, 0): {
 			"CENTER": {"action": "0x", "type": "text", "text": "0x", },
 			"SOUTH": {"action": "[hex]", "type": "text", "text": "hex", },
 			"NORTH_WEST": {"action": "a", "type": "text", "text": "A", },
@@ -52,13 +44,23 @@ _MAP = {
 			"SOUTH_EAST": {"action": "f", "type": "text", "text": "F", },
 			"showAllSlices": True,
 		},
+		(1, 2): {
+			"CENTER": {"action": "0b", "type": "text", "text": "0b", },
+			"NORTH": {"action": "1", "type": "text", "text": "1", },
+			"SOUTH": {"action": "0", "type": "text", "text": "0", },
+			"showAllSlices": True,
+		},
+		(2, 0): {
+			"CENTER": {"action": "[&]", "type": "text", "text": "and", },
+			"showAllSlices": True,
+		},
 		(2, 1): {
-			"CENTER": {"action": "0o", "type": "text", "text": "0o", },
-			"SOUTH": {"action": "[oct]", "type": "text", "text": "oct", },
+			"CENTER": {"action": "[|]", "type": "text", "text": "or", },
+			"NORTH": {"action": "[~]", "type": "text", "text": "not", },
 			"showAllSlices": True,
 		},
 		(2, 2): {
-			"CENTER": {"action": "0b", "type": "text", "text": "0b", },
+			"CENTER": {"action": "[^]", "type": "text", "text": "xor", },
 			"showAllSlices": True,
 		},
 	},

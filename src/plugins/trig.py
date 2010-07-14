@@ -48,17 +48,17 @@ _MAP = {
 		},
 		(2, 0): {
 			"CENTER": {"action": "[sin]", "type": "text", "text": "sin", },
-			"SOUTH": {"action": "[asin]", "type": "text", "text": "asin", },
+			"NORTH": {"action": "[asin]", "type": "text", "text": "asin", },
 			"showAllSlices": False,
 		},
 		(2, 1): {
 			"CENTER": {"action": "[cos]", "type": "text", "text": "cos", },
-			"SOUTH": {"action": "[acos]", "type": "text", "text": "acos", },
+			"NORTH": {"action": "[acos]", "type": "text", "text": "acos", },
 			"showAllSlices": False,
 		},
 		(2, 2): {
 			"CENTER": {"action": "[tan]", "type": "text", "text": "tan", },
-			"SOUTH": {"action": "[atan]", "type": "text", "text": "atan", },
+			"NORTH": {"action": "[atan]", "type": "text", "text": "atan", },
 			"showAllSlices": False,
 		},
 	},
