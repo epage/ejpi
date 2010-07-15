@@ -29,11 +29,6 @@ _moduleLogger = logging.getLogger(__name__)
 IS_MAEMO = True
 
 
-PLUGIN_SEARCH_PATHS = [
-	os.path.join(os.path.dirname(__file__), "plugins/"),
-]
-
-
 class Calculator(object):
 
 	def __init__(self, app):
@@ -245,8 +240,6 @@ class QValueEntry(object):
 class MainWindow(object):
 
 	_plugin_search_paths = [
-		"/opt/epi/lib/plugins/",
-		"/usr/lib/ejpi/plugins/",
 		os.path.join(os.path.dirname(__file__), "plugins/"),
 	]
 
