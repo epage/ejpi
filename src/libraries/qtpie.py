@@ -195,7 +195,6 @@ class PieArtist(object):
 	ICON_SIZE_DEFAULT = 32
 
 	def __init__(self, filing):
-		# @bug The wrong text is being using on unselected pie menus
 		# @bug Plus it would be a good idea to fill in the icon body's
 		# @bug Maybe even make the icons glow?
 		self._filing = filing
@@ -490,6 +489,7 @@ class QPieButton(QtGui.QWidget):
 
 	def __init__(self, buttonSlice, parent = None):
 		# @bug Artifacts on Maemo 5 due to window 3D effects, find way to disable them for just these?
+		# @bug The pie's are being pushed back on screen on Maemo, leading to coordinate issues
 		QtGui.QWidget.__init__(self, parent)
 		self._cachedCenterPosition = self.rect().center()
 
