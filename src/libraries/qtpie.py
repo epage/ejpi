@@ -259,7 +259,7 @@ class PieArtist(object):
 			if selectionIndex == PieFiling.SELECTION_CENTER and self._filing.center().isEnabled():
 				painter.setBrush(self.palette.highlight())
 			else:
-				painter.setBrush(self.palette.background())
+				painter.setBrush(self.palette.window())
 			painter.setPen(self.palette.mid().color())
 
 			painter.drawRect(self._canvas.rect())
@@ -269,7 +269,7 @@ class PieArtist(object):
 			if selectionIndex == 0 and self._filing[0].isEnabled():
 				painter.setBrush(self.palette.highlight())
 			else:
-				painter.setBrush(self.palette.background())
+				painter.setBrush(self.palette.window())
 
 			painter.fillRect(self._canvas.rect(), painter.brush())
 		else:
@@ -297,7 +297,7 @@ class PieArtist(object):
 		if i == selectionIndex and self._filing[i].isEnabled():
 			painter.setBrush(self.palette.highlight())
 		else:
-			painter.setBrush(self.palette.background())
+			painter.setBrush(self.palette.window())
 		painter.setPen(self.palette.mid().color())
 
 		a = self._filing._index_to_angle(i, True)
@@ -367,13 +367,13 @@ class PieArtist(object):
 					brush = self.palette.highlight()
 				else:
 					pen = self.palette.mid()
-					brush = self.palette.background()
+					brush = self.palette.window()
 			else:
 				if action.isEnabled():
-					pen = self.palette.text()
+					pen = self.palette.windowText()
 				else:
 					pen = self.palette.mid()
-				brush = self.palette.background()
+				brush = self.palette.window()
 
 			leftX = x - averageWidth + iconWidth
 			topY = y + textHeight/2
@@ -387,7 +387,7 @@ class PieArtist(object):
 		if selectionIndex == PieFiling.SELECTION_CENTER and self._filing.center().isEnabled():
 			background = self.palette.highlight().color()
 		else:
-			background = self.palette.background().color()
+			background = self.palette.window().color()
 
 		innerRadius = self._cachedInnerRadius
 		adjustmentCenterPos = adjustmentRect.center()
