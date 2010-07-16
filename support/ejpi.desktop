@@ -3,5 +3,5 @@ Encoding=UTF-8
 Version=1.0
 Type=Application
 Name=ejpi
-Exec=/usr/bin/run-standalone.sh /usr/bin/ejpi.py
+Exec=/usr/bin/run-standalone.sh /opt/ejpi/bin/ejpi.py
 Icon=ejpi
