@@ -65,7 +65,10 @@ class QCalcHistory(history.AbstractHistory):
 	def push(self, node):
 		simpleNode = node.simplify()
 
-		icon = QtGui.QStandardItem(QtGui.QIcon.fromTheme("gtk-close"), "")
+		closeIcon = QtGui.QIcon.fromTheme("general_close")
+		if closeIcon.isNull():
+			closeIcon = QtGui.QIcon.fromTheme("gtk-close")
+		icon = QtGui.QStandardItem(closeIcon, "")
 		icon.setEditable(False)
 		icon.setCheckable(False)
 		equation = QtGui.QStandardItem(operation.render_operation(self._prettyRenderer, node))

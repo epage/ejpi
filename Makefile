@@ -2,7 +2,7 @@ PROJECT_NAME=ejpi
 SOURCE_PATH=src
 SOURCE=$(shell find $(SOURCE_PATH) -iname "*.py")
 PROGRAM=$(SOURCE_PATH)/$(PROJECT_NAME).py
-DATA_TYPES=*.ini *.map *.glade *.png
+DATA_TYPES=*.ini *.png
 DATA=$(foreach type, $(DATA_TYPES), $(shell find $(SOURCE_PATH) -iname "$(type)"))
 OBJ=$(SOURCE:.py=.pyc)
 BUILD_PATH=./build

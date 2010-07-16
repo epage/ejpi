@@ -10,7 +10,7 @@ sys.path.append("/opt/ejpi/lib")
 
 
 import constants
-import ejpi_glade
+import ejpi_qt
 
 
 if __name__ == "__main__":
@@ -27,4 +27,4 @@ if __name__ == "__main__":
 	_moduleLogger.info("Kernel: %s (%s) for %s" % os.uname()[2:])
 	_moduleLogger.info("Hostname: %s" % os.uname()[1])
 
-	ejpi_glade.run()
+	ejpi_qt.run()

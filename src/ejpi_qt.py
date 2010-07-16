@@ -129,16 +129,20 @@ class QErrorDisplay(object):
 	def __init__(self):
 		self._messages = []
 
-		icon = QtGui.QIcon.fromTheme("gtk-dialog-error")
-		self._severityIcon = icon.pixmap(32, 32)
+		errorIcon = QtGui.QIcon.fromTheme("app_install_error")
+		if errorIcon.isNull():
+			errorIcon = QtGui.QIcon.fromTheme("gtk-dialog-error")
+		self._severityIcon = errorIcon.pixmap(32, 32)
 		self._severityLabel = QtGui.QLabel()
 		self._severityLabel.setPixmap(self._severityIcon)
 
 		self._message = QtGui.QLabel()
 		self._message.setText("Boo")
 
-		icon = QtGui.QIcon.fromTheme("gtk-close")
-		self._closeLabel = QtGui.QPushButton(icon, "")
+		closeIcon = QtGui.QIcon.fromTheme("general_close")
+		if closeIcon.isNull():
+			closeIcon = QtGui.QIcon.fromTheme("gtk-close")
+		self._closeLabel = QtGui.QPushButton(closeIcon, "")
 		self._closeLabel.clicked.connect(self._on_close)
 
 		self._controlLayout = QtGui.QHBoxLayout()
@@ -281,7 +285,7 @@ class MainWindow(object):
 		maeqt.set_stackable(self._window, True)
 		self._window.setWindowTitle("%s" % constants.__pretty_app_name__)
 		self._window.setCentralWidget(centralWidget)
-		self._window.destroyed.connect(self._on_close_window)
+		self._window.destroyed.connect(self._on_window_closed)
 
 		self._copyItemAction = QtGui.QAction(None)
 		self._copyItemAction.setText("Copy")
@@ -298,23 +302,11 @@ class MainWindow(object):
 		self._closeWindowAction.setShortcut(QtGui.QKeySequence("CTRL+w"))
 		self._closeWindowAction.triggered.connect(self._on_close_window)
 
-		if IS_MAEMO:
-			#fileMenu = self._window.menuBar().addMenu("&File")
-
-			#viewMenu = self._window.menuBar().addMenu("&View")
-
-			self._window.addAction(self._copyItemAction)
-			self._window.addAction(self._pasteItemAction)
-			self._window.addAction(self._closeWindowAction)
-			self._window.addAction(self._app.quitAction)
-			self._window.addAction(self._app.fullscreenAction)
-		else:
-			fileMenu = self._window.menuBar().addMenu("&Units")
-			fileMenu.addAction(self._closeWindowAction)
-			fileMenu.addAction(self._app.quitAction)
-
-			viewMenu = self._window.menuBar().addMenu("&View")
-			viewMenu.addAction(self._app.fullscreenAction)
+		self._window.addAction(self._copyItemAction)
+		self._window.addAction(self._pasteItemAction)
+		self._window.addAction(self._closeWindowAction)
+		self._window.addAction(self._app.quitAction)
+		self._window.addAction(self._app.fullscreenAction)
 
 		self._window.addAction(self._app.logAction)
 
@@ -370,7 +362,6 @@ class MainWindow(object):
 		self.set_fullscreen(self._app.fullscreenAction.isChecked())
 
 		self._window.show()
-		self._set_plugin_kb(0)
 
 	@property
 	def window(self):
@@ -427,12 +418,6 @@ class MainWindow(object):
 			self._keyboardTabs.addTab(pluginKeyboard.toplevel, pluginName)
 		else:
 			self._keyboardTabs.addTab(pluginKeyboard.toplevel, icon, "")
-
-	def _set_plugin_kb(self, pluginIndex):
-		plugin = self._activeKeyboards[pluginIndex]
-
-		# @todo Switch the keyboard tab
-		pluginKeyboard = plugin["pluginKeyboard"]
 
 	def _load_history(self):
 		serialized = []
@@ -492,8 +477,12 @@ class MainWindow(object):
 		self._history.clear()
 
 	@misc_utils.log_exception(_moduleLogger)
-	def _on_close_window(self, checked = True):
+	def _on_window_closed(self, checked = True):
 		self._save_history()
+
+	@misc_utils.log_exception(_moduleLogger)
+	def _on_close_window(self, checked = True):
+		self.close()
 
 
 def run():

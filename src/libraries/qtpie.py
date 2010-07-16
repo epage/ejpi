@@ -71,8 +71,8 @@ class QActionPieItem(object):
 
 class PieFiling(object):
 
-	INNER_RADIUS_DEFAULT = 32
-	OUTER_RADIUS_DEFAULT = 128
+	INNER_RADIUS_DEFAULT = 64
+	OUTER_RADIUS_DEFAULT = 192
 
 	SELECTION_CENTER = -1
 	SELECTION_NONE = -2
@@ -192,7 +192,11 @@ class PieFiling(object):
 
 class PieArtist(object):
 
-	ICON_SIZE_DEFAULT = 32
+	ICON_SIZE_DEFAULT = 48
+
+	SHAPE_CIRCLE = "circle"
+	SHAPE_SQUARE = "square"
+	DEFAULT_SHAPE = SHAPE_SQUARE
 
 	def __init__(self, filing):
 		self._filing = filing
@@ -288,9 +292,24 @@ class PieArtist(object):
 		painter = QtGui.QPainter(mask)
 		painter.setPen(QtCore.Qt.color1)
 		painter.setBrush(QtCore.Qt.color1)
-		painter.drawEllipse(mask.rect().adjusted(0, 0, -1, -1))
+		if self.DEFAULT_SHAPE == self.SHAPE_SQUARE:
+			painter.drawRect(mask.rect())
+		elif self.DEFAULT_SHAPE == self.SHAPE_CIRCLE:
+			painter.drawEllipse(mask.rect().adjusted(0, 0, -1, -1))
+		else:
+			raise NotImplementedError(self.DEFAULT_SHAPE)
 
 	def _paint_slice_background(self, painter, adjustmentRect, i, selectionIndex):
+		if self.DEFAULT_SHAPE == self.SHAPE_SQUARE:
+			currentWidth = adjustmentRect.width()
+			newWidth = math.sqrt(2) * currentWidth
+			dx = (newWidth - currentWidth) / 2
+			adjustmentRect = adjustmentRect.adjusted(-dx, -dx, dx, dx)
+		elif self.DEFAULT_SHAPE == self.SHAPE_CIRCLE:
+			pass
+		else:
+			raise NotImplementedError(self.DEFAULT_SHAPE)
+
 		if i == selectionIndex and self._filing[i].isEnabled():
 			painter.setBrush(self.palette.highlight())
 		else:
@@ -379,7 +398,7 @@ class PieArtist(object):
 			painter.drawText(leftX, topY, text)
 
 	def _paint_center_background(self, painter, adjustmentRect, selectionIndex):
-		dark = self.palette.dark().color()
+		dark = self.palette.mid().color()
 		light = self.palette.light().color()
 		if selectionIndex == PieFiling.SELECTION_CENTER and self._filing.center().isEnabled():
 			background = self.palette.highlight().color()
@@ -403,16 +422,14 @@ class PieArtist(object):
 		painter.setBrush(QtCore.Qt.NoBrush)
 		painter.drawEllipse(innerRect)
 
-		painter.setPen(QtGui.QPen(dark, 1))
-		painter.setBrush(QtCore.Qt.NoBrush)
-		painter.drawEllipse(adjustmentRect)
-
-		r = QtCore.QRect(innerRect)
-		innerCenter = r.center()
-		innerRect.setLeft(innerCenter.x() + ((r.left() - innerCenter.x()) / 3) * 1)
-		innerRect.setRight(innerCenter.x() + ((r.right() - innerCenter.x()) / 3) * 1)
-		innerRect.setTop(innerCenter.y() + ((r.top() - innerCenter.y()) / 3) * 1)
-		innerRect.setBottom(innerCenter.y() + ((r.bottom() - innerCenter.y()) / 3) * 1)
+		if self.DEFAULT_SHAPE == self.SHAPE_SQUARE:
+			pass
+		elif self.DEFAULT_SHAPE == self.SHAPE_CIRCLE:
+			painter.setPen(QtGui.QPen(dark, 1))
+			painter.setBrush(QtCore.Qt.NoBrush)
+			painter.drawEllipse(adjustmentRect)
+		else:
+			raise NotImplementedError(self.DEFAULT_SHAPE)
 
 	def _paint_center_foreground(self, painter, selectionIndex):
 		centerPos = self._canvas.rect().center()
@@ -497,7 +514,6 @@ class QPieButton(QtGui.QWidget):
 
 		self._buttonFiling = PieFiling()
 		self._buttonFiling.set_center(buttonSlice)
-		# @todo Figure out how to make the button auto-fill to content
 		self._buttonFiling.setOuterRadius(self.BUTTON_RADIUS)
 		self._buttonArtist = PieArtist(self._buttonFiling)
 		self._poppedUp = False
@@ -549,9 +565,10 @@ class QPieButton(QtGui.QWidget):
 
 	def setButtonRadius(self, radius):
 		self._buttonFiling.setOuterRadius(radius)
+		self._buttonArtist.show(self.palette())
 
-	def sizeHint(self):
-		return self._buttonArtist.pieSize()
+	def minimumSizeHint(self):
+		return self._buttonArtist.centerSize()
 
 	@misc_utils.log_exception(_moduleLogger)
 	def mousePressEvent(self, mouseEvent):
@@ -582,7 +599,10 @@ class QPieButton(QtGui.QWidget):
 			self._update_selection(lastMousePos)
 		else:
 			# Relative
-			self._update_selection(self._cachedCenterPosition + (lastMousePos - self._mousePosition))
+			self._update_selection(
+				self._cachedCenterPosition + (lastMousePos - self._mousePosition),
+				ignoreOuter = True,
+			)
 
 		if lastSelection != self._selectionIndex:
 			self.highlighted.emit(self._selectionIndex)
@@ -604,7 +624,10 @@ class QPieButton(QtGui.QWidget):
 			self._update_selection(lastMousePos)
 		else:
 			# Relative
-			self._update_selection(self._cachedCenterPosition + (lastMousePos - self._mousePosition))
+			self._update_selection(
+				self._cachedCenterPosition + (lastMousePos - self._mousePosition),
+				ignoreOuter = True,
+			)
 		self._mousePosition = None
 
 		self._activate_at(self._selectionIndex)
@@ -646,6 +669,11 @@ class QPieButton(QtGui.QWidget):
 			QtGui.QWidget.keyPressEvent(self, keyEvent)
 
 	@misc_utils.log_exception(_moduleLogger)
+	def resizeEvent(self, resizeEvent):
+		self.setButtonRadius(min(resizeEvent.size().width(), resizeEvent.size().height()) / 2 - 1)
+		QtGui.QWidget.resizeEvent(self, resizeEvent)
+
+	@misc_utils.log_exception(_moduleLogger)
 	def showEvent(self, showEvent):
 		self._buttonArtist.show(self.palette())
 		self._cachedCenterPosition = self.rect().center()
@@ -660,6 +688,7 @@ class QPieButton(QtGui.QWidget):
 
 	@misc_utils.log_exception(_moduleLogger)
 	def paintEvent(self, paintEvent):
+		self.setButtonRadius(min(self.rect().width(), self.rect().height()) / 2 - 1)
 		if self._poppedUp:
 			canvas = self._buttonArtist.paint(PieFiling.SELECTION_CENTER)
 		else:
@@ -698,11 +727,11 @@ class QPieButton(QtGui.QWidget):
 	def _select_at(self, index):
 		self._selectionIndex = index
 
-	def _update_selection(self, lastMousePos):
+	def _update_selection(self, lastMousePos, ignoreOuter = False):
 		radius = _radius_at(self._cachedCenterPosition, lastMousePos)
 		if radius < self._filing.innerRadius():
 			self._select_at(PieFiling.SELECTION_CENTER)
-		elif radius <= self._filing.outerRadius():
+		elif radius <= self._filing.outerRadius() or ignoreOuter:
 			self._select_at(self.indexAt(lastMousePos))
 		else:
 			self._select_at(PieFiling.SELECTION_NONE)
