@@ -103,16 +103,16 @@ def build_package(distribution):
 		"diablo": "26x26-ejpi.png",
 		"fremantle": "64x64-ejpi.png", # Fremantle natively uses 48x48
 	}[distribution]
-	p["/opt/%s/bin" % constants.__appname__] = [ "%s.py" % constants.__appname__ ]
+	p["/opt/%s/bin" % __appname__] = [ "%s.py" % __appname__ ]
 	for relPath, files in unflatten_files(find_files("src", ".")).iteritems():
-		fullPath = "/opt/%s/lib" % constants.__appname__
+		fullPath = "/opt/%s/lib" % __appname__
 		if relPath:
 			fullPath += os.sep+relPath
 		p[fullPath] = list(
 			"|".join((oldName, newName))
 			for (oldName, newName) in files
 		)
-	p["/usr/share/applications/hildon"] = ["%s.desktop" % constants.__appname__]
+	p["/usr/share/applications/hildon"] = ["%s.desktop" % __appname__]
 	p["/usr/share/icons/hicolor/26x26/hildon"] = ["26x26-ejpi.png|ejpi.png"]
 	p["/usr/share/icons/hicolor/64x64/hildon"] = ["64x64-ejpi.png|ejpi.png"]
 	p["/usr/share/icons/hicolor/scalable/hildon"] = ["scale-ejpi.png|ejpi.png"]
