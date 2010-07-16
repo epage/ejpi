@@ -129,9 +129,7 @@ class QErrorDisplay(object):
 	def __init__(self):
 		self._messages = []
 
-		errorIcon = QtGui.QIcon.fromTheme("app_install_error")
-		if errorIcon.isNull():
-			errorIcon = QtGui.QIcon.fromTheme("gtk-dialog-error")
+		errorIcon = maeqt.get_theme_icon(("dialog-error", "app_install_error", "gtk-dialog-error"))
 		self._severityIcon = errorIcon.pixmap(32, 32)
 		self._severityLabel = QtGui.QLabel()
 		self._severityLabel.setPixmap(self._severityIcon)
@@ -139,9 +137,7 @@ class QErrorDisplay(object):
 		self._message = QtGui.QLabel()
 		self._message.setText("Boo")
 
-		closeIcon = QtGui.QIcon.fromTheme("general_close")
-		if closeIcon.isNull():
-			closeIcon = QtGui.QIcon.fromTheme("gtk-close")
+		closeIcon = maeqt.get_theme_icon(("window-close", "general_close", "gtk-close"))
 		self._closeLabel = QtGui.QPushButton(closeIcon, "")
 		self._closeLabel.clicked.connect(self._on_close)
 

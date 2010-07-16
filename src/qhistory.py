@@ -10,6 +10,7 @@ import logging
 from PyQt4 import QtGui
 from PyQt4 import QtCore
 
+import maeqt
 import util.misc as misc_utils
 import history
 import operation
@@ -53,6 +54,7 @@ class QCalcHistory(history.AbstractHistory):
 
 		self._rowCount = 0
 		self._programmaticUpdate = False
+		self._closeIcon = maeqt.get_theme_icon(("window-close", "general_close", "gtk-close"))
 
 	@property
 	def toplevel(self):
@@ -65,9 +67,7 @@ class QCalcHistory(history.AbstractHistory):
 	def push(self, node):
 		simpleNode = node.simplify()
 
-		closeIcon = QtGui.QIcon.fromTheme("general_close")
-		if closeIcon.isNull():
-			closeIcon = QtGui.QIcon.fromTheme("gtk-close")
+		closeIcon = self._closeIcon
 		icon = QtGui.QStandardItem(closeIcon, "")
 		icon.setEditable(False)
 		icon.setCheckable(False)
