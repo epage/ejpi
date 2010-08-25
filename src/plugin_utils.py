@@ -9,7 +9,7 @@ import os
 import inspect
 import ConfigParser
 
-from libraries import qtpieboard
+from util import qtpieboard
 from util import io
 import operation
 

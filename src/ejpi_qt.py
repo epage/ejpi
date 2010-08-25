@@ -16,8 +16,8 @@ import constants
 import maeqt
 from util import misc as misc_utils
 
-from libraries import qtpie
-from libraries import qtpieboard
+from util import qtpie
+from util import qtpieboard
 import plugin_utils
 import history
 import qhistory
