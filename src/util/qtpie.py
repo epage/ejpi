@@ -25,6 +25,45 @@ _moduleLogger = logging.getLogger(__name__)
 _TWOPI = 2 * math.pi
 
 
+class EIGHT_SLICE_PIE(object):
+
+	SLICE_CENTER = -1
+	SLICE_NORTH = 0
+	SLICE_NORTH_WEST = 1
+	SLICE_WEST = 2
+	SLICE_SOUTH_WEST = 3
+	SLICE_SOUTH = 4
+	SLICE_SOUTH_EAST = 5
+	SLICE_EAST = 6
+	SLICE_NORTH_EAST = 7
+
+	MAX_ANGULAR_SLICES = 8
+
+	SLICE_DIRECTIONS = [
+		SLICE_CENTER,
+		SLICE_NORTH,
+		SLICE_NORTH_WEST,
+		SLICE_WEST,
+		SLICE_SOUTH_WEST,
+		SLICE_SOUTH,
+		SLICE_SOUTH_EAST,
+		SLICE_EAST,
+		SLICE_NORTH_EAST,
+	]
+
+	SLICE_DIRECTION_NAMES = [
+		"CENTER",
+		"NORTH",
+		"NORTH_WEST",
+		"WEST",
+		"SOUTH_WEST",
+		"SOUTH",
+		"SOUTH_EAST",
+		"EAST",
+		"NORTH_EAST",
+	]
+
+
 def _radius_at(center, pos):
 	delta = pos - center
 	xDelta = delta.x()

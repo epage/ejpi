@@ -253,7 +253,7 @@ class MainWindow(object):
 		self._userEntry = QValueEntry()
 		self._userEntry.entry.returnPressed.connect(self._on_push)
 		self._userEntryLayout = QtGui.QHBoxLayout()
-		self._userEntryLayout.addWidget(self._userEntry.toplevel)
+		self._userEntryLayout.addWidget(self._userEntry.toplevel, 10)
 
 		self._controlLayout = QtGui.QVBoxLayout()
 		self._controlLayout.addWidget(self._errorDisplay.toplevel)

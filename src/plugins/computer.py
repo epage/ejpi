@@ -17,25 +17,25 @@ _MAP = {
 	"name": _NAME,
 	"keys": {
 		(0, 0): {
-			"CENTER": {"action": "[//]", "type": "text", "text": "//", },
+			"CENTER": {"action": "[//]", "type": "text", "text": "x // y", },
 			"showAllSlices": False,
 		},
 		(0, 1): {
-			"CENTER": {"action": "[dec]", "type": "text", "text": "dec", },
+			"CENTER": {"action": "[dec]", "type": "text", "text": "-> dec", },
 			"showAllSlices": True,
 		},
 		(0, 2): {
-			"CENTER": {"action": "[%]", "type": "text", "text": "%", },
+			"CENTER": {"action": "[%]", "type": "text", "text": "x % y", },
 			"showAllSlices": False,
 		},
 		(1, 0): {
 			"CENTER": {"action": "0o", "type": "text", "text": "0o", },
-			"SOUTH": {"action": "[oct]", "type": "text", "text": "oct", },
+			"SOUTH": {"action": "[oct]", "type": "text", "text": "-> oct", },
 			"showAllSlices": True,
 		},
 		(1, 1): {
 			"CENTER": {"action": "0x", "type": "text", "text": "0x", },
-			"SOUTH": {"action": "[hex]", "type": "text", "text": "hex", },
+			"SOUTH": {"action": "[hex]", "type": "text", "text": "-> hex", },
 			"NORTH_WEST": {"action": "a", "type": "text", "text": "A", },
 			"WEST": {"action": "b", "type": "text", "text": "B", },
 			"SOUTH_WEST": {"action": "c", "type": "text", "text": "C", },

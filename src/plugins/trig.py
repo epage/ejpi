@@ -32,8 +32,8 @@ _MAP = {
 			"showAllSlices": False,
 		},
 		(1, 0): {
-			"CENTER": {"action": "[exp]", "type": "text", "text": "exp", },
-			"NORTH": {"action": "[log]", "type": "text", "text": "log", },
+			"CENTER": {"action": "[exp]", "type": "text", "text": "e ** x", },
+			"NORTH": {"action": "[log]", "type": "text", "text": "ln", },
 			"showAllSlices": True,
 		},
 		(1, 1): {
@@ -42,8 +42,8 @@ _MAP = {
 			"showAllSlices": True,
 		},
 		(1, 2): {
-			"CENTER": {"action": "[rad]", "type": "text", "text": "rad", },
-			"NORTH": {"action": "[deg]", "type": "text", "text": "deg", },
+			"CENTER": {"action": "[rad]", "type": "text", "text": "-> rad", },
+			"NORTH": {"action": "[deg]", "type": "text", "text": "-> deg", },
 			"showAllSlices": True,
 		},
 		(2, 0): {

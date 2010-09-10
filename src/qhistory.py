@@ -74,6 +74,10 @@ class QCalcHistory(history.AbstractHistory):
 		equation = QtGui.QStandardItem(operation.render_operation(self._prettyRenderer, node))
 		equation.setData(node)
 		equation.setCheckable(False)
+		eqFont = equation.font()
+		eqFont.setPointSize(max(eqFont.pointSize() - 3, 5))
+		equation.setFont(eqFont)
+
 		result = QtGui.QStandardItem(operation.render_operation(self._prettyRenderer, simpleNode))
 		result.setData(simpleNode)
 		result.setEditable(False)

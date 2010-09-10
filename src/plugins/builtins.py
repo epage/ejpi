@@ -21,8 +21,8 @@ _MAP = {
 		},
 		(0, 1): {
 			"CENTER": {"action": "8", "type": "text", "text": "8", },
-			"SOUTH": {"action": "[**]", "type": "text", "text": "**", },
-			"EAST": {"action": "[sq]", "type": "text", "text": "sq", },
+			"SOUTH": {"action": "[**]", "type": "text", "text": "x ** y", },
+			"EAST": {"action": "[sq]", "type": "text", "text": "x ** 2", },
 			"WEST": {"action": "[sqrt]", "type": "text", "text": "sqrt", },
 			"showAllSlices": False,
 		},
@@ -60,7 +60,7 @@ _MAP = {
 		},
 		(2, 2): {
 			"CENTER": {"action": "3", "type": "text", "text": "3", },
-			"NORTH": {"action": "[!]", "type": "text", "text": "!", },
+			"NORTH": {"action": "[!]", "type": "text", "text": "x !", },
 			"WEST": {"action": "j", "type": "text", "text": "j", },
 			"showAllSlices": True,
 		},
