@@ -37,6 +37,7 @@ class QCalcHistory(history.AbstractHistory):
 		self._historyView = QtGui.QTreeView()
 		self._historyView.setModel(self._historyStore)
 		self._historyView.setUniformRowHeights(True)
+		self._historyView.setRootIsDecorated(False)
 		self._historyView.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
 		self._historyView.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
 		self._historyView.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
