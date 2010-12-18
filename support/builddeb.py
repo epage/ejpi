@@ -27,7 +27,7 @@ __email__ = "eopage@byu.net"
 __version__ = constants.__version__
 __build__ = constants.__build__
 __changelog__ = """
-* Adjusting for Maemo 4.1 support
+* UI Tweaks
 """.strip()
 
 
