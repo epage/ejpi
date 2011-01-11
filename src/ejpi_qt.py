@@ -9,6 +9,7 @@ import simplejson
 import string
 import logging
 
+from PyQt4 import QtCore
 from PyQt4 import QtGui
 
 import constants
@@ -45,11 +46,14 @@ class Calculator(qwrappers.ApplicationWrapper):
 			_moduleLogger.info("Settings were corrupt")
 			settings = {}
 
+		isPortraitDefault = qui_utils.screen_orientation() == QtCore.Qt.Vertical
 		self._fullscreenAction.setChecked(settings.get("isFullScreen", False))
+		self._orientationAction.setChecked(settings.get("isPortrait", isPortraitDefault))
 
 	def save_settings(self):
 		settings = {
 			"isFullScreen": self._fullscreenAction.isChecked(),
+			"isPortrait": self._orientationAction.isChecked(),
 		}
 		with open(constants._user_settings_, "w") as settingsFile:
 			simplejson.dump(settings, settingsFile)
@@ -133,6 +137,7 @@ class MainWindow(qwrappers.WindowWrapper):
 		self._userEntry = QValueEntry()
 		self._userEntry.entry.returnPressed.connect(self._on_push)
 		self._userEntryLayout = QtGui.QHBoxLayout()
+		self._userEntryLayout.setContentsMargins(0, 0, 0, 0)
 		self._userEntryLayout.addWidget(self._userEntry.toplevel, 10)
 
 		self._controlLayout = QtGui.QVBoxLayout()
