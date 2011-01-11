@@ -10,12 +10,12 @@ import string
 import logging
 
 from PyQt4 import QtGui
-from PyQt4 import QtCore
 
 import constants
-import maeqt
 from util import misc as misc_utils
 
+from util import qui_utils
+from util import qwrappers
 from util import qtpie
 from util import qtpieboard
 import plugin_utils
@@ -26,38 +26,13 @@ import qhistory
 _moduleLogger = logging.getLogger(__name__)
 
 
-class Calculator(object):
+class Calculator(qwrappers.ApplicationWrapper):
 
 	def __init__(self, app):
-		self._app = app
 		self._recent = []
 		self._hiddenCategories = set()
 		self._hiddenUnits = {}
-		self._clipboard = QtGui.QApplication.clipboard()
-
-		self._mainWindow = None
-
-		self._fullscreenAction = QtGui.QAction(None)
-		self._fullscreenAction.setText("Fullscreen")
-		self._fullscreenAction.setCheckable(True)
-		self._fullscreenAction.setShortcut(QtGui.QKeySequence("CTRL+Enter"))
-		self._fullscreenAction.toggled.connect(self._on_toggle_fullscreen)
-
-		self._logAction = QtGui.QAction(None)
-		self._logAction.setText("Log")
-		self._logAction.setShortcut(QtGui.QKeySequence("CTRL+l"))
-		self._logAction.triggered.connect(self._on_log)
-
-		self._quitAction = QtGui.QAction(None)
-		self._quitAction.setText("Quit")
-		self._quitAction.setShortcut(QtGui.QKeySequence("CTRL+q"))
-		self._quitAction.triggered.connect(self._on_quit)
-
-		self._app.lastWindowClosed.connect(self._on_app_quit)
-		self.load_settings()
-
-		self._mainWindow = MainWindow(None, self)
-		self._mainWindow.window.destroyed.connect(self._on_child_close)
+		qwrappers.ApplicationWrapper.__init__(self, app, constants)
 
 	def load_settings(self):
 		try:
@@ -80,114 +55,22 @@ class Calculator(object):
 			simplejson.dump(settings, settingsFile)
 
 	@property
-	def fullscreenAction(self):
-		return self._fullscreenAction
+	def dataPath(self):
+		return self._dataPath
 
-	@property
-	def logAction(self):
-		return self._logAction
-
-	@property
-	def quitAction(self):
-		return self._quitAction
-
-	def _close_windows(self):
-		if self._mainWindow is not None:
-			self._mainWindow.window.destroyed.disconnect(self._on_child_close)
-			self._mainWindow.close()
-			self._mainWindow = None
+	def _new_main_window(self):
+		return MainWindow(None, self)
 
 	@misc_utils.log_exception(_moduleLogger)
-	def _on_app_quit(self, checked = False):
-		self.save_settings()
-
-	@misc_utils.log_exception(_moduleLogger)
-	def _on_child_close(self, obj = None):
-		self._mainWindow = None
-
-	@misc_utils.log_exception(_moduleLogger)
-	def _on_toggle_fullscreen(self, checked = False):
-		for window in self._walk_children():
-			window.set_fullscreen(checked)
-
-	@misc_utils.log_exception(_moduleLogger)
-	def _on_log(self, checked = False):
-		with open(constants._user_logpath_, "r") as f:
-			logLines = f.xreadlines()
-			log = "".join(logLines)
-			self._clipboard.setText(log)
-
-	@misc_utils.log_exception(_moduleLogger)
-	def _on_quit(self, checked = False):
-		self._close_windows()
-
-
-class QErrorDisplay(object):
-
-	def __init__(self):
-		self._messages = []
-
-		errorIcon = maeqt.get_theme_icon(("dialog-error", "app_install_error", "gtk-dialog-error"))
-		self._severityIcon = errorIcon.pixmap(32, 32)
-		self._severityLabel = QtGui.QLabel()
-		self._severityLabel.setPixmap(self._severityIcon)
-
-		self._message = QtGui.QLabel()
-		self._message.setText("Boo")
-
-		closeIcon = maeqt.get_theme_icon(("window-close", "general_close", "gtk-close"))
-		self._closeLabel = QtGui.QPushButton(closeIcon, "")
-		self._closeLabel.clicked.connect(self._on_close)
-
-		self._controlLayout = QtGui.QHBoxLayout()
-		self._controlLayout.addWidget(self._severityLabel)
-		self._controlLayout.addWidget(self._message)
-		self._controlLayout.addWidget(self._closeLabel)
-
-		self._topLevelLayout = QtGui.QHBoxLayout()
-		self._topLevelLayout.addLayout(self._controlLayout)
-		self._widget = QtGui.QWidget()
-		self._widget.setLayout(self._topLevelLayout)
-		self._hide_message()
-
-	@property
-	def toplevel(self):
-		return self._widget
-
-	def push_message(self, message):
-		self._messages.append(message)
-		if 1 == len(self._messages):
-			self._show_message(message)
-
-	def push_exception(self):
-		userMessage = str(sys.exc_info()[1])
-		_moduleLogger.exception(userMessage)
-		self.push_message(userMessage)
-
-	def pop_message(self):
-		del self._messages[0]
-		if 0 == len(self._messages):
-			self._hide_message()
-		else:
-			self._message.setText(self._messages[0])
-
-	def _on_close(self, *args):
-		self.pop_message()
-
-	def _show_message(self, message):
-		self._message.setText(message)
-		self._widget.show()
-
-	def _hide_message(self):
-		self._message.setText("")
-		self._widget.hide()
+	def _on_about(self, checked = True):
+		raise NotImplementedError("Booh")
 
 
 class QValueEntry(object):
 
 	def __init__(self):
 		self._widget = QtGui.QLineEdit("")
-		maeqt.mark_numbers_preferred(self._widget)
+		qui_utils.mark_numbers_preferred(self._widget)
 
 	@property
 	def toplevel(self):
@@ -235,7 +118,7 @@ class QValueEntry(object):
 	value = property(get_value, set_value, clear)
 
 
-class MainWindow(object):
+class MainWindow(qwrappers.WindowWrapper):
 
 	_plugin_search_paths = [
 		os.path.join(os.path.dirname(__file__), "plugins/"),
@@ -244,10 +127,9 @@ class MainWindow(object):
 	_user_history = "%s/history.stack" % constants._data_path_
 
 	def __init__(self, parent, app):
-		self._app = app
+		qwrappers.WindowWrapper.__init__(self, parent, app)
 
-		self._errorDisplay = QErrorDisplay()
-		self._historyView = qhistory.QCalcHistory(self._errorDisplay)
+		self._historyView = qhistory.QCalcHistory(self._app.errorLog)
 		self._userEntry = QValueEntry()
 		self._userEntry.entry.returnPressed.connect(self._on_push)
 		self._userEntryLayout = QtGui.QHBoxLayout()
@@ -255,33 +137,13 @@ class MainWindow(object):
 
 		self._controlLayout = QtGui.QVBoxLayout()
 		self._controlLayout.setContentsMargins(0, 0, 0, 0)
-		self._controlLayout.addWidget(self._errorDisplay.toplevel, 0)
 		self._controlLayout.addWidget(self._historyView.toplevel, 1000)
 		self._controlLayout.addLayout(self._userEntryLayout, 0)
 
 		self._keyboardTabs = QtGui.QTabWidget()
 
-		if maeqt.screen_orientation() == QtCore.Qt.Vertical:
-			defaultLayoutOrientation = QtGui.QBoxLayout.TopToBottom
-			self._keyboardTabs.setTabPosition(QtGui.QTabWidget.East)
-		else:
-			defaultLayoutOrientation = QtGui.QBoxLayout.LeftToRight
-			self._keyboardTabs.setTabPosition(QtGui.QTabWidget.North)
-		self._layout = QtGui.QBoxLayout(defaultLayoutOrientation)
-		self._layout.setContentsMargins(0, 0, 0, 0)
 		self._layout.addLayout(self._controlLayout)
 		self._layout.addWidget(self._keyboardTabs)
-
-		centralWidget = QtGui.QWidget()
-		centralWidget.setLayout(self._layout)
-
-		self._window = QtGui.QMainWindow(parent)
-		self._window.setAttribute(QtCore.Qt.WA_DeleteOnClose, True)
-		maeqt.set_autorient(self._window, True)
-		maeqt.set_stackable(self._window, True)
-		self._window.setWindowTitle("%s" % constants.__pretty_app_name__)
-		self._window.setCentralWidget(centralWidget)
-		self._window.destroyed.connect(self._on_window_closed)
 
 		self._copyItemAction = QtGui.QAction(None)
 		self._copyItemAction.setText("Copy")
@@ -300,11 +162,6 @@ class MainWindow(object):
 
 		self._window.addAction(self._copyItemAction)
 		self._window.addAction(self._pasteItemAction)
-		self._window.addAction(self._closeWindowAction)
-		self._window.addAction(self._app.quitAction)
-		self._window.addAction(self._app.fullscreenAction)
-
-		self._window.addAction(self._app.logAction)
 
 		self._constantPlugins = plugin_utils.ConstantPluginManager()
 		self._constantPlugins.add_path(*self._plugin_search_paths)
@@ -356,39 +213,21 @@ class MainWindow(object):
 		self.enable_plugin(self._keyboardPlugins.lookup_plugin("Alphabet"))
 
 		self.set_fullscreen(self._app.fullscreenAction.isChecked())
-
-		self._window.show()
-
-	@property
-	def window(self):
-		return self._window
+		self.set_orientation(self._app.orientationAction.isChecked())
 
 	def walk_children(self):
 		return ()
 
-	def show(self):
-		self._window.show()
-		for child in self.walk_children():
-			child.show()
-
-	def hide(self):
-		for child in self.walk_children():
-			child.hide()
-		self._window.hide()
-
-	def close(self):
-		for child in self.walk_children():
-			child.window.destroyed.disconnect(self._on_child_close)
-			child.close()
-		self._window.close()
-
-	def set_fullscreen(self, isFullscreen):
-		if isFullscreen:
-			self._window.showFullScreen()
+	def set_orientation(self, isPortrait):
+		qwrappers.WindowWrapper.set_orientation(self, isPortrait)
+		if isPortrait:
+			defaultLayoutOrientation = QtGui.QBoxLayout.TopToBottom
+			tabPosition = QtGui.QTabWidget.South
 		else:
-			self._window.showNormal()
-		for child in self.walk_children():
-			child.set_fullscreen(isFullscreen)
+			defaultLayoutOrientation = QtGui.QBoxLayout.LeftToRight
+			tabPosition = QtGui.QTabWidget.North
+		self._layout.setDirection(defaultLayoutOrientation)
+		self._keyboardTabs.setTabPosition(tabPosition)
 
 	def enable_plugin(self, pluginId):
 		self._keyboardPlugins.enable_plugin(pluginId)
@@ -415,6 +254,10 @@ class MainWindow(object):
 		else:
 			self._keyboardTabs.addTab(pluginKeyboard.toplevel, icon, "")
 
+	def close(self):
+		qwrappers.WindowWrapper.close(self)
+		self._save_history()
+
 	def _load_history(self):
 		serialized = []
 		try:
@@ -434,6 +277,10 @@ class MainWindow(object):
 			for lineData in serialized:
 				line = " ".join(data for data in lineData)
 				f.write("%s\n" % line)
+
+	@misc_utils.log_exception(_moduleLogger)
+	def _on_child_close(self, something = None):
+		self._child = None
 
 	@misc_utils.log_exception(_moduleLogger)
 	def _on_copy(self, *args):
@@ -471,14 +318,6 @@ class MainWindow(object):
 	@misc_utils.log_exception(_moduleLogger)
 	def _on_clear_all(self, *args):
 		self._history.clear()
-
-	@misc_utils.log_exception(_moduleLogger)
-	def _on_window_closed(self, checked = True):
-		self._save_history()
-
-	@misc_utils.log_exception(_moduleLogger)
-	def _on_close_window(self, checked = True):
-		self.close()
 
 
 def run():
