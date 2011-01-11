@@ -312,9 +312,10 @@ class PieArtist(object):
 
 		if i == selectionIndex and self._filing[i].isEnabled():
 			painter.setBrush(self.palette.highlight())
+			painter.setPen(self.palette.highlight().color())
 		else:
 			painter.setBrush(self.palette.window())
-		painter.setPen(self.palette.mid().color())
+			painter.setPen(self.palette.window().color())
 
 		a = self._filing._index_to_angle(i, True)
 		b = self._filing._index_to_angle(i + 1, True)
@@ -417,10 +418,6 @@ class PieArtist(object):
 		painter.setPen(QtCore.Qt.NoPen)
 		painter.setBrush(background)
 		painter.drawPie(innerRect, 0, 360 * 16)
-
-		painter.setPen(QtGui.QPen(dark, 1))
-		painter.setBrush(QtCore.Qt.NoBrush)
-		painter.drawEllipse(innerRect)
 
 		if self.DEFAULT_SHAPE == self.SHAPE_SQUARE:
 			pass
@@ -576,9 +573,6 @@ class QPieButton(QtGui.QWidget):
 		self._buttonFiling.setOuterRadius(radius)
 		self._buttonFiling.setInnerRadius(radius / 2)
 		self._buttonArtist.show(self.palette())
-
-	def sizeHint(self):
-		return self._buttonArtist.pieSize()
 
 	def minimumSizeHint(self):
 		return self._buttonArtist.centerSize()
