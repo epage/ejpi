@@ -254,9 +254,10 @@ class MainWindow(object):
 		self._userEntryLayout.addWidget(self._userEntry.toplevel, 10)
 
 		self._controlLayout = QtGui.QVBoxLayout()
-		self._controlLayout.addWidget(self._errorDisplay.toplevel)
-		self._controlLayout.addWidget(self._historyView.toplevel)
-		self._controlLayout.addLayout(self._userEntryLayout)
+		self._controlLayout.setContentsMargins(0, 0, 0, 0)
+		self._controlLayout.addWidget(self._errorDisplay.toplevel, 0)
+		self._controlLayout.addWidget(self._historyView.toplevel, 1000)
+		self._controlLayout.addLayout(self._userEntryLayout, 0)
 
 		self._keyboardTabs = QtGui.QTabWidget()
 
@@ -267,6 +268,7 @@ class MainWindow(object):
 			defaultLayoutOrientation = QtGui.QBoxLayout.LeftToRight
 			self._keyboardTabs.setTabPosition(QtGui.QTabWidget.North)
 		self._layout = QtGui.QBoxLayout(defaultLayoutOrientation)
+		self._layout.setContentsMargins(0, 0, 0, 0)
 		self._layout.addLayout(self._controlLayout)
 		self._layout.addWidget(self._keyboardTabs)
 
