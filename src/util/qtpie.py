@@ -25,45 +25,6 @@ _moduleLogger = logging.getLogger(__name__)
 _TWOPI = 2 * math.pi
 
 
-class EIGHT_SLICE_PIE(object):
-
-	SLICE_CENTER = -1
-	SLICE_NORTH = 0
-	SLICE_NORTH_WEST = 1
-	SLICE_WEST = 2
-	SLICE_SOUTH_WEST = 3
-	SLICE_SOUTH = 4
-	SLICE_SOUTH_EAST = 5
-	SLICE_EAST = 6
-	SLICE_NORTH_EAST = 7
-
-	MAX_ANGULAR_SLICES = 8
-
-	SLICE_DIRECTIONS = [
-		SLICE_CENTER,
-		SLICE_NORTH,
-		SLICE_NORTH_WEST,
-		SLICE_WEST,
-		SLICE_SOUTH_WEST,
-		SLICE_SOUTH,
-		SLICE_SOUTH_EAST,
-		SLICE_EAST,
-		SLICE_NORTH_EAST,
-	]
-
-	SLICE_DIRECTION_NAMES = [
-		"CENTER",
-		"NORTH",
-		"NORTH_WEST",
-		"WEST",
-		"SOUTH_WEST",
-		"SOUTH",
-		"SOUTH_EAST",
-		"EAST",
-		"NORTH_EAST",
-	]
-
-
 def _radius_at(center, pos):
 	delta = pos - center
 	xDelta = delta.x()
@@ -541,7 +502,7 @@ class QPieButton(QtGui.QWidget):
 	BUTTON_RADIUS = 24
 	DELAY = 250
 
-	def __init__(self, buttonSlice, parent = None):
+	def __init__(self, buttonSlice, parent = None, buttonSlices = None):
 		# @bug Artifacts on Maemo 5 due to window 3D effects, find way to disable them for just these?
 		# @bug The pie's are being pushed back on screen on Maemo, leading to coordinate issues
 		QtGui.QWidget.__init__(self, parent)
@@ -553,6 +514,9 @@ class QPieButton(QtGui.QWidget):
 
 		self._buttonFiling = PieFiling()
 		self._buttonFiling.set_center(buttonSlice)
+		if buttonSlices is not None:
+			for slice in buttonSlices:
+				self._buttonFiling.insertItem(slice)
 		self._buttonFiling.setOuterRadius(self.BUTTON_RADIUS)
 		self._buttonArtist = PieArtist(self._buttonFiling)
 		self._poppedUp = False
@@ -565,6 +529,12 @@ class QPieButton(QtGui.QWidget):
 
 		self._mousePosition = None
 		self.setFocusPolicy(QtCore.Qt.StrongFocus)
+		self.setSizePolicy(
+			QtGui.QSizePolicy(
+				QtGui.QSizePolicy.MinimumExpanding,
+				QtGui.QSizePolicy.MinimumExpanding,
+			)
+		)
 
 	def insertItem(self, item, index = -1):
 		self._filing.insertItem(item, index)
@@ -604,7 +574,11 @@ class QPieButton(QtGui.QWidget):
 
 	def setButtonRadius(self, radius):
 		self._buttonFiling.setOuterRadius(radius)
+		self._buttonFiling.setInnerRadius(radius / 2)
 		self._buttonArtist.show(self.palette())
+
+	def sizeHint(self):
+		return self._buttonArtist.pieSize()
 
 	def minimumSizeHint(self):
 		return self._buttonArtist.centerSize()
@@ -625,7 +599,7 @@ class QPieButton(QtGui.QWidget):
 
 	@misc_utils.log_exception(_moduleLogger)
 	def _on_delayed_popup(self):
-		assert self._popupLocation is not None
+		assert self._popupLocation is not None, "Widget location abuse"
 		self._popup_child(self._popupLocation)
 
 	@misc_utils.log_exception(_moduleLogger)

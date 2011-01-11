@@ -7,28 +7,47 @@ import os
 import warnings
 
 from PyQt4 import QtGui
-from PyQt4 import QtCore
 
 import qtpie
 
 
 class PieKeyboard(object):
 
-	SLICE_CENTER = qtpie.EIGHT_SLICE_PIE.SLICE_CENTER
-	SLICE_NORTH = qtpie.EIGHT_SLICE_PIE.SLICE_NORTH
-	SLICE_NORTH_WEST = qtpie.EIGHT_SLICE_PIE.SLICE_NORTH_WEST
-	SLICE_WEST = qtpie.EIGHT_SLICE_PIE.SLICE_WEST
-	SLICE_SOUTH_WEST = qtpie.EIGHT_SLICE_PIE.SLICE_SOUTH_WEST
-	SLICE_SOUTH = qtpie.EIGHT_SLICE_PIE.SLICE_SOUTH
-	SLICE_SOUTH_EAST = qtpie.EIGHT_SLICE_PIE.SLICE_SOUTH_EAST
-	SLICE_EAST = qtpie.EIGHT_SLICE_PIE.SLICE_EAST
-	SLICE_NORTH_EAST = qtpie.EIGHT_SLICE_PIE.SLICE_NORTH_EAST
+	SLICE_CENTER = -1
+	SLICE_NORTH = 0
+	SLICE_NORTH_WEST = 1
+	SLICE_WEST = 2
+	SLICE_SOUTH_WEST = 3
+	SLICE_SOUTH = 4
+	SLICE_SOUTH_EAST = 5
+	SLICE_EAST = 6
+	SLICE_NORTH_EAST = 7
 
-	MAX_ANGULAR_SLICES = qtpie.EIGHT_SLICE_PIE.MAX_ANGULAR_SLICES
+	MAX_ANGULAR_SLICES = 8
 
-	SLICE_DIRECTIONS = qtpie.EIGHT_SLICE_PIE.SLICE_DIRECTIONS
+	SLICE_DIRECTIONS = [
+		SLICE_CENTER,
+		SLICE_NORTH,
+		SLICE_NORTH_WEST,
+		SLICE_WEST,
+		SLICE_SOUTH_WEST,
+		SLICE_SOUTH,
+		SLICE_SOUTH_EAST,
+		SLICE_EAST,
+		SLICE_NORTH_EAST,
+	]
 
-	SLICE_DIRECTION_NAMES = qtpie.EIGHT_SLICE_PIE.SLICE_DIRECTION_NAMES
+	SLICE_DIRECTION_NAMES = [
+		"CENTER",
+		"NORTH",
+		"NORTH_WEST",
+		"WEST",
+		"SOUTH_WEST",
+		"SOUTH",
+		"SOUTH_EAST",
+		"EAST",
+		"NORTH_EAST",
+	]
 
 	def __init__(self):
 		self._layout = QtGui.QGridLayout()
@@ -43,7 +62,7 @@ class PieKeyboard(object):
 
 	def add_pie(self, row, column, pieButton):
 		assert len(pieButton) == 8
-		self._layout.addWidget(pieButton, row, column, QtCore.Qt.AlignCenter)
+		self._layout.addWidget(pieButton, row, column)
 		self.__cells[(row, column)] = pieButton
 
 	def get_pie(self, row, column):

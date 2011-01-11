@@ -26,9 +26,6 @@ import qhistory
 _moduleLogger = logging.getLogger(__name__)
 
 
-IS_MAEMO = True
-
-
 class Calculator(object):
 
 	def __init__(self, app):
@@ -37,6 +34,7 @@ class Calculator(object):
 		self._hiddenCategories = set()
 		self._hiddenUnits = {}
 		self._clipboard = QtGui.QApplication.clipboard()
+
 		self._mainWindow = None
 
 		self._fullscreenAction = QtGui.QAction(None)
@@ -277,7 +275,7 @@ class MainWindow(object):
 
 		self._window = QtGui.QMainWindow(parent)
 		self._window.setAttribute(QtCore.Qt.WA_DeleteOnClose, True)
-		#maeqt.set_autorient(self._window, True)
+		maeqt.set_autorient(self._window, True)
 		maeqt.set_stackable(self._window, True)
 		self._window.setWindowTitle("%s" % constants.__pretty_app_name__)
 		self._window.setCentralWidget(centralWidget)
