@@ -475,9 +475,10 @@ class QPieDisplay(QtGui.QWidget):
 	@misc_utils.log_exception(_moduleLogger)
 	def paintEvent(self, paintEvent):
 		canvas = self._artist.paint(self._selectionIndex)
+		offset = (self.size() - canvas.size()) / 2
 
 		screen = QtGui.QPainter(self)
-		screen.drawPixmap(QtCore.QPoint(0, 0), canvas)
+		screen.drawPixmap(QtCore.QPoint(offset.width(), offset.height()), canvas)
 
 		QtGui.QWidget.paintEvent(self, paintEvent)
 
@@ -700,9 +701,10 @@ class QPieButton(QtGui.QWidget):
 			canvas = self._buttonArtist.paint(PieFiling.SELECTION_CENTER)
 		else:
 			canvas = self._buttonArtist.paint(PieFiling.SELECTION_NONE)
+		offset = (self.size() - canvas.size()) / 2
 
 		screen = QtGui.QPainter(self)
-		screen.drawPixmap(QtCore.QPoint(0, 0), canvas)
+		screen.drawPixmap(QtCore.QPoint(offset.width(), offset.height()), canvas)
 
 		QtGui.QWidget.paintEvent(self, paintEvent)
 
