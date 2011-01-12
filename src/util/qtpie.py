@@ -260,13 +260,6 @@ class PieArtist(object):
 			self._paint_center_background(painter, adjustmentRect, selectionIndex)
 			self._paint_center_foreground(painter, selectionIndex)
 			return self._canvas
-		elif numChildren == 1:
-			if selectionIndex == 0 and self._filing[0].isEnabled():
-				painter.setBrush(self.palette.highlight())
-			else:
-				painter.setBrush(self.palette.window())
-
-			painter.fillRect(self._canvas.rect(), painter.brush())
 		else:
 			for i in xrange(len(self._filing)):
 				self._paint_slice_background(painter, adjustmentRect, i, selectionIndex)
