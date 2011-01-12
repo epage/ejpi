@@ -198,7 +198,10 @@ class PieArtist(object):
 	SHAPE_SQUARE = "square"
 	DEFAULT_SHAPE = SHAPE_SQUARE
 
-	def __init__(self, filing):
+	BACKGROUND_FILL = "fill"
+	BACKGROUND_NOFILL = "no fill"
+
+	def __init__(self, filing, background = BACKGROUND_FILL):
 		self._filing = filing
 
 		self._cachedOuterRadius = self._filing.outerRadius()
@@ -206,6 +209,7 @@ class PieArtist(object):
 		canvasSize = self._cachedOuterRadius * 2 + 1
 		self._canvas = QtGui.QPixmap(canvasSize, canvasSize)
 		self._mask = None
+		self._backgroundState = background
 		self.palette = None
 
 	def pieSize(self):
@@ -253,6 +257,11 @@ class PieArtist(object):
 		painter = QtGui.QPainter(self._canvas)
 		painter.setRenderHint(QtGui.QPainter.Antialiasing, True)
 
+		self.paintPainter(selectionIndex, painter)
+
+		return self._canvas
+
+	def paintPainter(self, selectionIndex, painter):
 		adjustmentRect = self._canvas.rect().adjusted(0, 0, -1, -1)
 
 		numChildren = len(self._filing)
@@ -269,8 +278,6 @@ class PieArtist(object):
 
 		for i in xrange(len(self._filing)):
 			self._paint_slice_foreground(painter, i, selectionIndex)
-
-		return self._canvas
 
 	def _generate_mask(self, mask):
 		"""
@@ -297,12 +304,16 @@ class PieArtist(object):
 		else:
 			raise NotImplementedError(self.DEFAULT_SHAPE)
 
-		if i == selectionIndex and self._filing[i].isEnabled():
-			painter.setBrush(self.palette.highlight())
+		if self._backgroundState == self.BACKGROUND_NOFILL:
+			painter.setBrush(QtGui.QBrush(QtCore.Qt.transparent))
 			painter.setPen(self.palette.highlight().color())
 		else:
-			painter.setBrush(self.palette.window())
-			painter.setPen(self.palette.window().color())
+			if i == selectionIndex and self._filing[i].isEnabled():
+				painter.setBrush(self.palette.highlight())
+				painter.setPen(self.palette.highlight().color())
+			else:
+				painter.setBrush(self.palette.window())
+				painter.setPen(self.palette.window().color())
 
 		a = self._filing._index_to_angle(i, True)
 		b = self._filing._index_to_angle(i + 1, True)
@@ -386,21 +397,29 @@ class PieArtist(object):
 			painter.drawText(leftX, topY, text)
 
 	def _paint_center_background(self, painter, adjustmentRect, selectionIndex):
+		if self._backgroundState == self.BACKGROUND_NOFILL:
+			return
 		if len(self._filing) == 0:
-			if selectionIndex == PieFiling.SELECTION_CENTER and self._filing.center().isEnabled():
-				painter.setBrush(self.palette.highlight())
+			if self._backgroundState == self.BACKGROUND_NOFILL:
+				painter.setBrush(QtGui.QBrush(QtCore.Qt.transparent))
 			else:
-				painter.setBrush(self.palette.window())
+				if selectionIndex == PieFiling.SELECTION_CENTER and self._filing.center().isEnabled():
+					painter.setBrush(self.palette.highlight())
+				else:
+					painter.setBrush(self.palette.window())
 			painter.setPen(self.palette.mid().color())
 
 			painter.drawRect(self._canvas.rect())
 		else:
 			dark = self.palette.mid().color()
 			light = self.palette.light().color()
-			if selectionIndex == PieFiling.SELECTION_CENTER and self._filing.center().isEnabled():
-				background = self.palette.highlight().color()
+			if self._backgroundState == self.BACKGROUND_NOFILL:
+				background = QtGui.QBrush(QtCore.Qt.transparent)
 			else:
-				background = self.palette.window().color()
+				if selectionIndex == PieFiling.SELECTION_CENTER and self._filing.center().isEnabled():
+					background = self.palette.highlight().color()
+				else:
+					background = self.palette.window().color()
 
 			innerRadius = self._cachedInnerRadius
 			adjustmentCenterPos = adjustmentRect.center()
@@ -512,7 +531,7 @@ class QPieButton(QtGui.QWidget):
 			for slice in buttonSlices:
 				self._buttonFiling.insertItem(slice)
 		self._buttonFiling.setOuterRadius(self.BUTTON_RADIUS)
-		self._buttonArtist = PieArtist(self._buttonFiling)
+		self._buttonArtist = PieArtist(self._buttonFiling, PieArtist.BACKGROUND_NOFILL)
 		self._poppedUp = False
 
 		self._delayPopupTimer = QtCore.QTimer()
@@ -694,13 +713,18 @@ class QPieButton(QtGui.QWidget):
 	def paintEvent(self, paintEvent):
 		self.setButtonRadius(min(self.rect().width(), self.rect().height()) / 2 - 1)
 		if self._poppedUp:
-			canvas = self._buttonArtist.paint(PieFiling.SELECTION_CENTER)
+			selectionIndex = PieFiling.SELECTION_CENTER
 		else:
-			canvas = self._buttonArtist.paint(PieFiling.SELECTION_NONE)
-		offset = (self.size() - canvas.size()) / 2
+			selectionIndex = PieFiling.SELECTION_NONE
 
-		screen = QtGui.QPainter(self)
-		screen.drawPixmap(QtCore.QPoint(offset.width(), offset.height()), canvas)
+		screen = QtGui.QStylePainter(self)
+		screen.setRenderHint(QtGui.QPainter.Antialiasing, True)
+		option = QtGui.QStyleOptionButton()
+		option.initFrom(self)
+		option.state = QtGui.QStyle.State_Sunken if self._poppedUp else QtGui.QStyle.State_Raised
+
+		screen.drawControl(QtGui.QStyle.CE_PushButton, option)
+		self._buttonArtist.paintPainter(selectionIndex, screen)
 
 		QtGui.QWidget.paintEvent(self, paintEvent)
 
