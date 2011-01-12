@@ -257,13 +257,7 @@ class PieArtist(object):
 
 		numChildren = len(self._filing)
 		if numChildren == 0:
-			if selectionIndex == PieFiling.SELECTION_CENTER and self._filing.center().isEnabled():
-				painter.setBrush(self.palette.highlight())
-			else:
-				painter.setBrush(self.palette.window())
-			painter.setPen(self.palette.mid().color())
-
-			painter.drawRect(self._canvas.rect())
+			self._paint_center_background(painter, adjustmentRect, selectionIndex)
 			self._paint_center_foreground(painter, selectionIndex)
 			return self._canvas
 		elif numChildren == 1:
@@ -399,34 +393,43 @@ class PieArtist(object):
 			painter.drawText(leftX, topY, text)
 
 	def _paint_center_background(self, painter, adjustmentRect, selectionIndex):
-		dark = self.palette.mid().color()
-		light = self.palette.light().color()
-		if selectionIndex == PieFiling.SELECTION_CENTER and self._filing.center().isEnabled():
-			background = self.palette.highlight().color()
+		if len(self._filing) == 0:
+			if selectionIndex == PieFiling.SELECTION_CENTER and self._filing.center().isEnabled():
+				painter.setBrush(self.palette.highlight())
+			else:
+				painter.setBrush(self.palette.window())
+			painter.setPen(self.palette.mid().color())
+
+			painter.drawRect(self._canvas.rect())
 		else:
-			background = self.palette.window().color()
+			dark = self.palette.mid().color()
+			light = self.palette.light().color()
+			if selectionIndex == PieFiling.SELECTION_CENTER and self._filing.center().isEnabled():
+				background = self.palette.highlight().color()
+			else:
+				background = self.palette.window().color()
 
-		innerRadius = self._cachedInnerRadius
-		adjustmentCenterPos = adjustmentRect.center()
-		innerRect = QtCore.QRect(
-			adjustmentCenterPos.x() - innerRadius,
-			adjustmentCenterPos.y() - innerRadius,
-			innerRadius * 2 + 1,
-			innerRadius * 2 + 1,
-		)
+			innerRadius = self._cachedInnerRadius
+			adjustmentCenterPos = adjustmentRect.center()
+			innerRect = QtCore.QRect(
+				adjustmentCenterPos.x() - innerRadius,
+				adjustmentCenterPos.y() - innerRadius,
+				innerRadius * 2 + 1,
+				innerRadius * 2 + 1,
+			)
 
-		painter.setPen(QtCore.Qt.NoPen)
-		painter.setBrush(background)
-		painter.drawPie(innerRect, 0, 360 * 16)
+			painter.setPen(QtCore.Qt.NoPen)
+			painter.setBrush(background)
+			painter.drawPie(innerRect, 0, 360 * 16)
 
-		if self.DEFAULT_SHAPE == self.SHAPE_SQUARE:
-			pass
-		elif self.DEFAULT_SHAPE == self.SHAPE_CIRCLE:
-			painter.setPen(QtGui.QPen(dark, 1))
-			painter.setBrush(QtCore.Qt.NoBrush)
-			painter.drawEllipse(adjustmentRect)
-		else:
-			raise NotImplementedError(self.DEFAULT_SHAPE)
+			if self.DEFAULT_SHAPE == self.SHAPE_SQUARE:
+				pass
+			elif self.DEFAULT_SHAPE == self.SHAPE_CIRCLE:
+				painter.setPen(QtGui.QPen(dark, 1))
+				painter.setBrush(QtCore.Qt.NoBrush)
+				painter.drawEllipse(adjustmentRect)
+			else:
+				raise NotImplementedError(self.DEFAULT_SHAPE)
 
 	def _paint_center_foreground(self, painter, selectionIndex):
 		centerPos = self._canvas.rect().center()
