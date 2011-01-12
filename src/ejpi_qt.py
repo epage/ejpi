@@ -132,6 +132,7 @@ class MainWindow(qwrappers.WindowWrapper):
 
 	def __init__(self, parent, app):
 		qwrappers.WindowWrapper.__init__(self, parent, app)
+		self._window.setWindowTitle("%s" % constants.__pretty_app_name__)
 
 		self._historyView = qhistory.QCalcHistory(self._app.errorLog)
 		self._userEntry = QValueEntry()
@@ -227,7 +228,8 @@ class MainWindow(qwrappers.WindowWrapper):
 		qwrappers.WindowWrapper.set_orientation(self, isPortrait)
 		if isPortrait:
 			defaultLayoutOrientation = QtGui.QBoxLayout.TopToBottom
-			tabPosition = QtGui.QTabWidget.South
+			#tabPosition = QtGui.QTabWidget.South
+			tabPosition = QtGui.QTabWidget.West
 		else:
 			defaultLayoutOrientation = QtGui.QBoxLayout.LeftToRight
 			tabPosition = QtGui.QTabWidget.North
