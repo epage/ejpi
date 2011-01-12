@@ -523,6 +523,7 @@ class QPieButton(QtGui.QWidget):
 		self._buttonFiling.setOuterRadius(self.BUTTON_RADIUS)
 		self._buttonArtist = PieArtist(self._buttonFiling, PieArtist.BACKGROUND_NOFILL)
 		self._poppedUp = False
+		self._pressed = False
 
 		self._delayPopupTimer = QtCore.QTimer()
 		self._delayPopupTimer.setInterval(self.DELAY)
@@ -594,6 +595,8 @@ class QPieButton(QtGui.QWidget):
 		self.highlighted.emit(self._selectionIndex)
 
 		self._display.selectAt(self._selectionIndex)
+		self._pressed = True
+		self.update()
 		self._popupLocation = mouseEvent.globalPos()
 		self._delayPopupTimer.start()
 
@@ -644,6 +647,8 @@ class QPieButton(QtGui.QWidget):
 		self._mousePosition = None
 
 		self._activate_at(self._selectionIndex)
+		self._pressed = False
+		self.update()
 		self._hide_child()
 
 	@misc_utils.log_exception(_moduleLogger)
@@ -711,7 +716,7 @@ class QPieButton(QtGui.QWidget):
 		screen.setRenderHint(QtGui.QPainter.Antialiasing, True)
 		option = QtGui.QStyleOptionButton()
 		option.initFrom(self)
-		option.state = QtGui.QStyle.State_Sunken if self._poppedUp else QtGui.QStyle.State_Raised
+		option.state = QtGui.QStyle.State_Sunken if self._pressed else QtGui.QStyle.State_Raised
 
 		screen.drawControl(QtGui.QStyle.CE_PushButton, option)
 		self._buttonArtist.paintPainter(selectionIndex, screen)
