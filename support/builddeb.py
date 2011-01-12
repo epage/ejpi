@@ -27,7 +27,10 @@ __email__ = "eopage@byu.net"
 __version__ = constants.__version__
 __build__ = constants.__build__
 __changelog__ = """
-* UI Tweaks
+* Cleaning up the display of the pie buttons
+* Fixing the size of the pie menus on Maemo 5
+* Adding rotation support with a custom portrait layout
+* Minor UI Polish
 """.strip()
 
 
