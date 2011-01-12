@@ -6,17 +6,7 @@ import logging
 from PyQt4 import QtGui
 from PyQt4 import QtCore
 
-try:
-	from util import misc as misc_utils
-except ImportError:
-	class misc_utils(object):
-
-		@staticmethod
-		def log_exception(logger):
-
-			def wrapper(func):
-				return func
-			return wrapper
+import misc as misc_utils
 
 
 _moduleLogger = logging.getLogger(__name__)
