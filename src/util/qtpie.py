@@ -262,22 +262,22 @@ class PieArtist(object):
 		return self._canvas
 
 	def paintPainter(self, selectionIndex, painter):
-		adjustmentRect = self._canvas.rect().adjusted(0, 0, -1, -1)
+		adjustmentRect = painter.viewport().adjusted(0, 0, -1, -1)
 
 		numChildren = len(self._filing)
 		if numChildren == 0:
 			self._paint_center_background(painter, adjustmentRect, selectionIndex)
-			self._paint_center_foreground(painter, selectionIndex)
+			self._paint_center_foreground(painter, adjustmentRect, selectionIndex)
 			return self._canvas
 		else:
 			for i in xrange(len(self._filing)):
 				self._paint_slice_background(painter, adjustmentRect, i, selectionIndex)
 
 		self._paint_center_background(painter, adjustmentRect, selectionIndex)
-		self._paint_center_foreground(painter, selectionIndex)
+		self._paint_center_foreground(painter, adjustmentRect, selectionIndex)
 
 		for i in xrange(len(self._filing)):
-			self._paint_slice_foreground(painter, i, selectionIndex)
+			self._paint_slice_foreground(painter, adjustmentRect, i, selectionIndex)
 
 	def _generate_mask(self, mask):
 		"""
@@ -327,7 +327,7 @@ class PieArtist(object):
 		sizeInDeg = (size * 360 * 16) / _TWOPI
 		painter.drawPie(adjustmentRect, int(startAngleInDeg), int(sizeInDeg))
 
-	def _paint_slice_foreground(self, painter, i, selectionIndex):
+	def _paint_slice_foreground(self, painter, adjustmentRect, i, selectionIndex):
 		child = self._filing[i]
 
 		a = self._filing._index_to_angle(i, True)
@@ -340,7 +340,7 @@ class PieArtist(object):
 		sliceX = averageRadius * math.cos(middleAngle)
 		sliceY = - averageRadius * math.sin(middleAngle)
 
-		piePos = self._canvas.rect().center()
+		piePos = adjustmentRect.center()
 		pieX = piePos.x()
 		pieY = piePos.y()
 		self._paint_label(
@@ -409,7 +409,7 @@ class PieArtist(object):
 					painter.setBrush(self.palette.window())
 			painter.setPen(self.palette.mid().color())
 
-			painter.drawRect(self._canvas.rect())
+			painter.drawRect(adjustmentRect)
 		else:
 			dark = self.palette.mid().color()
 			light = self.palette.light().color()
@@ -443,8 +443,8 @@ class PieArtist(object):
 			else:
 				raise NotImplementedError(self.DEFAULT_SHAPE)
 
-	def _paint_center_foreground(self, painter, selectionIndex):
-		centerPos = self._canvas.rect().center()
+	def _paint_center_foreground(self, painter, adjustmentRect, selectionIndex):
+		centerPos = adjustmentRect.center()
 		pieX = centerPos.x()
 		pieY = centerPos.y()
 
