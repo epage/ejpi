@@ -10,7 +10,7 @@ import logging
 from PyQt4 import QtGui
 from PyQt4 import QtCore
 
-import maeqt
+from util import qui_utils
 import util.misc as misc_utils
 import history
 import operation
@@ -55,7 +55,7 @@ class QCalcHistory(history.AbstractHistory):
 
 		self._rowCount = 0
 		self._programmaticUpdate = False
-		self._closeIcon = maeqt.get_theme_icon(("window-close", "general_close", "gtk-close"))
+		self._closeIcon = qui_utils.get_theme_icon(("window-close", "general_close", "gtk-close"))
 
 	@property
 	def toplevel(self):
