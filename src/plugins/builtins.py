@@ -48,13 +48,13 @@ _MAP = {
 		},
 		(2, 0): {
 			"CENTER": {"action": "1", "type": "text", "text": "1", },
+			"NORTH": {"action": ".", "type": "text", "text": ".", },
 			"EAST": {"action": "0", "type": "text", "text": "0", },
 			"showAllSlices": True,
 		},
 		(2, 1): {
 			"CENTER": {"action": "2", "type": "text", "text": "2", },
 			"EAST": {"action": "[abs]", "type": "text", "text": "abs", },
-			"NORTH": {"action": ".", "type": "text", "text": ".", },
 			"WEST": {"action": "[+-]", "type": "text", "text": "+/-", },
 			"showAllSlices": True,
 		},
