@@ -18,14 +18,23 @@ _MAP = {
 	"keys": {
 		(0, 0): {
 			"CENTER": {"action": "[//]", "type": "text", "text": "x // y", },
+			"SOUTH": {"action": "1", "type": "text", "text": "1", },
+			"SOUTH_EAST": {"action": "2", "type": "text", "text": "2", },
+			"EAST": {"action": "3", "type": "text", "text": "3", },
 			"showAllSlices": False,
 		},
 		(0, 1): {
 			"CENTER": {"action": "[dec]", "type": "text", "text": "-> dec", },
+			"SOUTH_WEST": {"action": "4", "type": "text", "text": "4", },
+			"SOUTH": {"action": "5", "type": "text", "text": "5", },
+			"SOUTH_EAST": {"action": "6", "type": "text", "text": "6", },
 			"showAllSlices": True,
 		},
 		(0, 2): {
 			"CENTER": {"action": "[%]", "type": "text", "text": "x % y", },
+			"WEST": {"action": "7", "type": "text", "text": "7", },
+			"SOUTH_WEST": {"action": "8", "type": "text", "text": "8", },
+			"SOUTH": {"action": "9", "type": "text", "text": "9", },
 			"showAllSlices": False,
 		},
 		(1, 0): {
