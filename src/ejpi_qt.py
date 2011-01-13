@@ -218,6 +218,12 @@ class MainWindow(qwrappers.WindowWrapper):
 		self.enable_plugin(self._keyboardPlugins.lookup_plugin("Computer"))
 		self.enable_plugin(self._keyboardPlugins.lookup_plugin("Alphabet"))
 
+		self._scrollTimer = QtCore.QTimer()
+		self._scrollTimer.setInterval(0)
+		self._scrollTimer.setSingleShot(True)
+		self._scrollTimer.timeout.connect(self._on_delayed_scroll_to_bottom)
+		self._scrollTimer.start()
+
 		self.set_fullscreen(self._app.fullscreenAction.isChecked())
 		self.set_orientation(self._app.orientationAction.isChecked())
 
@@ -284,6 +290,11 @@ class MainWindow(qwrappers.WindowWrapper):
 			for lineData in serialized:
 				line = " ".join(data for data in lineData)
 				f.write("%s\n" % line)
+
+	@misc_utils.log_exception(_moduleLogger)
+	def _on_delayed_scroll_to_bottom(self):
+		with qui_utils.notify_error(self._app.errorLog):
+			self._historyView.scroll_to_bottom()
 
 	@misc_utils.log_exception(_moduleLogger)
 	def _on_child_close(self, something = None):

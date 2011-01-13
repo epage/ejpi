@@ -86,7 +86,7 @@ class QCalcHistory(history.AbstractHistory):
 		self._historyStore.appendRow(row)
 
 		index = result.index()
-		self._historyView.scrollTo(index)
+		self._historyView.scrollToBottom()
 		self._rowCount += 1
 
 	def pop(self):
@@ -110,6 +110,9 @@ class QCalcHistory(history.AbstractHistory):
 	def clear(self):
 		self._historyStore.clear()
 		self._rowCount = 0
+
+	def scroll_to_bottom(self):
+		self._historyView.scrollToBottom()
 
 	@misc_utils.log_exception(_moduleLogger)
 	def _on_row_activated(self, index):
