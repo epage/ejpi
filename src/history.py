@@ -121,10 +121,6 @@ class RpnCalcHistory(object):
 		self.__serialRenderer = operation.render_number()
 
 	@property
-	def errorReporter(self):
-		return self.__errorReporter
-
-	@property
 	def OPERATIONS(self):
 		return self.__operations
 
@@ -154,7 +150,7 @@ class RpnCalcHistory(object):
 			node = self._apply_operation(Node)
 			return node
 		except StandardError, e:
-			self.errorReporter.push_exception()
+			self.__errorReporter.push_exception()
 			return None
 
 	def serialize_stack(self):

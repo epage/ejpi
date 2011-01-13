@@ -5,6 +5,8 @@ http://www.grigoriev.ru/svgmath/ (MathML->SVG in Python)
 http://helm.cs.unibo.it/mml-widget/ (MathML widget in C++)
 """
 
+from __future__ import with_statement
+
 import logging
 
 from PyQt4 import QtGui
@@ -28,7 +30,7 @@ class QCalcHistory(history.AbstractHistory):
 	def __init__(self, errorReporter):
 		super(QCalcHistory, self).__init__()
 		self._prettyRenderer = operation.render_number()
-		self._errorReporter = errorReporter
+		self._errorLog = errorReporter
 
 		self._historyStore = QtGui.QStandardItemModel()
 		self._historyStore.setHorizontalHeaderLabels(["", "Equation", "Result"])
@@ -60,10 +62,6 @@ class QCalcHistory(history.AbstractHistory):
 	@property
 	def toplevel(self):
 		return self._historyView
-
-	@property
-	def errorReporter(self):
-		return self._errorReporter
 
 	def push(self, node):
 		simpleNode = node.simplify()
@@ -115,31 +113,33 @@ class QCalcHistory(history.AbstractHistory):
 
 	@misc_utils.log_exception(_moduleLogger)
 	def _on_row_activated(self, index):
-		if index.column() == self._CLOSE_COLUMN:
-			self._historyStore.removeRow(index.row(), index.parent())
-			self._rowCount -= 1
-		elif index.column() == self._EQ_COLUMN:
-			self._duplicate_row(index)
-		elif index.column() == self._RESULT_COLUMN:
-			self._duplicate_row(index)
-		else:
-			raise NotImplementedError("Unsupported column to activate %s" % index.column())
+		with qui_utils.notify_error(self._errorLog):
+			if index.column() == self._CLOSE_COLUMN:
+				self._historyStore.removeRow(index.row(), index.parent())
+				self._rowCount -= 1
+			elif index.column() == self._EQ_COLUMN:
+				self._duplicate_row(index)
+			elif index.column() == self._RESULT_COLUMN:
+				self._duplicate_row(index)
+			else:
+				raise NotImplementedError("Unsupported column to activate %s" % index.column())
 
 	@misc_utils.log_exception(_moduleLogger)
 	def _on_item_changed(self, item):
-		if self._programmaticUpdate:
-			_moduleLogger.info("Blocking updating %r recursively" % item)
-			return
-		self._programmaticUpdate = True
-		try:
-			if item.column() in [self._EQ_COLUMN, self._RESULT_COLUMN]:
-				self._update_input(item)
-			else:
-				raise NotImplementedError("Unsupported column to edit %s" % item.column())
-		except StandardError, e:
-			self.errorReporter.push_exception()
-		finally:
-			self._programmaticUpdate = False
+		with qui_utils.notify_error(self._errorLog):
+			if self._programmaticUpdate:
+				_moduleLogger.info("Blocking updating %r recursively" % item)
+				return
+			self._programmaticUpdate = True
+			try:
+				if item.column() in [self._EQ_COLUMN, self._RESULT_COLUMN]:
+					self._update_input(item)
+				else:
+					raise NotImplementedError("Unsupported column to edit %s" % item.column())
+			except StandardError, e:
+				self._errorReporter.push_exception()
+			finally:
+				self._programmaticUpdate = False
 
 	def _duplicate_row(self, index):
 		item = self._historyStore.item(index.row(), self._EQ_COLUMN)

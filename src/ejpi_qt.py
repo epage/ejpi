@@ -193,7 +193,7 @@ class MainWindow(qwrappers.WindowWrapper):
 
 		self._history = history.RpnCalcHistory(
 			self._historyView,
-			self._userEntry, self._errorDisplay,
+			self._userEntry, self._app.errorLog,
 			self._constantPlugins.constants, self._operatorPlugins.operators
 		)
 		self._load_history()
@@ -287,44 +287,53 @@ class MainWindow(qwrappers.WindowWrapper):
 
 	@misc_utils.log_exception(_moduleLogger)
 	def _on_child_close(self, something = None):
-		self._child = None
+		with qui_utils.notify_error(self._app.errorLog):
+			self._child = None
 
 	@misc_utils.log_exception(_moduleLogger)
 	def _on_copy(self, *args):
-		eqNode = self._historyView.peek()
-		resultNode = eqNode.simplify()
-		self._app._clipboard.setText(str(resultNode))
+		with qui_utils.notify_error(self._app.errorLog):
+			eqNode = self._historyView.peek()
+			resultNode = eqNode.simplify()
+			self._app._clipboard.setText(str(resultNode))
 
 	@misc_utils.log_exception(_moduleLogger)
 	def _on_paste(self, *args):
-		result = str(self._app._clipboard.text())
-		self._userEntry.append(result)
+		with qui_utils.notify_error(self._app.errorLog):
+			result = str(self._app._clipboard.text())
+			self._userEntry.append(result)
 
 	@misc_utils.log_exception(_moduleLogger)
 	def _on_entry_direct(self, keys, modifiers):
-		if "shift" in modifiers:
-			keys = keys.upper()
-		self._userEntry.append(keys)
+		with qui_utils.notify_error(self._app.errorLog):
+			if "shift" in modifiers:
+				keys = keys.upper()
+			self._userEntry.append(keys)
 
 	@misc_utils.log_exception(_moduleLogger)
 	def _on_push(self, *args):
-		self._history.push_entry()
+		with qui_utils.notify_error(self._app.errorLog):
+			self._history.push_entry()
 
 	@misc_utils.log_exception(_moduleLogger)
 	def _on_unpush(self, *args):
-		self._historyView.unpush()
+		with qui_utils.notify_error(self._app.errorLog):
+			self._historyView.unpush()
 
 	@misc_utils.log_exception(_moduleLogger)
 	def _on_entry_backspace(self, *args):
-		self._userEntry.pop()
+		with qui_utils.notify_error(self._app.errorLog):
+			self._userEntry.pop()
 
 	@misc_utils.log_exception(_moduleLogger)
 	def _on_entry_clear(self, *args):
-		self._userEntry.clear()
+		with qui_utils.notify_error(self._app.errorLog):
+			self._userEntry.clear()
 
 	@misc_utils.log_exception(_moduleLogger)
 	def _on_clear_all(self, *args):
-		self._history.clear()
+		with qui_utils.notify_error(self._app.errorLog):
+			self._history.clear()
 
 
 def run():

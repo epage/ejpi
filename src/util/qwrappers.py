@@ -122,11 +122,13 @@ class ApplicationWrapper(object):
 
 	@misc_utils.log_exception(_moduleLogger)
 	def _on_toggle_fullscreen(self, checked = False):
-		self._mainWindow.set_fullscreen(checked)
+		with qui_utils.notify_error(self._errorLog):
+			self._mainWindow.set_fullscreen(checked)
 
 	@misc_utils.log_exception(_moduleLogger)
 	def _on_toggle_orientation(self, checked = False):
-		self._mainWindow.set_orientation(checked)
+		with qui_utils.notify_error(self._errorLog):
+			self._mainWindow.set_orientation(checked)
 
 	@misc_utils.log_exception(_moduleLogger)
 	def _on_about(self, checked = True):
@@ -134,14 +136,16 @@ class ApplicationWrapper(object):
 
 	@misc_utils.log_exception(_moduleLogger)
 	def _on_log(self, checked = False):
-		with open(self._constants._user_logpath_, "r") as f:
-			logLines = f.xreadlines()
-			log = "".join(logLines)
-			self._clipboard.setText(log)
+		with qui_utils.notify_error(self._errorLog):
+			with open(self._constants._user_logpath_, "r") as f:
+				logLines = f.xreadlines()
+				log = "".join(logLines)
+				self._clipboard.setText(log)
 
 	@misc_utils.log_exception(_moduleLogger)
 	def _on_quit(self, checked = False):
-		self._close_windows()
+		with qui_utils.notify_error(self._errorLog):
+			self._close_windows()
 
 
 class WindowWrapper(object):
@@ -227,4 +231,5 @@ class WindowWrapper(object):
 
 	@misc_utils.log_exception(_moduleLogger)
 	def _on_close_window(self, checked = True):
-		self.close()
+		with qui_utils.notify_error(self._errorLog):
+			self.close()
