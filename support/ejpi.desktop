@@ -5,3 +5,4 @@ Type=Application
 Name=ejpi
 Exec=/usr/bin/run-standalone.sh /opt/ejpi/bin/ejpi.py
 Icon=ejpi
+Categories=Engineering;Science;Education;Utility;Qt;
