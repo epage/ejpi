@@ -9,8 +9,9 @@ import string
 import logging
 import logging.handlers
 
-from PyQt4 import QtCore
-from PyQt4 import QtGui
+import util.qt_compat as qt_compat
+QtCore = qt_compat.QtCore
+QtGui = qt_compat.import_module("QtGui")
 
 import constants
 from util import misc as misc_utils
@@ -226,20 +227,21 @@ class MainWindow(qwrappers.WindowWrapper):
 		self._scrollTimer.start()
 
 		self.set_fullscreen(self._app.fullscreenAction.isChecked())
-		self.set_orientation(self._app.orientationAction.isChecked())
+		self.update_orientation(self._app.orientation)
 
 	def walk_children(self):
 		return ()
 
-	def set_orientation(self, isPortrait):
-		qwrappers.WindowWrapper.set_orientation(self, isPortrait)
-		if isPortrait:
+	def update_orientation(self, orientation):
+		qwrappers.WindowWrapper.update_orientation(self, orientation)
+		windowOrientation = self.idealWindowOrientation
+		if windowOrientation == QtCore.Qt.Horizontal:
+			defaultLayoutOrientation = QtGui.QBoxLayout.LeftToRight
+			tabPosition = QtGui.QTabWidget.North
+		else:
 			defaultLayoutOrientation = QtGui.QBoxLayout.TopToBottom
 			#tabPosition = QtGui.QTabWidget.South
 			tabPosition = QtGui.QTabWidget.West
-		else:
-			defaultLayoutOrientation = QtGui.QBoxLayout.LeftToRight
-			tabPosition = QtGui.QTabWidget.North
 		self._layout.setDirection(defaultLayoutOrientation)
 		self._keyboardTabs.setTabPosition(tabPosition)
 

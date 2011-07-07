@@ -9,8 +9,9 @@ from __future__ import with_statement
 
 import logging
 
-from PyQt4 import QtGui
-from PyQt4 import QtCore
+import util.qt_compat as qt_compat
+QtCore = qt_compat.QtCore
+QtGui = qt_compat.import_module("QtGui")
 
 from util import qui_utils
 import util.misc as misc_utils
@@ -95,7 +96,7 @@ class QCalcHistory(history.AbstractHistory):
 
 		icon, equation, result = self._historyStore.takeRow(self._rowCount - 1)
 		self._rowCount -= 1
-		return equation.data().toPyObject()
+		return equation.data()
 
 	def peek(self):
 		if len(self) == 0:
@@ -105,7 +106,7 @@ class QCalcHistory(history.AbstractHistory):
 		row = (icon, equation, result)
 		self._historyStore.appendRow(row)
 
-		return equation.data().toPyObject()
+		return equation.data()
 
 	def clear(self):
 		self._historyStore.clear()
@@ -146,13 +147,13 @@ class QCalcHistory(history.AbstractHistory):
 
 	def _duplicate_row(self, index):
 		item = self._historyStore.item(index.row(), self._EQ_COLUMN)
-		self.push(item.data().toPyObject())
+		self.push(item.data())
 
 	def _parse_value(self, value):
 		raise NotImplementedError("What?")
 
 	def _update_input(self, item):
-		node = item.data().toPyObject()
+		node = item.data()
 		try:
 			eqNode = self._parse_value(str(item.text()))
 			newText = operation.render_operation(self._prettyRenderer, eqNode)
@@ -179,4 +180,4 @@ class QCalcHistory(history.AbstractHistory):
 			item = self._historyStore.item(i, self._EQ_COLUMN)
 			if item is None:
 				continue
-			yield item.data().toPyObject()
+			yield item.data()

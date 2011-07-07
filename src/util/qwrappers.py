@@ -5,8 +5,9 @@ from __future__ import division
 
 import logging
 
-from PyQt4 import QtGui
-from PyQt4 import QtCore
+import qt_compat
+QtCore = qt_compat.QtCore
+QtGui = qt_compat.import_module("QtGui")
 
 from util import qui_utils
 from util import misc as misc_utils
@@ -16,6 +17,11 @@ _moduleLogger = logging.getLogger(__name__)
 
 
 class ApplicationWrapper(object):
+
+	DEFAULT_ORIENTATION = "Default"
+	AUTO_ORIENTATION = "Auto"
+	LANDSCAPE_ORIENTATION = "Landscape"
+	PORTRAIT_ORIENTATION = "Portrait"
 
 	def __init__(self, qapp, constants):
 		self._constants = constants
@@ -31,11 +37,12 @@ class ApplicationWrapper(object):
 		self._fullscreenAction.setShortcut(QtGui.QKeySequence("CTRL+Enter"))
 		self._fullscreenAction.toggled.connect(self._on_toggle_fullscreen)
 
+		self._orientation = self.DEFAULT_ORIENTATION
 		self._orientationAction = QtGui.QAction(None)
-		self._orientationAction.setText("Orientation")
+		self._orientationAction.setText("Next Orientation")
 		self._orientationAction.setCheckable(True)
 		self._orientationAction.setShortcut(QtGui.QKeySequence("CTRL+o"))
-		self._orientationAction.toggled.connect(self._on_toggle_orientation)
+		self._orientationAction.triggered.connect(self._on_next_orientation)
 
 		self._logAction = QtGui.QAction(None)
 		self._logAction.setText("Log")
@@ -61,7 +68,7 @@ class ApplicationWrapper(object):
 		self._idleDelay = QtCore.QTimer()
 		self._idleDelay.setSingleShot(True)
 		self._idleDelay.setInterval(0)
-		self._idleDelay.timeout.connect(lambda: self._mainWindow.start())
+		self._idleDelay.timeout.connect(self._on_delayed_start)
 		self._idleDelay.start()
 
 	def load_settings(self):
@@ -94,6 +101,10 @@ class ApplicationWrapper(object):
 		return self._orientationAction
 
 	@property
+	def orientation(self):
+		return self._orientation
+
+	@property
 	def logAction(self):
 		return self._logAction
 
@@ -105,12 +116,29 @@ class ApplicationWrapper(object):
 	def quitAction(self):
 		return self._quitAction
 
+	def set_orientation(self, orientation):
+		self._orientation = orientation
+		self._mainWindow.update_orientation(self._orientation)
+
+	@classmethod
+	def _next_orientation(cls, current):
+		return {
+			cls.DEFAULT_ORIENTATION: cls.AUTO_ORIENTATION,
+			cls.AUTO_ORIENTATION: cls.LANDSCAPE_ORIENTATION,
+			cls.LANDSCAPE_ORIENTATION: cls.PORTRAIT_ORIENTATION,
+			cls.PORTRAIT_ORIENTATION: cls.DEFAULT_ORIENTATION,
+		}[current]
+
 	def _close_windows(self):
 		if self._mainWindow is not None:
 			self.save_settings()
 			self._mainWindow.window.destroyed.disconnect(self._on_child_close)
 			self._mainWindow.close()
 			self._mainWindow = None
+
+	@misc_utils.log_exception(_moduleLogger)
+	def _on_delayed_start(self):
+		self._mainWindow.start()
 
 	@misc_utils.log_exception(_moduleLogger)
 	def _on_app_quit(self, checked = False):
@@ -130,9 +158,9 @@ class ApplicationWrapper(object):
 			self._mainWindow.set_fullscreen(checked)
 
 	@misc_utils.log_exception(_moduleLogger)
-	def _on_toggle_orientation(self, checked = False):
+	def _on_next_orientation(self, checked = False):
 		with qui_utils.notify_error(self._errorLog):
-			self._mainWindow.set_orientation(checked)
+			self.set_orientation(self._next_orientation(self._orientation))
 
 	@misc_utils.log_exception(_moduleLogger)
 	def _on_about(self, checked = True):
@@ -171,7 +199,7 @@ class WindowWrapper(object):
 		centralWidget.setLayout(self._superLayout)
 		centralWidget.setContentsMargins(0, 0, 0, 0)
 
-		self._window = QtGui.QMainWindow(parent)
+		self._window = qui_utils.QSignalingMainWindow(parent)
 		self._window.setAttribute(QtCore.Qt.WA_DeleteOnClose, True)
 		qui_utils.set_stackable(self._window, True)
 		self._window.setCentralWidget(centralWidget)
@@ -191,6 +219,28 @@ class WindowWrapper(object):
 	def window(self):
 		return self._window
 
+	@property
+	def windowOrientation(self):
+		geom = self._window.size()
+		if geom.width() <= geom.height():
+			return QtCore.Qt.Vertical
+		else:
+			return QtCore.Qt.Horizontal
+
+	@property
+	def idealWindowOrientation(self):
+		if self._app.orientation ==  self._app.AUTO_ORIENTATION:
+			windowOrientation = self.windowOrientation
+		elif self._app.orientation ==  self._app.DEFAULT_ORIENTATION:
+			windowOrientation = qui_utils.screen_orientation()
+		elif self._app.orientation ==  self._app.LANDSCAPE_ORIENTATION:
+			windowOrientation = QtCore.Qt.Horizontal
+		elif self._app.orientation ==  self._app.PORTRAIT_ORIENTATION:
+			windowOrientation = QtCore.Qt.Vertical
+		else:
+			raise RuntimeError("Bad! No %r for you" % self._app.orientation)
+		return windowOrientation
+
 	def walk_children(self):
 		return ()
 
@@ -207,10 +257,10 @@ class WindowWrapper(object):
 		pass
 
 	def show(self):
-		self.set_fullscreen(self._app.fullscreenAction.isChecked())
 		self._window.show()
 		for child in self.walk_children():
 			child.show()
+		self.set_fullscreen(self._app.fullscreenAction.isChecked())
 
 	def hide(self):
 		for child in self.walk_children():
@@ -218,23 +268,34 @@ class WindowWrapper(object):
 		self._window.hide()
 
 	def set_fullscreen(self, isFullscreen):
-		if isFullscreen:
-			self._window.showFullScreen()
-		else:
-			self._window.showNormal()
+		if self._window.isVisible():
+			if isFullscreen:
+				self._window.showFullScreen()
+			else:
+				self._window.showNormal()
 		for child in self.walk_children():
 			child.set_fullscreen(isFullscreen)
 
-	def set_orientation(self, isPortrait):
-		if isPortrait:
+	def update_orientation(self, orientation):
+		if orientation == self._app.DEFAULT_ORIENTATION:
+			qui_utils.set_autorient(self.window, False)
+			qui_utils.set_window_orientation(self.window, None)
+		elif orientation == self._app.AUTO_ORIENTATION:
+			qui_utils.set_autorient(self.window, True)
+			qui_utils.set_window_orientation(self.window, None)
+		elif orientation == self._app.LANDSCAPE_ORIENTATION:
+			qui_utils.set_autorient(self.window, False)
+			qui_utils.set_window_orientation(self.window, QtCore.Qt.Horizontal)
+		elif orientation == self._app.PORTRAIT_ORIENTATION:
+			qui_utils.set_autorient(self.window, False)
 			qui_utils.set_window_orientation(self.window, QtCore.Qt.Vertical)
 		else:
-			qui_utils.set_window_orientation(self.window, QtCore.Qt.Horizontal)
+			raise RuntimeError("Unknown orientation: %r" % orientation)
 		for child in self.walk_children():
-			child.set_orientation(isPortrait)
+			child.update_orientation(orientation)
 
 	@misc_utils.log_exception(_moduleLogger)
-	def _on_child_close(self):
+	def _on_child_close(self, obj = None):
 		raise NotImplementedError("Booh")
 
 	@misc_utils.log_exception(_moduleLogger)
