@@ -4,11 +4,9 @@ import os
 import operator
 import math
 
-import operation
+from ejpi import operation
+from ejpi import plugin_utils
 
-import sys
-sys.path.append("../")
-import plugin_utils
 
 _NAME = "Builtins"
 _ICON = "builtins.png"

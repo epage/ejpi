@@ -1,8 +1,10 @@
 [Desktop Entry]
-Encoding=UTF-8
-Version=1.0
-Type=Application
 Name=ejpi
+Comment=RPN Calculator
 Exec=/usr/bin/run-standalone.sh /opt/ejpi/bin/ejpi.py
 Icon=ejpi
 Categories=Engineering;Science;Education;Utility;Qt;
+Type=Application
+Encoding=UTF-8
+Version=1.0
+X-Osso-Type=application/x-executable

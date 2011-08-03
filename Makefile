@@ -1,11 +1,12 @@
 PROJECT_NAME=ejpi
-SOURCE_PATH=src
+PACKAGE_NAME=$(PROJECT_NAME)
+SOURCE_PATH=$(PACKAGE_NAME)
 SOURCE=$(shell find $(SOURCE_PATH) -iname "*.py")
-PROGRAM=$(SOURCE_PATH)/$(PROJECT_NAME).py
-DATA_TYPES=*.ini *.png
-DATA=$(foreach type, $(DATA_TYPES), $(shell find $(SOURCE_PATH) -iname "$(type)"))
+PROGRAM=$(PROJECT_NAME)
 OBJ=$(SOURCE:.py=.pyc)
-BUILD_PATH=./build
+DIST_BASE_PATH=./dist
+ICON_SIZES=22 28 32 48
+ICONS=$(foreach size, $(ICON_SIZES), data/icons/$(size)/$(PROJECT_NAME).png)
 TAG_FILE=~/.ctags/$(PROJECT_NAME).tags
 TODO_FILE=./TODO
 
@@ -25,7 +26,7 @@ CTAGS=ctags-exuberant
 all: test
 
 run: $(OBJ)
-	$(SOURCE_PATH)/$(PROJECT_NAME).py
+	$(PROGRAM)
 
 profile: $(OBJ)
 	$(PROFILE_GEN) $(PROGRAM)
@@ -37,36 +38,22 @@ debug: $(OBJ)
 test: $(OBJ)
 	$(UNIT_TEST)
 
-package: $(OBJ)
-	rm -Rf $(BUILD_PATH)
+setup.fremantle.py: setup.py
+	cog.py -D desktopFilePath=/usr/share/applications/hildon -o ./setup.fremantle.py ./setup.py
+	chmod +x ./setup.fremantle.py
 
-	mkdir -p $(BUILD_PATH)/generic
-	cp $(SOURCE_PATH)/constants.py  $(BUILD_PATH)/generic
-	cp $(SOURCE_PATH)/$(PROJECT_NAME).py  $(BUILD_PATH)/generic
-	$(foreach file, $(DATA), cp $(file) $(BUILD_PATH)/generic/$(subst /,-,$(file)) ; )
-	$(foreach file, $(SOURCE), cp $(file) $(BUILD_PATH)/generic/$(subst /,-,$(file)) ; )
-	cp support/$(PROJECT_NAME).desktop $(BUILD_PATH)/generic
-	cp support/icons/26.png $(BUILD_PATH)/generic/26x26-$(PROJECT_NAME).png
-	cp support/icons/64.png $(BUILD_PATH)/generic/64x64-$(PROJECT_NAME).png
-	cp support/icons/scalable.png $(BUILD_PATH)/generic/scale-$(PROJECT_NAME).png
-	cp support/builddeb.py $(BUILD_PATH)/generic
-	cp support/py2deb.py $(BUILD_PATH)/generic
-	cp support/fake_py2deb.py $(BUILD_PATH)/generic
+setup.harmattan.py: setup.py
+	cog.py -D desktopFilePath=/usr/share/applications -o ./setup.harmattan.py ./setup.py
+	chmod +x ./setup.harmattan.py
 
-	mkdir -p $(BUILD_PATH)/diablo
-	cp -R $(BUILD_PATH)/generic/* $(BUILD_PATH)/diablo
-	cd $(BUILD_PATH)/diablo ; python builddeb.py diablo
-	mkdir -p $(BUILD_PATH)/fremantle
-	cp -R $(BUILD_PATH)/generic/* $(BUILD_PATH)/fremantle
-	cd $(BUILD_PATH)/fremantle ; python builddeb.py fremantle
-	mkdir -p $(BUILD_PATH)/debian
-	cp -R $(BUILD_PATH)/generic/* $(BUILD_PATH)/debian
-	cd $(BUILD_PATH)/debian ; python builddeb.py debian
+package: $(OBJ) $(ICONS) setup.harmattan.py setup.fremantle.py
+	./setup.fremantle.py sdist_diablo -d $(DIST_BASE_PATH)_diablo
+	./setup.fremantle.py sdist_fremantle -d $(DIST_BASE_PATH)_fremantle
+	./setup.harmattan.py sdist_harmattan -d $(DIST_BASE_PATH)_harmattan
 
 upload:
-	dput fremantle-extras-builder $(BUILD_PATH)/fremantle/$(PROJECT_NAME)*.changes
-	dput diablo-extras-builder $(BUILD_PATH)/diablo/$(PROJECT_NAME)*.changes
-	cp $(BUILD_PATH)/debian/*.deb ./www/$(PROJECT_NAME).deb
+	dput diablo-extras-builder $(DIST_BASE_PATH)_diablo/$(PROJECT_NAME)*.changes
+	dput fremantle-extras-builder $(DIST_BASE_PATH)_fremantle/$(PROJECT_NAME)*.changes
 
 lint: $(OBJ)
 	$(foreach file, $(SOURCE), $(LINT) $(file) ; )
@@ -77,17 +64,22 @@ todo: $(TODO_FILE)
 
 clean:
 	rm -Rf $(OBJ)
-	rm -Rf $(BUILD_PATH)
+	rm -f $(ICONS)
 	rm -Rf $(TODO_FILE)
+	rm -f setup.harmattan.py setup.fremantle.py
+	rm -Rf $(DIST_BASE_PATH)_diablo build
+	rm -Rf $(DIST_BASE_PATH)_fremantle build
+	rm -Rf $(DIST_BASE_PATH)_harmattan build
 
-distclean:
-	rm -Rf $(OBJ)
-	rm -Rf $(BUILD_PATH)
-	rm -Rf $(TAG_FILE)
+distclean: clean
 	find $(SOURCE_PATH) -name "*.*~" | xargs rm -f
 	find $(SOURCE_PATH) -name "*.swp" | xargs rm -f
 	find $(SOURCE_PATH) -name "*.bak" | xargs rm -f
 	find $(SOURCE_PATH) -name ".*.swp" | xargs rm -f
+
+$(ICONS): data/$(PROJECT_NAME).png support/scale.py
+	mkdir -p $(dir $(ICONS))
+	$(foreach size, $(ICON_SIZES), support/scale.py --input data/$(PROJECT_NAME).png --output data/icons/$(size)/$(PROJECT_NAME).png --size $(size) ; )
 
 $(TAG_FILE): $(OBJ)
 	mkdir -p $(dir $(TAG_FILE))

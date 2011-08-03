@@ -2,9 +2,7 @@ from __future__ import division
 
 import os
 
-import sys
-sys.path.append("../")
-import plugin_utils
+from ejpi import plugin_utils
 
 
 _NAME = "Entry"

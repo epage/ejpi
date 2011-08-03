@@ -4,11 +4,8 @@ import os
 import math
 import cmath
 
-import operation
-
-import sys
-sys.path.append("../")
-import plugin_utils
+from ejpi import operation
+from ejpi import plugin_utils
 
 
 _NAME = "Trigonometry"
