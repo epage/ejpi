@@ -3,8 +3,10 @@
 from __future__ import with_statement
 from __future__ import division
 
-from PIL import Image
+import os
 import logging
+
+from PIL import Image
 
 
 _moduleLogger = logging.getLogger(__name__)
@@ -30,6 +32,15 @@ def main(args):
 		parser.error("No positional arguments supported")
 	if None in [options.input, options.output, options.size]:
 		parser.error("Missing argument")
+	if options.size == "guess":
+		parts = reversed(os.path.split(options.output))
+		for part in parts:
+			try:
+				options.size = int(part)
+				_moduleLogger.info("Assuming image size of %r" % options.size)
+				break
+			except ValueError:
+				pass
 
 	icon = Image.open(options.input)
 	icon.thumbnail((options.size, options.size), Image.ANTIALIAS)

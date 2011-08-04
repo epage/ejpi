@@ -1,12 +1,19 @@
 PROJECT_NAME=ejpi
 PACKAGE_NAME=$(PROJECT_NAME)
+
 SOURCE_PATH=$(PACKAGE_NAME)
 SOURCE=$(shell find $(SOURCE_PATH) -iname "*.py")
-PROGRAM=$(PROJECT_NAME)
-OBJ=$(SOURCE:.py=.pyc)
+
+PROGRAM=$(PROJECT_NAME)-calc
 DIST_BASE_PATH=./dist
-ICON_SIZES=22 28 32 48
+ICON_SIZES=22 28 32 48 80
 ICONS=$(foreach size, $(ICON_SIZES), data/icons/$(size)/$(PROJECT_NAME).png)
+PACKAGE_VARIANTS=fremantle harmattan ubuntu
+DESKTOP_FILES=$(foreach variant, $(PACKAGE_VARIANTS), data/$(variant)/$(PROJECT_NAME).desktop)
+SETUP_FILES=$(foreach variant, $(PACKAGE_VARIANTS), ./setup.$(variant).py)
+DIST_PATHS=$(foreach variant, $(PACKAGE_VARIANTS), $(DIST_BASE_PATH)_$(variant)) $(DIST_BASE_PATH)_diablo
+
+OBJ=$(SOURCE:.py=.pyc)
 TAG_FILE=~/.ctags/$(PROJECT_NAME).tags
 TODO_FILE=./TODO
 
@@ -20,6 +27,7 @@ PROFILE_GEN=python -m cProfile -o .profile
 PROFILE_VIEW=python -m pstats .profile
 TODO_FINDER=support/todo.py
 CTAGS=ctags-exuberant
+
 
 .PHONY: all run profile debug test build lint tags todo clean distclean
 
@@ -38,22 +46,20 @@ debug: $(OBJ)
 test: $(OBJ)
 	$(UNIT_TEST)
 
-setup.fremantle.py: setup.py
-	cog.py -D desktopFilePath=/usr/share/applications/hildon -o ./setup.fremantle.py ./setup.py
-	chmod +x ./setup.fremantle.py
-
-setup.harmattan.py: setup.py
-	cog.py -D desktopFilePath=/usr/share/applications -o ./setup.harmattan.py ./setup.py
-	chmod +x ./setup.harmattan.py
-
-package: $(OBJ) $(ICONS) setup.harmattan.py setup.fremantle.py
+package: $(OBJ) $(ICONS) $(SETUP_FILES) $(DESKTOP_FILES)
+	rm -Rf $(DIST_BASE_PATH)_*/*
 	./setup.fremantle.py sdist_diablo -d $(DIST_BASE_PATH)_diablo
 	./setup.fremantle.py sdist_fremantle -d $(DIST_BASE_PATH)_fremantle
 	./setup.harmattan.py sdist_harmattan -d $(DIST_BASE_PATH)_harmattan
+	./setup.ubuntu.py sdist_ubuntu -d $(DIST_BASE_PATH)_ubuntu
+	mkdir $(DIST_BASE_PATH)_ubuntu/build
+	cd $(DIST_BASE_PATH)_ubuntu/build ; tar -zxvf ../*.tar.gz
+	cd $(DIST_BASE_PATH)_ubuntu/build ; dpkg-buildpackage -tc -rfakeroot -us -uc
 
 upload:
 	dput diablo-extras-builder $(DIST_BASE_PATH)_diablo/$(PROJECT_NAME)*.changes
 	dput fremantle-extras-builder $(DIST_BASE_PATH)_fremantle/$(PROJECT_NAME)*.changes
+	cp $(DIST_BASE_PATH)_ubuntu/*.deb www/ejpi.deb
 
 lint: $(OBJ)
 	$(foreach file, $(SOURCE), $(LINT) $(file) ; )
@@ -64,12 +70,9 @@ todo: $(TODO_FILE)
 
 clean:
 	rm -Rf $(OBJ)
-	rm -f $(ICONS)
 	rm -Rf $(TODO_FILE)
-	rm -f setup.harmattan.py setup.fremantle.py
-	rm -Rf $(DIST_BASE_PATH)_diablo build
-	rm -Rf $(DIST_BASE_PATH)_fremantle build
-	rm -Rf $(DIST_BASE_PATH)_harmattan build
+	rm -f $(ICONS) $(SETUP_FILES) $(DESKTOP_FILES)
+	rm -Rf $(DIST_PATHS)
 
 distclean: clean
 	find $(SOURCE_PATH) -name "*.*~" | xargs rm -f
@@ -77,9 +80,43 @@ distclean: clean
 	find $(SOURCE_PATH) -name "*.bak" | xargs rm -f
 	find $(SOURCE_PATH) -name ".*.swp" | xargs rm -f
 
+
+$(SETUP_FILES): VARIANT=$(word 2, $(subst ., ,$@))
+
+setup.fremantle.py: setup.py src/constants.py
+	cog.py -c \
+		-D DESKTOP_FILE_PATH==/usr/share/applications/hildon \
+		-D INPUT_DESKTOP_FILE=data/$(VARIANT)/$(PROJECT_NAME).desktop \
+		-o $@ $<
+	chmod +x $@
+
+setup.harmattan.py: setup.py src/constants.py
+	cog.py -c \
+		-D DESKTOP_FILE_PATH=/usr/share/applications \
+		-D INPUT_DESKTOP_FILE=data/$(VARIANT)/$(PROJECT_NAME).desktop \
+		-o $@ $<
+	chmod +x $@
+
+setup.ubuntu.py: setup.py src/constants.py
+	cog.py -c \
+		-D DESKTOP_FILE_PATH=/usr/share/applications \
+		-D INPUT_DESKTOP_FILE=data/$(VARIANT)/$(PROJECT_NAME).desktop \
+		-o $@ $<
+	chmod +x $@
+
+$(ICONS): SIZE=$(word 3, $(subst /, ,$@))
 $(ICONS): data/$(PROJECT_NAME).png support/scale.py
-	mkdir -p $(dir $(ICONS))
-	$(foreach size, $(ICON_SIZES), support/scale.py --input data/$(PROJECT_NAME).png --output data/icons/$(size)/$(PROJECT_NAME).png --size $(size) ; )
+	mkdir -p $(dir $@)
+	support/scale.py --input $< --output $@ --size $(SIZE)
+
+$(DESKTOP_FILES): VARIANT=$(word 2, $(subst /, ,$@))
+$(DESKTOP_FILES): data/template.desktop
+	mkdir -p $(dir $@)
+	cog.py -c \
+		-D VARIANT=$(VARIANT) \
+		-D PROGRAM=$(PROGRAM) \
+		-o $@ $<
+
 
 $(TAG_FILE): $(OBJ)
 	mkdir -p $(dir $(TAG_FILE))

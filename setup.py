@@ -13,7 +13,29 @@ except ImportError:
 	print 'sdist_maemo command not available'
 
 from distutils.core import setup
-from ejpi import constants
+
+
+#[[[cog
+#	import cog
+#	from ejpi import constants
+#	cog.outl('APP_NAME="%s"' % constants.__app_name__)
+#	cog.outl('PRETTY_APP_NAME="%s"' % constants.__pretty_app_name__)
+#	cog.outl('VERSION="%s"' % constants.__version__)
+#	cog.outl('BUILD="%s"' % constants.__build__)
+#	cog.outl('DESKTOP_FILE_PATH="%s"' % DESKTOP_FILE_PATH)
+#	cog.outl('INPUT_DESKTOP_FILE="%s"' % INPUT_DESKTOP_FILE)
+#]]]
+APP_NAME="ejpi"
+PRETTY_APP_NAME="e**(j pi) + 1 = 0"
+VERSION="0.1.0"
+BUILD=0
+DESKTOP_FILE_PATH="/usr/share/applications"
+INPUT_DESKTOP_FILE="data/harmattan/ejpi.desktop"
+#[[[end]]]
+
+CHANGES = """
+"""
+BUGTRACKER_URL = "https://bugs.maemo.org/enter_bug.cgi?product=ejpi"
 
 
 def is_package(path):
@@ -42,13 +64,9 @@ def find_packages(path, base="", includeRoot=False):
 				yield mname
 
 
-changes = ""
-icon = "data/%s.png" % constants.__app_name__
-
-
 setup(
-	name=constants.__app_name__,
-	version=constants.__version__,
+	name=APP_NAME,
+	version=VERSION,
 	description="RPN calculator designed for touchscreens",
 	long_description="RPN calculator designed for touchscreens",
 	author="Ed Page",
@@ -60,77 +78,79 @@ setup(
 	scripts=[
 		"ejpi-calc",
 	],
-	packages=list(find_packages(constants.__app_name__, includeRoot=True)),
+	packages=list(find_packages(APP_NAME, includeRoot=True)),
 	data_files=[
-		#[[[cog
-		#	import cog
-		#	cog.outl('		("%s", ["data/%%s.desktop" %% constants.__app_name__]),' % desktopFilePath)
-		#]]]
-		("/usr/share/applications", ["data/%s.desktop" % constants.__app_name__]),
-		#[[[end]]]
-		("/usr/share/icons/hicolor/22x22/apps", ["data/icons/22/%s.png" % constants.__app_name__]),
-		("/usr/share/icons/hicolor/28x28/apps", ["data/icons/28/%s.png" % constants.__app_name__]),
-		("/usr/share/icons/hicolor/32x32/apps", ["data/icons/32/%s.png" % constants.__app_name__]),
-		("/usr/share/icons/hicolor/48x48/apps", ["data/icons/48/%s.png" % constants.__app_name__]),
-		("/usr/share/icons/hicolor/scalable/apps", ["data/%s.svg" % constants.__app_name__]),
+		(DESKTOP_FILE_PATH, [INPUT_DESKTOP_FILE]),
+		("/usr/share/icons/hicolor/22x22/apps", ["data/icons/22/%s.png" % APP_NAME]),
+		("/usr/share/icons/hicolor/28x28/apps", ["data/icons/28/%s.png" % APP_NAME]),
+		("/usr/share/icons/hicolor/32x32/apps", ["data/icons/32/%s.png" % APP_NAME]),
+		("/usr/share/icons/hicolor/48x48/apps", ["data/icons/48/%s.png" % APP_NAME]),
+		("/usr/share/icons/hicolor/80x80/apps", ["data/icons/80/%s.png" % APP_NAME]),
+		("/usr/share/icons/hicolor/scalable/apps", ["data/%s.svg" % APP_NAME]),
 	],
 	requires=[
 		"PySide",
 	],
 	cmdclass={
+		'sdist_ubuntu': sdist_maemo,
 		'sdist_diablo': sdist_maemo,
 		'sdist_fremantle': sdist_maemo,
 		'sdist_harmattan': sdist_maemo,
 	},
 	options={
+		"sdist_ubuntu": {
+			"debian_package": APP_NAME,
+			"section": "math",
+			"copyright": "lgpl",
+			"changelog": CHANGES,
+			"buildversion": str(BUILD),
+			"depends": "python, python-pyside.qtcore, python-pyside.qtgui",
+			"architecture": "any",
+		},
 		"sdist_diablo": {
-			"debian_package": constants.__app_name__,
-			"Maemo_Display_Name": constants.__pretty_app_name__,
-			#"Maemo_Upgrade_Description": changes,
-			"Maemo_Bugtracker": "https://bugs.maemo.org/enter_bug.cgi?product=ejpi",
-			"Maemo_Icon_26": "data/icons/48/%s.png" % constants.__app_name__,
-			"MeeGo_Desktop_Entry_Filename": constants.__app_name__,
-			#"MeeGo_Desktop_Entry": "",
+			"debian_package": APP_NAME,
+			"Maemo_Display_Name": PRETTY_APP_NAME,
+			#"Maemo_Upgrade_Description": CHANGES,
+			"Maemo_Bugtracker": BUGTRACKER_URL,
+			"Maemo_Icon_26": "data/icons/26/%s.png" % APP_NAME,
 			"section": "user/science",
 			"copyright": "lgpl",
-			"changelog": changes,
-			"buildversion": str(constants.__build__),
+			"changelog": CHANGES,
+			"buildversion": str(BUILD),
 			"depends": "python, python-qt4-core, python-qt4-gui",
 			"architecture": "any",
 		},
 		"sdist_fremantle": {
-			"debian_package": constants.__app_name__,
-			"Maemo_Display_Name": constants.__pretty_app_name__,
-			#"Maemo_Upgrade_Description": changes,
-			"Maemo_Bugtracker": "https://bugs.maemo.org/enter_bug.cgi?product=ejpi",
-			"Maemo_Icon_26": "data/icons/48/%s.png" % constants.__app_name__,
-			"MeeGo_Desktop_Entry_Filename": constants.__app_name__,
-			#"MeeGo_Desktop_Entry": "",
+			"debian_package": APP_NAME,
+			"Maemo_Display_Name": PRETTY_APP_NAME,
+			#"Maemo_Upgrade_Description": CHANGES,
+			"Maemo_Bugtracker": BUGTRACKER_URL,
+			"Maemo_Icon_26": "data/icons/48/%s.png" % APP_NAME,
 			"section": "user/science",
 			"copyright": "lgpl",
-			"changelog": changes,
-			"buildversion": str(constants.__build__),
+			"changelog": CHANGES,
+			"buildversion": str(BUILD),
 			"depends": "python, python-pyside.qtcore, python-pyside.qtgui, python-pyside.maemo5",
 			"architecture": "any",
 		},
 		"sdist_harmattan": {
-			"debian_package": constants.__app_name__,
-			"Maemo_Display_Name": constants.__pretty_app_name__,
-			#"Maemo_Upgrade_Description": changes,
-			"Maemo_Bugtracker": "https://bugs.maemo.org/enter_bug.cgi?product=ejpi",
-			"Maemo_Icon_26": "data/icons/26/%s.png" % constants.__app_name__,
-			"MeeGo_Desktop_Entry_Filename": constants.__app_name__,
+			"debian_package": APP_NAME,
+			"Maemo_Display_Name": PRETTY_APP_NAME,
+			#"Maemo_Upgrade_Description": CHANGES,
+			"Maemo_Bugtracker": BUGTRACKER_URL,
+			"Maemo_Icon_26": "data/icons/48/%s.png" % APP_NAME,
+			"MeeGo_Desktop_Entry_Filename": APP_NAME,
 			#"MeeGo_Desktop_Entry": "",
 			"section": "user/science",
 			"copyright": "lgpl",
-			"changelog": changes,
-			"buildversion": str(constants.__build__),
+			"changelog": CHANGES,
+			"buildversion": str(BUILD),
 			"depends": "python, python-pyside.qtcore, python-pyside.qtgui",
 			"architecture": "any",
 		},
 		"bdist_rpm": {
 			"requires": "REPLACEME",
-			"icon": icon,
+			"icon": "data/icons/48/%s.png" % APP_NAME,
 			"group": "REPLACEME",
 		},
 	},

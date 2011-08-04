@@ -1,0 +1,22 @@
+[Desktop Entry]
+Name=ejpi
+GenericName=Calculator
+Comment=RPN Calculator
+#[[[cog
+#	if VARIANT == "fremantle":
+#		cog.outl("Exec=/usr/bin/run-standalone.sh /usr/bin/%s" % PROGRAM)
+#	elif VARIANT == "harmattan":
+#		cog.outl("Exec=/usr/bin/invoker --single-instance --type=e /usr/bin/%s" % PROGRAM)
+#	elif VARIANT == "ubuntu":
+#		cog.outl("Exec=/usr/bin/%s" % PROGRAM)
+#	else:
+#		raise RuntimeError("Unsupported desktop file flavor %r" % PROGRAM)
+#]]]
+Exec=/usr/bin/run-standalone.sh /opt/ejpi/bin/ejpi.py
+#[[[end]]]
+Icon=ejpi
+Categories=Engineering;Science;Education;Utility;Qt;
+Type=Application
+Encoding=UTF-8
+Version=1.0
+X-Osso-Type=application/x-executable
