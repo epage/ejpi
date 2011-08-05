@@ -33,8 +33,8 @@ DESKTOP_FILE_PATH="/usr/share/applications"
 INPUT_DESKTOP_FILE="data/harmattan/ejpi.desktop"
 #[[[end]]]
 
-CHANGES = """
-"""
+CHANGES = """Switching from py2deb.py to sdist_maemo
+""".strip()
 BUGTRACKER_URL = "https://bugs.maemo.org/enter_bug.cgi?product=ejpi"
 
 
