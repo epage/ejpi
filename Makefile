@@ -85,7 +85,7 @@ $(SETUP_FILES): VARIANT=$(word 2, $(subst ., ,$@))
 
 setup.fremantle.py: setup.py src/constants.py
 	cog.py -c \
-		-D DESKTOP_FILE_PATH==/usr/share/applications/hildon \
+		-D DESKTOP_FILE_PATH=/usr/share/applications/hildon \
 		-D INPUT_DESKTOP_FILE=data/$(VARIANT)/$(PROJECT_NAME).desktop \
 		-o $@ $<
 	chmod +x $@
