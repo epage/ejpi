@@ -6,7 +6,7 @@ SOURCE=$(shell find $(SOURCE_PATH) -iname "*.py")
 
 PROGRAM=$(PROJECT_NAME)-calc
 DIST_BASE_PATH=./dist
-ICON_SIZES=22 28 32 48 80
+ICON_SIZES=26 32 48 80
 ICONS=$(foreach size, $(ICON_SIZES), data/icons/$(size)/$(PROJECT_NAME).png)
 PACKAGE_VARIANTS=fremantle harmattan ubuntu
 DESKTOP_FILES=$(foreach variant, $(PACKAGE_VARIANTS), data/$(variant)/$(PROJECT_NAME).desktop)
@@ -94,6 +94,7 @@ setup.fremantle.py: setup.py src/constants.py
 	cog.py -c \
 		-D DESKTOP_FILE_PATH=/usr/share/applications/hildon \
 		-D INPUT_DESKTOP_FILE=data/$(VARIANT)/$(PROJECT_NAME).desktop \
+		-D ICON_CATEGORY=hildon \
 		-o $@ $<
 	chmod +x $@
 
@@ -101,6 +102,7 @@ setup.harmattan.py: setup.py src/constants.py
 	cog.py -c \
 		-D DESKTOP_FILE_PATH=/usr/share/applications \
 		-D INPUT_DESKTOP_FILE=data/$(VARIANT)/$(PROJECT_NAME).desktop \
+		-D ICON_CATEGORY=hildon \
 		-o $@ $<
 	chmod +x $@
 
@@ -108,6 +110,7 @@ setup.ubuntu.py: setup.py src/constants.py
 	cog.py -c \
 		-D DESKTOP_FILE_PATH=/usr/share/applications \
 		-D INPUT_DESKTOP_FILE=data/$(VARIANT)/$(PROJECT_NAME).desktop \
+		-D ICON_CATEGORY=apps \
 		-o $@ $<
 	chmod +x $@
 

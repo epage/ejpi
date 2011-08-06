@@ -24,6 +24,7 @@ from distutils.core import setup
 #	cog.outl('BUILD="%s"' % constants.__build__)
 #	cog.outl('DESKTOP_FILE_PATH="%s"' % DESKTOP_FILE_PATH)
 #	cog.outl('INPUT_DESKTOP_FILE="%s"' % INPUT_DESKTOP_FILE)
+#	cog.outl('ICON_CATEGORY="%s"' % ICON_CATEGORY)
 #]]]
 APP_NAME="ejpi"
 PRETTY_APP_NAME="e**(j pi) + 1 = 0"
@@ -31,6 +32,7 @@ VERSION="0.1.0"
 BUILD=0
 DESKTOP_FILE_PATH="/usr/share/applications"
 INPUT_DESKTOP_FILE="data/harmattan/ejpi.desktop"
+ICON_CATEGORY="hildon"
 #[[[end]]]
 
 CHANGES = """Switching from py2deb.py to sdist_maemo
@@ -84,12 +86,11 @@ setup(
 	},
 	data_files=[
 		(DESKTOP_FILE_PATH, [INPUT_DESKTOP_FILE]),
-		("/usr/share/icons/hicolor/22x22/apps", ["data/icons/22/%s.png" % APP_NAME]),
-		("/usr/share/icons/hicolor/28x28/apps", ["data/icons/28/%s.png" % APP_NAME]),
-		("/usr/share/icons/hicolor/32x32/apps", ["data/icons/32/%s.png" % APP_NAME]),
-		("/usr/share/icons/hicolor/48x48/apps", ["data/icons/48/%s.png" % APP_NAME]),
-		("/usr/share/icons/hicolor/80x80/apps", ["data/icons/80/%s.png" % APP_NAME]),
-		("/usr/share/icons/hicolor/scalable/apps", ["data/%s.svg" % APP_NAME]),
+		("/usr/share/icons/hicolor/26x26/%s" % ICON_CATEGORY, ["data/icons/26/%s.png" % APP_NAME]),
+		("/usr/share/icons/hicolor/32x32/%s" % ICON_CATEGORY, ["data/icons/32/%s.png" % APP_NAME]),
+		("/usr/share/icons/hicolor/48x48/%s" % ICON_CATEGORY, ["data/icons/48/%s.png" % APP_NAME]),
+		("/usr/share/icons/hicolor/80x80/%s" % ICON_CATEGORY, ["data/icons/80/%s.png" % APP_NAME]),
+		("/usr/share/icons/hicolor/scalable/%s" % ICON_CATEGORY, ["data/%s.svg" % APP_NAME]),
 	],
 	requires=[
 		"PySide",
