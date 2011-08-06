@@ -79,6 +79,9 @@ setup(
 		"ejpi-calc",
 	],
 	packages=list(find_packages(APP_NAME, includeRoot=True)),
+	package_data={
+		"plugins": "*.ini"
+	},
 	data_files=[
 		(DESKTOP_FILE_PATH, [INPUT_DESKTOP_FILE]),
 		("/usr/share/icons/hicolor/22x22/apps", ["data/icons/22/%s.png" % APP_NAME]),
