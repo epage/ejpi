@@ -4,11 +4,11 @@ GenericName=Calculator
 Comment=RPN Calculator
 #[[[cog
 #	if VARIANT == "fremantle":
-#		cog.outl("Exec=/usr/bin/run-standalone.sh /usr/bin/%s" % PROGRAM)
+#		cog.outl("Exec=/usr/bin/run-standalone.sh /usr/local/bin/%s" % PROGRAM)
 #	elif VARIANT == "harmattan":
-#		cog.outl("Exec=/usr/bin/invoker --single-instance --type=e /usr/bin/%s" % PROGRAM)
+#		cog.outl("Exec=/usr/bin/invoker --single-instance --type=e /usr/local/bin/%s" % PROGRAM)
 #	elif VARIANT == "ubuntu":
-#		cog.outl("Exec=/usr/bin/%s" % PROGRAM)
+#		cog.outl("Exec=/usr/local/bin/%s" % PROGRAM)
 #	else:
 #		raise RuntimeError("Unsupported desktop file flavor %r" % PROGRAM)
 #]]]
