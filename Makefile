@@ -48,10 +48,17 @@ test: $(OBJ)
 
 package: $(OBJ) $(ICONS) $(SETUP_FILES) $(DESKTOP_FILES)
 	rm -Rf $(DIST_BASE_PATH)_*/*
-	./setup.fremantle.py sdist_diablo -d $(DIST_BASE_PATH)_diablo
-	./setup.fremantle.py sdist_fremantle -d $(DIST_BASE_PATH)_fremantle
-	./setup.harmattan.py sdist_harmattan -d $(DIST_BASE_PATH)_harmattan
-	./setup.ubuntu.py sdist_ubuntu -d $(DIST_BASE_PATH)_ubuntu
+	./setup.fremantle.py sdist_diablo \
+		-d $(DIST_BASE_PATH)_diablo \
+		--install-purelib=/usr/lib/python2.5/site-packages
+	./setup.fremantle.py sdist_fremantle \
+		-d $(DIST_BASE_PATH)_fremantle \
+		--install-purelib=/usr/lib/python2.5/site-packages
+	./setup.harmattan.py sdist_harmattan \
+		-d $(DIST_BASE_PATH)_harmattan
+		--install-purelib=/usr/lib/python2.6/dist-packages
+	./setup.ubuntu.py sdist_ubuntu \
+		-d $(DIST_BASE_PATH)_ubuntu
 	mkdir $(DIST_BASE_PATH)_ubuntu/build
 	cd $(DIST_BASE_PATH)_ubuntu/build ; tar -zxvf ../*.tar.gz
 	cd $(DIST_BASE_PATH)_ubuntu/build ; dpkg-buildpackage -tc -rfakeroot -us -uc
