@@ -119,7 +119,7 @@ $(ICONS): data/$(PROJECT_NAME).png support/scale.py
 $(DESKTOP_FILES): VARIANT=$(word 2, $(subst /, ,$@))
 $(DESKTOP_FILES): data/template.desktop
 	mkdir -p $(dir $@)
-	cog.py -c \
+	cog.py -d \
 		-D VARIANT=$(VARIANT) \
 		-D PROGRAM=$(PROGRAM) \
 		-o $@ $<
