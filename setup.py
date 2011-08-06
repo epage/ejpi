@@ -82,7 +82,7 @@ setup(
 	],
 	packages=list(find_packages(APP_NAME, includeRoot=True)),
 	package_data={
-		"plugins": "*.ini"
+		"ejpi.plugins": ["*.ini"],
 	},
 	data_files=[
 		(DESKTOP_FILE_PATH, [INPUT_DESKTOP_FILE]),
