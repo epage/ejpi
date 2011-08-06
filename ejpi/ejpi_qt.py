@@ -178,7 +178,7 @@ class MainWindow(qwrappers.WindowWrapper):
 				pluginId = self._constantPlugins.lookup_plugin(pluginName)
 				self._constantPlugins.enable_plugin(pluginId)
 			except:
-				_moduleLogger.info("Failed to load plugin %s" % pluginName)
+				_moduleLogger.exception("Failed to load plugin %s" % pluginName)
 
 		self._operatorPlugins = plugin_utils.OperatorPluginManager()
 		self._operatorPlugins.add_path(*self._plugin_search_paths)
@@ -187,7 +187,7 @@ class MainWindow(qwrappers.WindowWrapper):
 				pluginId = self._operatorPlugins.lookup_plugin(pluginName)
 				self._operatorPlugins.enable_plugin(pluginId)
 			except:
-				_moduleLogger.info("Failed to load plugin %s" % pluginName)
+				_moduleLogger.exception("Failed to load plugin %s" % pluginName)
 
 		self._keyboardPlugins = plugin_utils.KeyboardPluginManager()
 		self._keyboardPlugins.add_path(*self._plugin_search_paths)
