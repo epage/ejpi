@@ -25,6 +25,7 @@ from distutils.core import setup
 #	cog.outl('DESKTOP_FILE_PATH="%s"' % DESKTOP_FILE_PATH)
 #	cog.outl('INPUT_DESKTOP_FILE="%s"' % INPUT_DESKTOP_FILE)
 #	cog.outl('ICON_CATEGORY="%s"' % ICON_CATEGORY)
+#	cog.outl('ICON_SIZES=[%s]' % ICON_SIZES)
 #]]]
 APP_NAME="ejpi"
 PRETTY_APP_NAME="e**(j pi) + 1 = 0"
@@ -33,6 +34,7 @@ BUILD=0
 DESKTOP_FILE_PATH="/usr/share/applications"
 INPUT_DESKTOP_FILE="data/harmattan/ejpi.desktop"
 ICON_CATEGORY="hildon"
+ICON_SIZES=[32,80]
 #[[[end]]]
 
 CHANGES = """Switching from py2deb.py to sdist_maemo
@@ -82,7 +84,7 @@ setup(
 	],
 	packages=list(find_packages(APP_NAME, includeRoot=True)),
 	package_data={
-		"ejpi.plugins": ["*.ini"],
+		"ejpi.plugins": ["*.ini", "images/*.png"],
 	},
 	data_files=[
 		(DESKTOP_FILE_PATH, [INPUT_DESKTOP_FILE]),
@@ -91,6 +93,13 @@ setup(
 		("/usr/share/icons/hicolor/48x48/%s" % ICON_CATEGORY, ["data/icons/48/%s.png" % APP_NAME]),
 		("/usr/share/icons/hicolor/80x80/%s" % ICON_CATEGORY, ["data/icons/80/%s.png" % APP_NAME]),
 		("/usr/share/icons/hicolor/scalable/%s" % ICON_CATEGORY, ["data/%s.svg" % APP_NAME]),
+	] +
+	[
+		(
+			"/usr/share/icons/hicolor/%sx%s/%s" % (size, size, ICON_CATEGORY),
+			["data/icons/%s/%s.png" % (size, APP_NAME)]
+		)
+		for size in ICON_SIZES
 	],
 	requires=[
 		"PySide",

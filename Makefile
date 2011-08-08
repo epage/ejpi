@@ -95,6 +95,7 @@ setup.fremantle.py: setup.py src/constants.py
 		-D DESKTOP_FILE_PATH=/usr/share/applications/hildon \
 		-D INPUT_DESKTOP_FILE=data/$(VARIANT)/$(PROJECT_NAME).desktop \
 		-D ICON_CATEGORY=hildon \
+		-D ICON_SIZES=26,32,48 \
 		-o $@ $<
 	chmod +x $@
 
@@ -103,6 +104,7 @@ setup.harmattan.py: setup.py src/constants.py
 		-D DESKTOP_FILE_PATH=/usr/share/applications \
 		-D INPUT_DESKTOP_FILE=data/$(VARIANT)/$(PROJECT_NAME).desktop \
 		-D ICON_CATEGORY=hildon \
+		-D ICON_SIZES=32,80 \
 		-o $@ $<
 	chmod +x $@
 
@@ -111,6 +113,7 @@ setup.ubuntu.py: setup.py src/constants.py
 		-D DESKTOP_FILE_PATH=/usr/share/applications \
 		-D INPUT_DESKTOP_FILE=data/$(VARIANT)/$(PROJECT_NAME).desktop \
 		-D ICON_CATEGORY=apps \
+		-D ICON_SIZES=32,48 \
 		-o $@ $<
 	chmod +x $@
 
