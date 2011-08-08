@@ -88,10 +88,6 @@ setup(
 	},
 	data_files=[
 		(DESKTOP_FILE_PATH, [INPUT_DESKTOP_FILE]),
-		("/usr/share/icons/hicolor/26x26/%s" % ICON_CATEGORY, ["data/icons/26/%s.png" % APP_NAME]),
-		("/usr/share/icons/hicolor/32x32/%s" % ICON_CATEGORY, ["data/icons/32/%s.png" % APP_NAME]),
-		("/usr/share/icons/hicolor/48x48/%s" % ICON_CATEGORY, ["data/icons/48/%s.png" % APP_NAME]),
-		("/usr/share/icons/hicolor/80x80/%s" % ICON_CATEGORY, ["data/icons/80/%s.png" % APP_NAME]),
 		("/usr/share/icons/hicolor/scalable/%s" % ICON_CATEGORY, ["data/%s.svg" % APP_NAME]),
 	] +
 	[
