@@ -5,12 +5,12 @@ SOURCE_PATH=$(PACKAGE_NAME)
 SOURCE=$(shell find $(SOURCE_PATH) -iname "*.py")
 
 PROGRAM=$(PROJECT_NAME)-calc
-DIST_BASE_PATH=./dist
 ICON_SIZES=26 32 48 80
 ICONS=$(foreach size, $(ICON_SIZES), data/icons/$(size)/$(PROJECT_NAME).png)
 PACKAGE_VARIANTS=fremantle harmattan ubuntu
 DESKTOP_FILES=$(foreach variant, $(PACKAGE_VARIANTS), data/$(variant)/$(PROJECT_NAME).desktop)
 SETUP_FILES=$(foreach variant, $(PACKAGE_VARIANTS), ./setup.$(variant).py)
+DIST_BASE_PATH=./dist
 DIST_PATHS=$(foreach variant, $(PACKAGE_VARIANTS), $(DIST_BASE_PATH)_$(variant)) $(DIST_BASE_PATH)_diablo
 
 OBJ=$(SOURCE:.py=.pyc)

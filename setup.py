@@ -88,7 +88,6 @@ setup(
 	},
 	data_files=[
 		(DESKTOP_FILE_PATH, [INPUT_DESKTOP_FILE]),
-		("/usr/share/icons/hicolor/scalable/%s" % ICON_CATEGORY, ["data/%s.svg" % APP_NAME]),
 	] +
 	[
 		(
