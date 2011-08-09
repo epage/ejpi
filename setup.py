@@ -29,13 +29,13 @@ from distutils.core import setup
 #]]]
 APP_NAME="ejpi"
 PRETTY_APP_NAME="e**(j pi) + 1 = 0"
-VERSION="0.1.0"
-BUILD=0
+VERSION="1.0.6"
+BUILD="9"
 DESKTOP_FILE_PATH="/usr/share/applications"
-INPUT_DESKTOP_FILE="data/harmattan/ejpi.desktop"
-ICON_CATEGORY="hildon"
-ICON_SIZES=[32,80]
-#[[[end]]]
+INPUT_DESKTOP_FILE="data/ubuntu/ejpi.desktop"
+ICON_CATEGORY="apps"
+ICON_SIZES=[32,48]
+#[[[end]]] (checksum: fb3742cf699ff6d0e1aab0ec61d503e7)
 
 CHANGES = """Switching from py2deb.py to sdist_maemo
 """.strip()
