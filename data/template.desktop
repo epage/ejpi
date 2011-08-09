@@ -12,7 +12,7 @@ Comment=RPN Calculator
 #	else:
 #		raise RuntimeError("Unsupported desktop file flavor %r" % PROGRAM)
 #]]]
-Exec=/usr/bin/run-standalone.sh /opt/ejpi/bin/ejpi.py
+Exec=/usr/local/bin/ejpi-calc
 #[[[end]]]
 Icon=ejpi
 Categories=Engineering;Science;Education;Utility;Qt;
