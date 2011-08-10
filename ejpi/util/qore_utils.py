@@ -236,23 +236,23 @@ class FileSystemModel(QtCore.QAbstractListModel):
 		self.setRoleNames(dict(enumerate(self.ALLINFOS)))
 		self._model.directoryLoaded.connect(self._on_directory_loaded)
 
-	childChanged = QtCore.Signal(QtCore.QObject)
+	childChanged = qt_compat.Signal(QtCore.QObject)
 
 	def _child(self):
 		assert self._child is not None
 		return self._child
 
-	child = QtCore.Property(QtCore.QObject, _child, notify=childChanged)
+	child = qt_compat.Property(QtCore.QObject, _child, notify=childChanged)
 
-	backendChanged = QtCore.Signal()
+	backendChanged = qt_compat.Signal()
 
 	def _parent(self):
 		finfo = self._model.fileInfo(self._rootIndex)
 		return finfo.fileName()
 
-	parent = QtCore.Property(str, _parent, notify=backendChanged)
+	parent = qt_compat.Property(str, _parent, notify=backendChanged)
 
-	@QtCore.Slot(str)
+	@qt_compat.Slot(str)
 	def browse_to(self, path):
 		if self._child is None:
 			self._child = FileSystemModel(self._model, path)
@@ -261,7 +261,7 @@ class FileSystemModel(QtCore.QAbstractListModel):
 		self.childChanged.emit()
 		return self._child
 
-	@QtCore.Slot(str)
+	@qt_compat.Slot(str)
 	def switch_to(self, path):
 		with scoped_model_reset(self):
 			self._path = path
@@ -360,7 +360,7 @@ def create_qobject(*classDef, **kwargs):
 			)
 
 		for key, value in classDef:
-			nfy = locals()['_nfy_'+key] = QtCore.Signal()
+			nfy = locals()['_nfy_'+key] = qt_compat.Signal()
 
 			def _get(key):
 				def f(self):
@@ -376,7 +376,7 @@ def create_qobject(*classDef, **kwargs):
 			setter = locals()['_set_'+key] = _set(key)
 			getter = locals()['_get_'+key] = _get(key)
 
-			locals()[key] = QtCore.Property(value, getter, setter, notify=nfy)
+			locals()[key] = qt_compat.Property(value, getter, setter, notify=nfy)
 		del nfy, _get, _set, getter, setter
 
 	return AutoQObject
