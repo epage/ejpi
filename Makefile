@@ -4,7 +4,7 @@ PACKAGE_NAME=$(PROJECT_NAME)
 SOURCE_PATH=$(PACKAGE_NAME)
 SOURCE=$(shell find $(SOURCE_PATH) -iname "*.py")
 
-PROGRAM=$(PROJECT_NAME)-calc
+PROGRAM=ejpi-calc
 ICON_SIZES=26 32 48 80
 ICONS=$(foreach size, $(ICON_SIZES), data/icons/$(size)/$(PROJECT_NAME).png)
 PACKAGE_VARIANTS=fremantle harmattan ubuntu
@@ -66,7 +66,7 @@ package: $(OBJ) $(ICONS) $(SETUP_FILES) $(DESKTOP_FILES)
 upload:
 	dput diablo-extras-builder $(DIST_BASE_PATH)_diablo/$(PROJECT_NAME)*.changes
 	dput fremantle-extras-builder $(DIST_BASE_PATH)_fremantle/$(PROJECT_NAME)*.changes
-	cp $(DIST_BASE_PATH)_ubuntu/*.deb www/ejpi.deb
+	cp $(DIST_BASE_PATH)_ubuntu/*.deb www/$(PROJECT_NAME).deb
 
 lint: $(OBJ)
 	$(foreach file, $(SOURCE), $(LINT) $(file) ; )
