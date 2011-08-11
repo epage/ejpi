@@ -98,6 +98,7 @@ setup(
 	],
 	requires=[
 		"PySide",
+		"pyxdg",
 	],
 	cmdclass={
 		'sdist_ubuntu': sdist_maemo,
@@ -112,7 +113,7 @@ setup(
 			"copyright": "lgpl",
 			"changelog": CHANGES,
 			"buildversion": str(BUILD),
-			"depends": "python, python-pyside.qtcore, python-pyside.qtgui",
+			"depends": "python, python-pyside.qtcore, python-pyside.qtgui, python-xdg",
 			"architecture": "any",
 		},
 		"sdist_diablo": {
@@ -125,7 +126,7 @@ setup(
 			"copyright": "lgpl",
 			"changelog": CHANGES,
 			"buildversion": str(BUILD),
-			"depends": "python2.5, python2.5-qt4-core, python2.5-qt4-gui",
+			"depends": "python2.5, python2.5-qt4-core, python2.5-qt4-gui, python-xdg",
 			"architecture": "any",
 		},
 		"sdist_fremantle": {
@@ -138,8 +139,8 @@ setup(
 			"copyright": "lgpl",
 			"changelog": CHANGES,
 			"buildversion": str(BUILD),
-			"depends": "python2.5, python2.5-qt4-core, python2.5-qt4-gui, python2.5-qt4-maemo5",
-			#"depends": "python, python-pyside.qtcore, python-pyside.qtgui, python-pyside.qtmaemo5",
+			"depends": "python2.5, python2.5-qt4-core, python2.5-qt4-gui, python2.5-qt4-maemo5, python-xdg",
+			#"depends": "python, python-pyside.qtcore, python-pyside.qtgui, python-pyside.qtmaemo5, python-xdg",
 			"architecture": "any",
 		},
 		"sdist_harmattan": {
@@ -154,7 +155,7 @@ setup(
 			"copyright": "lgpl",
 			"changelog": CHANGES,
 			"buildversion": str(BUILD),
-			"depends": "python, python-pyside.qtcore, python-pyside.qtgui",
+			"depends": "python, python-pyside.qtcore, python-pyside.qtgui, python-xdg",
 			"architecture": "any",
 		},
 		"bdist_rpm": {

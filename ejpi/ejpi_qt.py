@@ -15,6 +15,7 @@ QtGui = qt_compat.import_module("QtGui")
 
 import constants
 from util import misc as misc_utils
+from util import linux as linux_utils
 
 from util import qui_utils
 from util import qwrappers
@@ -37,8 +38,11 @@ class Calculator(qwrappers.ApplicationWrapper):
 		qwrappers.ApplicationWrapper.__init__(self, app, constants)
 
 	def load_settings(self):
+		settingsPath = linux_utils.get_resource_path(
+			"config", constants.__app_name__, "settings.json"
+		)
 		try:
-			with open(constants._user_settings_, "r") as settingsFile:
+			with open(settingsPath) as settingsFile:
 				settings = simplejson.load(settingsFile)
 		except IOError, e:
 			_moduleLogger.info("No settings")
@@ -56,7 +60,11 @@ class Calculator(qwrappers.ApplicationWrapper):
 			"isFullScreen": self._fullscreenAction.isChecked(),
 			"isPortrait": self._orientationAction.isChecked(),
 		}
-		with open(constants._user_settings_, "w") as settingsFile:
+
+		settingsPath = linux_utils.get_resource_path(
+			"config", constants.__app_name__, "settings.json"
+		)
+		with open(settingsPath, "w") as settingsFile:
 			simplejson.dump(settings, settingsFile)
 
 	@property
@@ -129,7 +137,7 @@ class MainWindow(qwrappers.WindowWrapper):
 		os.path.join(os.path.dirname(__file__), "plugins/"),
 	]
 
-	_user_history = "%s/history.stack" % constants._data_path_
+	_user_history = linux_utils.get_resource_path("config", constants.__app_name__, "history.stack")
 
 	def __init__(self, parent, app):
 		qwrappers.WindowWrapper.__init__(self, parent, app)
@@ -352,14 +360,25 @@ class MainWindow(qwrappers.WindowWrapper):
 
 def run():
 	try:
-		os.makedirs(constants._data_path_)
+		os.makedirs(linux_utils.get_resource_path("config", constants.__app_name__))
+	except OSError, e:
+		if e.errno != 17:
+			raise
+	try:
+		os.makedirs(linux_utils.get_resource_path("cache", constants.__app_name__))
+	except OSError, e:
+		if e.errno != 17:
+			raise
+	try:
+		os.makedirs(linux_utils.get_resource_path("data", constants.__app_name__))
 	except OSError, e:
 		if e.errno != 17:
 			raise
 
+	logPath = linux_utils.get_resource_path("cache", constants.__app_name__, "%s.log" % constants.__app_name__)
 	logFormat = '(%(relativeCreated)5d) %(levelname)-5s %(threadName)s.%(name)s.%(funcName)s: %(message)s'
 	logging.basicConfig(level=logging.DEBUG, format=logFormat)
-	rotating = logging.handlers.RotatingFileHandler(constants._user_logpath_, maxBytes=512*1024, backupCount=1)
+	rotating = logging.handlers.RotatingFileHandler(logPath, maxBytes=512*1024, backupCount=1)
 	rotating.setFormatter(logging.Formatter(logFormat))
 	root = logging.getLogger()
 	root.addHandler(rotating)
