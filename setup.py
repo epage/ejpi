@@ -37,7 +37,8 @@ ICON_CATEGORY="apps"
 ICON_SIZES=[32,48]
 #[[[end]]] (checksum: fb3742cf699ff6d0e1aab0ec61d503e7)
 
-CHANGES = """Switching from py2deb.py to sdist_maemo
+CHANGES = """* Support for PySide
+* XDG Support
 """.strip()
 BUGTRACKER_URL = "https://bugs.maemo.org/enter_bug.cgi?product=ejpi"
 
