@@ -4,7 +4,11 @@
 from __future__ import with_statement
 
 import os
-import simplejson
+try:
+	import json as simplejson
+except ImportError:
+	print "json not available, falling back to simplejson"
+	import simplejson
 import string
 import logging
 import logging.handlers
