@@ -55,7 +55,7 @@ package: $(OBJ) $(ICONS) $(SETUP_FILES) $(DESKTOP_FILES)
 		-d $(DIST_BASE_PATH)_fremantle \
 		--install-purelib=/usr/lib/python2.5/site-packages
 	./setup.harmattan.py sdist_harmattan \
-		-d $(DIST_BASE_PATH)_harmattan
+		-d $(DIST_BASE_PATH)_harmattan \
 		--install-purelib=/usr/lib/python2.6/dist-packages
 	./setup.ubuntu.py sdist_ubuntu \
 		-d $(DIST_BASE_PATH)_ubuntu
