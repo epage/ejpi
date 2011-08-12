@@ -46,28 +46,43 @@ debug: $(OBJ)
 test: $(OBJ)
 	$(UNIT_TEST)
 
-package: $(OBJ) $(ICONS) $(SETUP_FILES) $(DESKTOP_FILES)
-	rm -Rf $(DIST_BASE_PATH)_*/*
+_package_prep: $(OBJ) $(ICONS) $(SETUP_FILES) $(DESKTOP_FILES)
+
+package_diablo: _package_prep
+	rm -Rf $(DIST_BASE_PATH)_diablo/*
 	./setup.fremantle.py sdist_diablo \
 		-d $(DIST_BASE_PATH)_diablo \
 		--install-purelib=/usr/lib/python2.5/site-packages
+package_fremantle: _package_prep
+	rm -Rf $(DIST_BASE_PATH)_fremantle/*
 	./setup.fremantle.py sdist_fremantle \
 		-d $(DIST_BASE_PATH)_fremantle \
 		--install-purelib=/usr/lib/python2.5/site-packages
+package_harmattan: _package_prep
+	rm -Rf $(DIST_BASE_PATH)_harmattan/*
 	./setup.harmattan.py sdist_harmattan \
 		-d $(DIST_BASE_PATH)_harmattan \
 		--install-purelib=/usr/lib/python2.6/dist-packages
+package_ubuntu: _package_prep
+	rm -Rf $(DIST_BASE_PATH)_ubuntu/*
 	./setup.ubuntu.py sdist_ubuntu \
 		-d $(DIST_BASE_PATH)_ubuntu
 	mkdir $(DIST_BASE_PATH)_ubuntu/build
 	cd $(DIST_BASE_PATH)_ubuntu/build ; tar -zxvf ../*.tar.gz
 	cd $(DIST_BASE_PATH)_ubuntu/build ; dpkg-buildpackage -tc -rfakeroot -us -uc
 
-upload:
+package: package_diablo package_fremantle package_harmattan package_ubuntu
+
+upload_diablo:
 	dput diablo-extras-builder $(DIST_BASE_PATH)_diablo/$(PROJECT_NAME)*.changes
+upload_fremantle:
 	dput fremantle-extras-builder $(DIST_BASE_PATH)_fremantle/$(PROJECT_NAME)*.changes
+upload_harmattan:
 	./support/obs_upload.sh $(PROJECT_NAME) harmattan dist_harmattan
+upload_ubuntu:
 	cp $(DIST_BASE_PATH)_ubuntu/*.deb www/$(PROJECT_NAME).deb
+
+upload: upload_diablo upload_fremantle upload_harmattan upload_ubuntu
 
 lint: $(OBJ)
 	$(foreach file, $(SOURCE), $(LINT) $(file) ; )
