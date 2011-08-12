@@ -66,6 +66,7 @@ package: $(OBJ) $(ICONS) $(SETUP_FILES) $(DESKTOP_FILES)
 upload:
 	dput diablo-extras-builder $(DIST_BASE_PATH)_diablo/$(PROJECT_NAME)*.changes
 	dput fremantle-extras-builder $(DIST_BASE_PATH)_fremantle/$(PROJECT_NAME)*.changes
+	./support/obs_upload.sh $(PROJECT_NAME) harmattan dist_harmattan
 	cp $(DIST_BASE_PATH)_ubuntu/*.deb www/$(PROJECT_NAME).deb
 
 lint: $(OBJ)
