@@ -127,7 +127,7 @@ setup(
 			"copyright": "lgpl",
 			"changelog": CHANGES,
 			"buildversion": str(BUILD),
-			"depends": "python2.5, python2.5-qt4-core, python2.5-qt4-gui, python-xdg",
+			"depends": "python2.5, python2.5-qt4-core, python2.5-qt4-gui, python-xdg, python-simplejson",
 			"architecture": "any",
 		},
 		"sdist_fremantle": {
@@ -141,7 +141,7 @@ setup(
 			"changelog": CHANGES,
 			"buildversion": str(BUILD),
 			#"depends": "python2.5, python2.5-qt4-core, python2.5-qt4-gui, python2.5-qt4-maemo5, python-xdg",
-			"depends": "python, python-pyside.qtcore, python-pyside.qtgui, python-pyside.qtmaemo5, python-xdg",
+			"depends": "python, python-pyside.qtcore, python-pyside.qtgui, python-pyside.qtmaemo5, python-xdg, python-simplejson",
 			"architecture": "any",
 		},
 		"sdist_harmattan": {
