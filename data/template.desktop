@@ -13,7 +13,7 @@ Comment=RPN Calculator
 #		raise RuntimeError("Unsupported desktop file flavor %r" % PROGRAM)
 #
 #	if VARIANT == "harmattan":
-#		cog.outl("Icon=/usr/share/icons/apps/64x64/%s.png" % ICON_NAME)
+#		cog.outl("Icon=/usr/share/icons/apps/80x80/%s.png" % ICON_NAME)
 #	else:
 #		cog.outl("Icon=%s" % ICON_NAME)
 #]]]
