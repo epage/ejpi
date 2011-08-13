@@ -95,7 +95,7 @@ clean:
 	rm -Rf $(OBJ)
 	rm -Rf $(TODO_FILE)
 	rm -f $(ICONS) $(SETUP_FILES) $(DESKTOP_FILES)
-	rm -Rf $(DIST_PATHS)
+	rm -Rf $(DIST_PATHS) ./build
 
 distclean: clean
 	find $(SOURCE_PATH) -name "*.*~" | xargs rm -f
