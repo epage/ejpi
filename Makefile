@@ -144,6 +144,7 @@ $(DESKTOP_FILES): data/template.desktop
 	cog.py -d \
 		-D VARIANT=$(VARIANT) \
 		-D PROGRAM=$(PROGRAM) \
+		-D ICON_NAME=$(PROJECT_NAME) \
 		-o $@ $<
 
 
